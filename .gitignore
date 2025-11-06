@@ -1,0 +1,34 @@
+# Dependencies
+node_modules
+
+# Build outputs
+.next/
+apps/web/.next/
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+apps/web/tsconfig.tsbuildinfo
+
+# Testing/coverage
+coverage/
+
+# Env files
+.env.local
+.env.*.local
+
+# Tooling caches
+.turbo/
+.eslintcache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Exclure des dépôts Git imbriqués non suivis
+IKASSO-PROJECT/
+IKASSO/
