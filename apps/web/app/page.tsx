@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useState } from 'react'
 import Image from 'next/image'
@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Search, MapPin, Calendar, Users, Star, Heart, Menu, X } from 'lucide-react'
 import Logo from './components/Logo'
 
-// Types
 interface Property {
   id: string
   title: string
@@ -19,11 +18,10 @@ interface Property {
   amenities: string[]
 }
 
-// Sample data
 const sampleProperties: Property[] = [
   {
     id: '1',
-    title: 'Villa Moderne ÃƒÂ  Bamako',
+    title: 'Villa Moderne à Bamako',
     location: 'Bamako, Mali',
     price: 25000,
     rating: 4.8,
@@ -34,7 +32,7 @@ const sampleProperties: Property[] = [
   },
   {
     id: '2',
-    title: 'HÃƒÂ´tel Le Diplomate',
+    title: 'Hôtel Le Diplomate',
     location: 'Sikasso, Mali',
     price: 35000,
     rating: 4.6,
@@ -52,22 +50,22 @@ const sampleProperties: Property[] = [
     reviews: 32,
     image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
     type: 'maison',
-    amenities: ['Vue panoramique', 'Cuisine ÃƒÂ©quipÃƒÂ©e', 'Terrasse']
+    amenities: ['Vue panoramique', 'Cuisine équipée', 'Terrasse']
   },
   {
     id: '4',
     title: 'Appartement Centre-ville',
-    location: 'SÃƒÂ©gou, Mali',
+    location: 'Ségou, Mali',
     price: 20000,
     rating: 4.5,
     reviews: 15,
     image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
     type: 'appartement',
-    amenities: ['WiFi', 'Climatisation', 'Balcon', 'Proche marchÃƒÂ©']
+    amenities: ['WiFi', 'Climatisation', 'Balcon', 'Proche marché']
   }
 ]
 
-const cities = ['Bamako', 'Sikasso', 'SÃƒÂ©gou', 'Mopti', 'Tombouctou', 'Kayes', 'Koutiala', 'Gao']
+const cities = ['Bamako', 'Sikasso', 'Ségou', 'Mopti', 'Tombouctou', 'Kayes', 'Koutiala', 'Gao']
 
 export default function HomePage() {
   const [searchLocation, setSearchLocation] = useState('')
@@ -78,20 +76,17 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState<string[]>([])
 
   const toggleFavorite = (propertyId: string) => {
-    setFavorites(prev => 
-      prev.includes(propertyId) 
-        ? prev.filter(id => id !== propertyId)
-        : [...prev, propertyId]
+    setFavorites(prev => prev.includes(propertyId)
+      ? prev.filter(id => id !== propertyId)
+      : [...prev, propertyId]
     )
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
+  const formatPrice = (price: number) => new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    minimumFractionDigits: 0,
+  }).format(price)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,7 +99,7 @@ export default function HomePage() {
                 <Logo size="md" />
               </Link>
             </div>
-            
+
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>
@@ -115,16 +110,12 @@ export default function HomePage() {
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
-
               <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">Connexion</Link>
               <Link href="/auth/register" className="btn-primary">Inscription</Link>
             </div>
 
             {/* Mobile menu button */}
-            <button 
-              className="md:hidden"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -140,7 +131,6 @@ export default function HomePage() {
               <Link href="/pricing" className="block px-3 py-2 text-gray-700">Tarifs</Link>
               <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
               <div className="border-t pt-2">
-
                 <Link href="/auth/login" className="block px-3 py-2 text-gray-700">Connexion</Link>
                 <Link href="/auth/register" className="block px-3 py-2 text-primary-600 font-medium">Inscription</Link>
               </div>
@@ -154,11 +144,9 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              Bienvenue chez toi au Mali
-            </h2>
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">Bienvenue chez toi au Mali</h2>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              Découvrez des hébergements authentiques et confortables dans tout le Mali. 
+              Découvrez des hébergements authentiques et confortables dans tout le Mali.
               Des hôtels modernes aux maisons traditionnelles.
             </p>
           </div>
@@ -170,42 +158,26 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <select 
-                    className="input-field pl-10"
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                  >
+                  <select className="input-field pl-10" value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}>
                     <option value="">Choisir une ville</option>
-                    {cities.map(city => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
+                    {cities.map(city => (<option key={city} value={city}>{city}</option>))}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ArrivÃƒÂ©e</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Arrivée</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input 
-                    type="date" 
-                    className="input-field pl-10"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                  />
+                  <input type="date" className="input-field pl-10" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">DÃƒÂ©part</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Départ</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input 
-                    type="date" 
-                    className="input-field pl-10"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                  />
+                  <input type="date" className="input-field pl-10" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
                 </div>
               </div>
 
@@ -213,11 +185,7 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Voyageurs</label>
                 <div className="relative">
                   <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <select 
-                    className="input-field pl-10"
-                    value={guests}
-                    onChange={(e) => setGuests(Number(e.target.value))}
-                  >
+                  <select className="input-field pl-10" value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
                     {[1,2,3,4,5,6,7,8].map(num => (
                       <option key={num} value={num}>{num} {num === 1 ? 'voyageur' : 'voyageurs'}</option>
                     ))}
@@ -237,8 +205,8 @@ export default function HomePage() {
       {/* Featured Properties */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">HÃƒÂ©bergements populaires</h3>
-          <p className="text-lg text-gray-600">DÃƒÂ©couvrez nos hÃƒÂ©bergements les mieux notÃƒÂ©s au Mali</p>
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">Hébergements populaires</h3>
+          <p className="text-lg text-gray-600">Découvrez nos hébergements les mieux notés au Mali</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -246,29 +214,16 @@ export default function HomePage() {
             <div key={property.id} className="card overflow-hidden">
               <div className="relative">
                 <Link href={`/property/${property.id}`}>
-                  <Image 
-                    src={property.image} 
-                    alt={property.title}
-                    width={600}
-                    height={400}
-                    className="w-full h-48 object-cover hover:scale-105 transition-transform duration-200"
-                  />
+                  <Image src={property.image} alt={property.title} width={600} height={400} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-200" />
                 </Link>
-                <button 
-                  onClick={() => toggleFavorite(property.id)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <Heart 
-                    className={`h-4 w-4 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
-                  />
+                <button onClick={() => toggleFavorite(property.id)} className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
+                  <Heart className={`h-4 w-4 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                 </button>
                 <div className="absolute top-3 left-3">
-                  <span className="bg-primary-500 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
-                    {property.type}
-                  </span>
+                  <span className="bg-primary-500 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">{property.type}</span>
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <Link href={`/property/${property.id}`}>
@@ -279,35 +234,27 @@ export default function HomePage() {
                     <span className="ml-1 text-sm text-gray-600">{property.rating}</span>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-600 text-sm mb-2 flex items-center">
                   <MapPin className="h-4 w-4 mr-1" />
                   {property.location}
                 </p>
-                
+
                 <div className="flex flex-wrap gap-1 mb-3">
                   {property.amenities.slice(0, 2).map((amenity, index) => (
-                    <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                      {amenity}
-                    </span>
+                    <span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">{amenity}</span>
                   ))}
                   {property.amenities.length > 2 && (
-                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                      +{property.amenities.length - 2}
-                    </span>
+                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">+{property.amenities.length - 2}</span>
                   )}
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-lg font-bold text-gray-900">
-                      {formatPrice(property.price)}
-                    </span>
+                    <span className="text-lg font-bold text-gray-900">{formatPrice(property.price)}</span>
                     <span className="text-gray-600 text-sm">/nuit</span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {property.reviews} avis
-                  </span>
+                  <span className="text-sm text-gray-500">{property.reviews} avis</span>
                 </div>
               </div>
             </div>
@@ -320,7 +267,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Pourquoi choisir Ikasso ?</h3>
-            <p className="text-lg text-gray-600">Votre plateforme de confiance pour l'hÃƒÂ©bergement au Mali</p>
+            <p className="text-lg text-gray-600">Votre plateforme de confiance pour l'hébergement au Mali</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -329,15 +276,15 @@ export default function HomePage() {
                 <MapPin className="h-8 w-8 text-primary-600" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Partout au Mali</h4>
-              <p className="text-gray-600">Des hÃƒÂ©bergements dans toutes les rÃƒÂ©gions du Mali, des grandes villes aux villages authentiques.</p>
+              <p className="text-gray-600">Des hébergements dans toutes les régions du Mali, des grandes villes aux villages authentiques.</p>
             </div>
 
             <div className="text-center">
               <div className="bg-secondary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="h-8 w-8 text-secondary-600" />
               </div>
-              <h4 className="text-xl font-semibold mb-2">QualitÃƒÂ© garantie</h4>
-              <p className="text-gray-600">Tous nos hÃƒÂ©bergements sont vÃƒÂ©rifiÃƒÂ©s et notÃƒÂ©s par notre communautÃƒÂ© de voyageurs.</p>
+              <h4 className="text-xl font-semibold mb-2">Qualité garantie</h4>
+              <p className="text-gray-600">Tous nos hébergements sont vérifiés et notés par notre communauté de voyageurs.</p>
             </div>
 
             <div className="text-center">
@@ -345,7 +292,7 @@ export default function HomePage() {
                 <Heart className="h-8 w-8 text-primary-600" />
               </div>
               <h4 className="text-xl font-semibold mb-2">Accueil chaleureux</h4>
-              <p className="text-gray-600">DÃƒÂ©couvrez l'hospitalitÃƒÂ© malienne avec des hÃƒÂ´tes passionnÃƒÂ©s par leur rÃƒÂ©gion.</p>
+              <p className="text-gray-600">Découvrez l'hospitalité malienne avec des hôtes passionnés par leur région.</p>
             </div>
           </div>
         </div>
@@ -357,7 +304,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h5 className="text-xl font-bold mb-4">Ikasso</h5>
-              <p className="text-gray-400 mb-4">Votre plateforme de rÃƒÂ©servation d'hÃƒÂ©bergements au Mali.</p>
+              <p className="text-gray-400 mb-4">Votre plateforme de réservation d'hébergements au Mali.</p>
               <p className="text-gray-400">"Chez toi" en bambara</p>
             </div>
 
@@ -366,7 +313,7 @@ export default function HomePage() {
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/search" className="hover:text-white">Bamako</Link></li>
                 <li><Link href="/search" className="hover:text-white">Sikasso</Link></li>
-                <li><Link href="/search" className="hover:text-white">SÃƒÂ©gou</Link></li>
+                <li><Link href="/search" className="hover:text-white">Ségou</Link></li>
                 <li><Link href="/search" className="hover:text-white">Mopti</Link></li>
               </ul>
             </div>
@@ -377,29 +324,27 @@ export default function HomePage() {
                 <li><Link href="/help" className="hover:text-white">Centre d'aide</Link></li>
                 <li><Link href="/contact" className="hover:text-white">Nous contacter</Link></li>
                 <li><a href="#" className="hover:text-white">Conditions d'utilisation</a></li>
-                <li><a href="#" className="hover:text-white">ConfidentialitÃƒÂ©</a></li>
+                <li><a href="#" className="hover:text-white">Confidentialité</a></li>
               </ul>
             </div>
 
             <div>
-              <h6 className="font-semibold mb-4">HÃƒÂ´tes</h6>
+              <h6 className="font-semibold mb-4">Hôtes</h6>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Devenir hÃƒÂ´te</a></li>
-                <li><a href="#" className="hover:text-white">Guide de l'hÃƒÂ´te</a></li>
+                <li><a href="#" className="hover:text-white">Devenir hôte</a></li>
+                <li><a href="#" className="hover:text-white">Guide de l'hôte</a></li>
                 <li><a href="#" className="hover:text-white">Centre de ressources</a></li>
-                <li><a href="#" className="hover:text-white">CommunautÃƒÂ©</a></li>
+                <li><a href="#" className="hover:text-white">Communauté</a></li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Ikasso. Tous droits r\\u00e9serv\\u00e9s. Fait avec \\u2764\\ufe0f pour le Mali.</p>
+            <p>&copy; 2024 Ikasso. Tous droits réservés. Fait avec ❤️ pour le Mali.</p>
           </div>
         </div>
       </footer>
     </div>
   )
 }
-
-
 
