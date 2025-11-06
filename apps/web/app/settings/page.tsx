@@ -18,7 +18,7 @@ export default function SettingsPage() {
     lastName: 'Diallo',
     email: 'amadou.diallo@email.com',
     phone: '+223 70 12 34 56',
-    bio: 'Voyageur passionnÃ© qui aime dÃ©couvrir de nouveaux endroits au Mali et partager des expÃ©riences authentiques.',
+    bio: 'Voyageur passionné qui aime découvrir de nouveaux endroits au Mali et partager des expériences authentiques.',
     location: 'Bamako, Mali',
     dateOfBirth: '1990-05-15',
     language: 'fr'
@@ -77,9 +77,9 @@ export default function SettingsPage() {
       const res = await fetch('/api/nina/verify', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nina, fullName: `${profileData.firstName} ${profileData.lastName}`, dob }) })
       const data = await res.json()
       setNinaVerified(!!data.verified)
-      setNinaMessage(data.message || (data.verified ? 'IdentitÃ© vÃ©rifiÃ©e.' : 'Format valide. VÃ©rification externe requise.'))
+      setNinaMessage(data.message || (data.verified ? 'Identité vérifiée.' : 'Format valide. Vérification externe requise.'))
     } catch {
-      setNinaMessage('Erreur de vÃ©rification, rÃ©essayez plus tard.')
+      setNinaMessage('Erreur de vérification, réessayez plus tard.')
     } finally {
       setNinaChecking(false)
     }
@@ -91,26 +91,26 @@ export default function SettingsPage() {
     } catch {}
     try {
       await fetch('/api/nina/store', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: profileData.email, nina, dob, verified: ninaVerified }) })
-      alert('NINA enregistrÃ©')
+      alert('NINA enregistré')
     } catch {
-      alert('Impossible dâ€™enregistrer pour le moment (rÃ©seau local uniquement).')
+      alert('Impossible dâ€™enregistrer pour le moment (réseau local uniquement).')
     }
   }
 
   const tabs = [
     { id: 'profile', name: 'Profil', icon: User },
-    { id: 'security', name: 'SÃ©curitÃ©', icon: Shield },
+    { id: 'security', name: 'Sécurité', icon: Shield },
     { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'privacy', name: 'ConfidentialitÃ©', icon: Eye },
+    { id: 'privacy', name: 'Confidentialité', icon: Eye },
     { id: 'payments', name: 'Paiements', icon: CreditCard },
-    { id: 'preferences', name: 'PrÃ©fÃ©rences', icon: Globe }
+    { id: 'preferences', name: 'Préférences', icon: Globe }
   ]
 
   const handleProfileUpdate = () => {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      alert('Profil mis Ã  jour avec succÃ¨s !')
+      alert('Profil mis à jour avec succès !')
     }, 2000)
   }
 
@@ -120,14 +120,14 @@ export default function SettingsPage() {
       return
     }
     if (passwordData.newPassword.length < 8) {
-      alert('Le nouveau mot de passe doit contenir au moins 8 caractÃ¨res')
+      alert('Le nouveau mot de passe doit contenir au moins 8 caractères')
       return
     }
     
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      alert('Mot de passe modifiÃ© avec succÃ¨s !')
+      alert('Mot de passe modifié avec succès !')
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     }, 2000)
   }
@@ -136,7 +136,7 @@ export default function SettingsPage() {
     setIsLoading(true)
     setTimeout(() => {
       setIsLoading(false)
-      alert('PrÃ©fÃ©rences de notification mises Ã  jour !')
+      alert('Préférences de notification mises à jour !')
     }, 1000)
   }
 
@@ -169,8 +169,8 @@ export default function SettingsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">ParamÃ¨tres du compte</h1>
-          <p className="text-gray-600 mt-2">GÃ©rez vos informations personnelles et prÃ©fÃ©rences</p>
+          <h1 className="text-3xl font-bold text-gray-900">Paramètres du compte</h1>
+          <p className="text-gray-600 mt-2">Gérez vos informations personnelles et préférences</p>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
@@ -229,7 +229,7 @@ export default function SettingsPage() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">PrÃ©nom</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
                       <input
                         type="text"
                         className="input-field"
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TÃ©lÃ©phone</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
                       <input
                         type="tel"
                         className="input-field"
@@ -321,13 +321,13 @@ export default function SettingsPage() {
               {/* Security Tab */}
               {activeTab === 'security' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">SÃ©curitÃ©</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Sécurité</h2>
                   
                   <div className="p-4 border rounded-lg bg-gray-50">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">VÃ©rification d'identitÃ© (NINA - Mali)</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Vérification d'identité (NINA - Mali)</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">NumÃ©ro NINA</label>
+                        <label className="block text-sm font-medium text-gray-700">Numéro NINA</label>
                         <input
                           type="text"
                           className="input-field"
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                         disabled={ninaChecking || !isValidNinaFormat(nina)}
                         className="px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
                       >
-                        {ninaChecking ? 'VÃ©rificationâ€¦' : 'VÃ©rifier NINA'}
+                        {ninaChecking ? 'Vérificationâ€¦' : 'Vérifier NINA'}
                       </button>
                       <button
                         type="button"
@@ -370,7 +370,7 @@ export default function SettingsPage() {
                         <span className={`text-sm ${ninaVerified ? 'text-green-700' : 'text-gray-700'}`}>{ninaMessage}</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Note: stockage local et mÃ©moire serveur de dÃ©monstration. PrÃ©voir un stockage sÃ©curisÃ© cÃ´tÃ© serveur en production.</p>
+                    <p className="text-xs text-gray-500 mt-2">Note: stockage local et mémoire serveur de démonstration. Prévoir un stockage sécurisé côté serveur en production.</p>
                   </div>
                   <div className="space-y-6">
                     <div>
@@ -433,7 +433,7 @@ export default function SettingsPage() {
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-medium text-gray-900 mb-2">Exigences du mot de passe :</h4>
                       <ul className="text-sm text-gray-600 space-y-1">
-                        <li>â€¢ Au moins 8 caractÃ¨res</li>
+                        <li>â€¢ Au moins 8 caractères</li>
                         <li>â€¢ Au moins une lettre majuscule</li>
                         <li>â€¢ Au moins une lettre minuscule</li>
                         <li>â€¢ Au moins un chiffre</li>
@@ -459,7 +459,7 @@ export default function SettingsPage() {
               {/* Notifications Tab */}
               {activeTab === 'notifications' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">PrÃ©fÃ©rences de notification</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Préférences de notification</h2>
                   
                   <div className="space-y-8">
                     <div>
@@ -472,7 +472,7 @@ export default function SettingsPage() {
                             checked={notificationSettings.emailBookings}
                             onChange={(e) => setNotificationSettings({...notificationSettings, emailBookings: e.target.checked})}
                           />
-                          <span className="ml-3 text-gray-700">Confirmations et mises Ã  jour de rÃ©servation</span>
+                          <span className="ml-3 text-gray-700">Confirmations et mises à jour de réservation</span>
                         </label>
                         
                         <label className="flex items-center">
@@ -492,7 +492,7 @@ export default function SettingsPage() {
                             checked={notificationSettings.emailPromotions}
                             onChange={(e) => setNotificationSettings({...notificationSettings, emailPromotions: e.target.checked})}
                           />
-                          <span className="ml-3 text-gray-700">Offres promotionnelles et actualitÃ©s</span>
+                          <span className="ml-3 text-gray-700">Offres promotionnelles et actualités</span>
                         </label>
                       </div>
                     </div>
@@ -507,7 +507,7 @@ export default function SettingsPage() {
                             checked={notificationSettings.smsBookings}
                             onChange={(e) => setNotificationSettings({...notificationSettings, smsBookings: e.target.checked})}
                           />
-                          <span className="ml-3 text-gray-700">Confirmations de rÃ©servation urgentes</span>
+                          <span className="ml-3 text-gray-700">Confirmations de réservation urgentes</span>
                         </label>
                         
                         <label className="flex items-center">
@@ -545,7 +545,7 @@ export default function SettingsPage() {
                       ) : (
                         <Bell className="h-4 w-4 mr-2" />
                       )}
-                      Sauvegarder les prÃ©fÃ©rences
+                      Sauvegarder les préférences
                     </button>
                   </div>
                 </div>
@@ -554,11 +554,11 @@ export default function SettingsPage() {
               {/* Privacy Tab */}
               {activeTab === 'privacy' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">ConfidentialitÃ©</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Confidentialité</h2>
                   
                   <div className="space-y-8">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-4">VisibilitÃ© du profil</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Visibilité du profil</h3>
                       <div className="space-y-3">
                         <label className="flex items-center">
                           <input
@@ -581,7 +581,7 @@ export default function SettingsPage() {
                             checked={privacySettings.profileVisibility === 'limited'}
                             onChange={(e) => setPrivacySettings({...privacySettings, profileVisibility: e.target.value})}
                           />
-                          <span className="ml-3 text-gray-700">LimitÃ© - Visible uniquement par vos contacts</span>
+                          <span className="ml-3 text-gray-700">Limité - Visible uniquement par vos contacts</span>
                         </label>
                         
                         <label className="flex items-center">
@@ -593,7 +593,7 @@ export default function SettingsPage() {
                             checked={privacySettings.profileVisibility === 'private'}
                             onChange={(e) => setPrivacySettings({...privacySettings, profileVisibility: e.target.value})}
                           />
-                          <span className="ml-3 text-gray-700">PrivÃ© - Profil masquÃ©</span>
+                          <span className="ml-3 text-gray-700">Privé - Profil masqué</span>
                         </label>
                       </div>
                     </div>
@@ -618,7 +618,7 @@ export default function SettingsPage() {
                             checked={privacySettings.showPhone}
                             onChange={(e) => setPrivacySettings({...privacySettings, showPhone: e.target.checked})}
                           />
-                          <span className="ml-3 text-gray-700">Afficher mon tÃ©lÃ©phone sur mon profil</span>
+                          <span className="ml-3 text-gray-700">Afficher mon téléphone sur mon profil</span>
                         </label>
                       </div>
                     </div>
@@ -653,7 +653,7 @@ export default function SettingsPage() {
                         setIsLoading(true)
                         setTimeout(() => {
                           setIsLoading(false)
-                          alert('ParamÃ¨tres de confidentialitÃ© mis Ã  jour !')
+                          alert('Paramètres de confidentialité mis à jour !')
                         }, 1000)
                       }}
                       disabled={isLoading}
@@ -664,7 +664,7 @@ export default function SettingsPage() {
                       ) : (
                         <Shield className="h-4 w-4 mr-2" />
                       )}
-                      Sauvegarder les paramÃ¨tres
+                      Sauvegarder les paramètres
                     </button>
                   </div>
                 </div>
@@ -688,7 +688,7 @@ export default function SettingsPage() {
                           </div>
                         </div>
                         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                          VÃ©rifiÃ©
+                          Vérifié
                         </span>
                       </div>
                     </div>
@@ -722,7 +722,7 @@ export default function SettingsPage() {
               {/* Preferences Tab */}
               {activeTab === 'preferences' && (
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">PrÃ©fÃ©rences</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Préférences</h2>
                   
                   <div className="space-y-8">
                     <div>
@@ -732,7 +732,7 @@ export default function SettingsPage() {
                         value={profileData.language}
                         onChange={(e) => setProfileData({...profileData, language: e.target.value})}
                       >
-                        <option value="fr">FranÃ§ais</option>
+                        <option value="fr">Français</option>
                         <option value="en">English</option>
                         <option value="bm">Bambara</option>
                       </select>
@@ -761,7 +761,7 @@ export default function SettingsPage() {
                         setIsLoading(true)
                         setTimeout(() => {
                           setIsLoading(false)
-                          alert('PrÃ©fÃ©rences mises Ã  jour !')
+                          alert('Préférences mises à jour !')
                         }, 1000)
                       }}
                       disabled={isLoading}
@@ -772,7 +772,7 @@ export default function SettingsPage() {
                       ) : (
                         <Globe className="h-4 w-4 mr-2" />
                       )}
-                      Sauvegarder les prÃ©fÃ©rences
+                      Sauvegarder les préférences
                     </button>
                   </div>
                 </div>

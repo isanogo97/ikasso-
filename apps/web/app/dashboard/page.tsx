@@ -53,7 +53,7 @@ export default function TravelerDashboard() {
     {
       id: '1',
       property: {
-        name: 'Villa Moderne Ã  Bamako',
+        name: 'Villa Moderne à Bamako',
         location: 'Bamako, Mali',
         image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300'
       },
@@ -66,7 +66,7 @@ export default function TravelerDashboard() {
     {
       id: '2',
       property: {
-        name: 'HÃ´tel Le Diplomate',
+        name: 'Hôtel Le Diplomate',
         location: 'Sikasso, Mali',
         image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300'
       },
@@ -90,7 +90,7 @@ export default function TravelerDashboard() {
     {
       id: '2',
       name: 'Appartement Centre-ville',
-      location: 'SÃ©gou, Mali',
+      location: 'Ségou, Mali',
       image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=300',
       price: 20000,
       rating: 4.5
@@ -123,13 +123,13 @@ export default function TravelerDashboard() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'ConfirmÃ©e'
+        return 'Confirmée'
       case 'pending':
         return 'En attente'
       case 'cancelled':
-        return 'AnnulÃ©e'
+        return 'Annulée'
       case 'completed':
-        return 'TerminÃ©e'
+        return 'Terminée'
       default:
         return 'Inconnue'
     }
@@ -137,12 +137,12 @@ export default function TravelerDashboard() {
 
   const menuItems = [
     { id: 'overview', label: 'Vue d\'ensemble', icon: BookOpen },
-    { id: 'bookings', label: 'Mes rÃ©servations', icon: Calendar },
+    { id: 'bookings', label: 'Mes réservations', icon: Calendar },
     { id: 'favorites', label: 'Mes favoris', icon: Heart },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
     { id: 'payments', label: 'Paiements', icon: CreditCard },
     { id: 'profile', label: 'Profil', icon: User },
-    { id: 'settings', label: 'ParamÃ¨tres', icon: Settings },
+    { id: 'settings', label: 'Paramètres', icon: Settings },
   ]
 
   return (
@@ -222,7 +222,7 @@ export default function TravelerDashboard() {
               <div className="mt-6 pt-6 border-t">
                 <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md">
                   <LogOut className="h-4 w-4 mr-3" />
-                  DÃ©connexion
+                  Déconnexion
                 </button>
               </div>
             </div>
@@ -243,7 +243,7 @@ export default function TravelerDashboard() {
                     <div className="flex items-center">
                       <Calendar className="h-8 w-8 text-primary-600" />
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">RÃ©servations totales</p>
+                        <p className="text-sm font-medium text-gray-600">Réservations totales</p>
                         <p className="text-2xl font-bold text-gray-900">{user.totalBookings}</p>
                       </div>
                     </div>
@@ -253,7 +253,7 @@ export default function TravelerDashboard() {
                     <div className="flex items-center">
                       <CreditCard className="h-8 w-8 text-green-600" />
                       <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Total dÃ©pensÃ©</p>
+                        <p className="text-sm font-medium text-gray-600">Total dépensé</p>
                         <p className="text-2xl font-bold text-gray-900">{formatPrice(user.totalSpent)}</p>
                       </div>
                     </div>
@@ -272,7 +272,7 @@ export default function TravelerDashboard() {
 
                 {/* Recent Bookings */}
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">RÃ©servations rÃ©centes</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Réservations récentes</h2>
                   <div className="space-y-4">
                     {bookings.slice(0, 2).map((booking) => (
                       <div key={booking.id} className="flex items-center space-x-4 p-4 border rounded-lg">
@@ -307,8 +307,8 @@ export default function TravelerDashboard() {
             {activeTab === 'bookings' && (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Mes rÃ©servations</h1>
-                  <p className="text-gray-600">GÃ©rez toutes vos rÃ©servations</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Mes réservations</h1>
+                  <p className="text-gray-600">Gérez toutes vos réservations</p>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md">
@@ -351,11 +351,11 @@ export default function TravelerDashboard() {
                               </div>
                               <div className="mt-4 flex space-x-3">
                                 <button className="btn-primary text-sm px-4 py-2">
-                                  Voir les dÃ©tails
+                                  Voir les détails
                                 </button>
                                 {booking.status === 'confirmed' && (
                                   <button className="btn-secondary text-sm px-4 py-2">
-                                    Contacter l'hÃ´te
+                                    Contacter l'hôte
                                   </button>
                                 )}
                               </div>
@@ -373,7 +373,7 @@ export default function TravelerDashboard() {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Mes favoris</h1>
-                  <p className="text-gray-600">Vos hÃ©bergements prÃ©fÃ©rÃ©s</p>
+                  <p className="text-gray-600">Vos hébergements préférés</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -406,7 +406,7 @@ export default function TravelerDashboard() {
                             <span className="text-gray-600 text-sm">/nuit</span>
                           </div>
                           <button className="btn-primary text-sm px-4 py-2">
-                            RÃ©server
+                            Réserver
                           </button>
                         </div>
                       </div>
@@ -420,7 +420,7 @@ export default function TravelerDashboard() {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Mon profil</h1>
-                  <p className="text-gray-600">GÃ©rez vos informations personnelles</p>
+                  <p className="text-gray-600">Gérez vos informations personnelles</p>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
@@ -446,7 +446,7 @@ export default function TravelerDashboard() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          PrÃ©nom
+                          Prénom
                         </label>
                         <input
                           type="text"
@@ -479,7 +479,7 @@ export default function TravelerDashboard() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        TÃ©lÃ©phone
+                        Téléphone
                       </label>
                       <input
                         type="tel"

@@ -32,36 +32,36 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // DonnÃ©es de dÃ©monstration
+  // Données de démonstration
   const conversations: Conversation[] = [
     {
       id: '1',
       participantId: 'fatou-keita',
       participantName: 'Fatou Keita',
       participantAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Merci pour votre rÃ©servation ! Je vous enverrai les dÃ©tails d\'accÃ¨s demain.',
+      lastMessage: 'Merci pour votre réservation ! Je vous enverrai les détails d\'accès demain.',
       lastMessageTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
       unreadCount: 2,
       isOnline: true,
-      propertyTitle: 'Villa Moderne Ã  Bamako'
+      propertyTitle: 'Villa Moderne à Bamako'
     },
     {
       id: '2',
       participantId: 'ibrahim-traore',
-      participantName: 'Ibrahim TraorÃ©',
+      participantName: 'Ibrahim Traoré',
       participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
       lastMessage: 'L\'appartement est-il disponible pour le week-end prochain ?',
       lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
       unreadCount: 0,
       isOnline: false,
-      propertyTitle: 'Appartement Centre-ville SÃ©gou'
+      propertyTitle: 'Appartement Centre-ville Ségou'
     },
     {
       id: '3',
       participantId: 'aminata-kone',
-      participantName: 'Aminata KonÃ©',
+      participantName: 'Aminata Koné',
       participantAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Parfait ! Ã€ bientÃ´t alors.',
+      lastMessage: 'Parfait ! À bientôt alors.',
       lastMessageTime: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
       unreadCount: 0,
       isOnline: true,
@@ -72,7 +72,7 @@ export default function MessagesPage() {
       participantId: 'support-ikasso',
       participantName: 'Support Ikasso',
       participantAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Votre problÃ¨me a Ã©tÃ© rÃ©solu. N\'hÃ©sitez pas si vous avez d\'autres questions !',
+      lastMessage: 'Votre problème a été résolu. N\'hésitez pas si vous avez d\'autres questions !',
       lastMessageTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
       unreadCount: 0,
       isOnline: true
@@ -85,7 +85,7 @@ export default function MessagesPage() {
         id: '1',
         senderId: 'fatou-keita',
         senderName: 'Fatou Keita',
-        content: 'Bonjour Amadou ! Merci pour votre rÃ©servation de la Villa Moderne Ã  Bamako.',
+        content: 'Bonjour Amadou ! Merci pour votre réservation de la Villa Moderne à Bamako.',
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
         read: true
       },
@@ -93,7 +93,7 @@ export default function MessagesPage() {
         id: '2',
         senderId: 'amadou-diallo',
         senderName: 'Amadou Diallo',
-        content: 'Bonjour Fatou ! Je suis trÃ¨s excitÃ© pour ce sÃ©jour. Pouvez-vous me donner quelques informations sur le quartier ?',
+        content: 'Bonjour Fatou ! Je suis très excité pour ce séjour. Pouvez-vous me donner quelques informations sur le quartier ?',
         timestamp: new Date(Date.now() - 90 * 60 * 1000),
         read: true
       },
@@ -101,7 +101,7 @@ export default function MessagesPage() {
         id: '3',
         senderId: 'fatou-keita',
         senderName: 'Fatou Keita',
-        content: 'Bien sÃ»r ! La villa se trouve dans le quartier du Fleuve, trÃ¨s calme et sÃ©curisÃ©. Il y a un supermarchÃ© Ã  5 minutes Ã  pied et plusieurs restaurants excellents.',
+        content: 'Bien sûr ! La villa se trouve dans le quartier du Fleuve, très calme et sécurisé. Il y a un supermarché à 5 minutes à pied et plusieurs restaurants excellents.',
         timestamp: new Date(Date.now() - 60 * 60 * 1000),
         read: true
       },
@@ -109,7 +109,7 @@ export default function MessagesPage() {
         id: '4',
         senderId: 'amadou-diallo',
         senderName: 'Amadou Diallo',
-        content: 'Parfait ! Et pour le transport depuis l\'aÃ©roport ?',
+        content: 'Parfait ! Et pour le transport depuis l\'aéroport ?',
         timestamp: new Date(Date.now() - 45 * 60 * 1000),
         read: true
       },
@@ -117,7 +117,7 @@ export default function MessagesPage() {
         id: '5',
         senderId: 'fatou-keita',
         senderName: 'Fatou Keita',
-        content: 'Je peux vous recommander un taxi de confiance. Comptez environ 15 000 FCFA depuis l\'aÃ©roport Modibo Keita.',
+        content: 'Je peux vous recommander un taxi de confiance. Comptez environ 15 000 FCFA depuis l\'aéroport Modibo Keita.',
         timestamp: new Date(Date.now() - 35 * 60 * 1000),
         read: true
       },
@@ -125,7 +125,7 @@ export default function MessagesPage() {
         id: '6',
         senderId: 'fatou-keita',
         senderName: 'Fatou Keita',
-        content: 'Merci pour votre rÃ©servation ! Je vous enverrai les dÃ©tails d\'accÃ¨s demain.',
+        content: 'Merci pour votre réservation ! Je vous enverrai les détails d\'accès demain.',
         timestamp: new Date(Date.now() - 30 * 60 * 1000),
         read: false
       }
@@ -134,15 +134,15 @@ export default function MessagesPage() {
       {
         id: '1',
         senderId: 'ibrahim-traore',
-        senderName: 'Ibrahim TraorÃ©',
-        content: 'Bonjour, j\'aimerais rÃ©server votre appartement Ã  SÃ©gou.',
+        senderName: 'Ibrahim Traoré',
+        content: 'Bonjour, j\'aimerais réserver votre appartement à Ségou.',
         timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
         read: true
       },
       {
         id: '2',
         senderId: 'ibrahim-traore',
-        senderName: 'Ibrahim TraorÃ©',
+        senderName: 'Ibrahim Traoré',
         content: 'L\'appartement est-il disponible pour le week-end prochain ?',
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
         read: true
@@ -161,7 +161,7 @@ export default function MessagesPage() {
   const handleSendMessage = () => {
     if (newMessage.trim() && selectedConversation) {
       // Simulation d'envoi de message
-      alert(`Message envoyÃ© : "${newMessage}"\n\nEn mode dÃ©mo, le message serait ajoutÃ© Ã  la conversation.`)
+      alert(`Message envoyé : "${newMessage}"\n\nEn mode démo, le message serait ajouté à la conversation.`)
       setNewMessage('')
     }
   }
@@ -320,13 +320,13 @@ export default function MessagesPage() {
                       
                       <div className="flex items-center space-x-2">
                         <button 
-                          onClick={() => alert('Appel vocal simulÃ© avec ' + selectedConv.participantName)}
+                          onClick={() => alert('Appel vocal simulé avec ' + selectedConv.participantName)}
                           className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                         >
                           <Phone className="h-5 w-5" />
                         </button>
                         <button 
-                          onClick={() => alert('Appel vidÃ©o simulÃ© avec ' + selectedConv.participantName)}
+                          onClick={() => alert('Appel vidéo simulé avec ' + selectedConv.participantName)}
                           className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                         >
                           <Video className="h-5 w-5" />
@@ -340,7 +340,7 @@ export default function MessagesPage() {
                     {selectedConv.propertyTitle && (
                       <div className="mt-3 p-2 bg-primary-50 rounded-lg">
                         <p className="text-sm text-primary-700">
-                          <strong>PropriÃ©tÃ© :</strong> {selectedConv.propertyTitle}
+                          <strong>Propriété :</strong> {selectedConv.propertyTitle}
                         </p>
                       </div>
                     )}
@@ -411,10 +411,10 @@ export default function MessagesPage() {
                   <div className="text-center">
                     <MessageCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      SÃ©lectionnez une conversation
+                      Sélectionnez une conversation
                     </h3>
                     <p className="text-gray-600">
-                      Choisissez une conversation dans la liste pour commencer Ã  discuter
+                      Choisissez une conversation dans la liste pour commencer à discuter
                     </p>
                   </div>
                 </div>

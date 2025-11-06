@@ -21,11 +21,11 @@ interface PropertyForm {
 
 const availableAmenities = [
   'WiFi', 'Climatisation', 'Piscine', 'Parking', 'Restaurant', 'Spa', 
-  'Salle de sport', 'Vue panoramique', 'Cuisine Ã©quipÃ©e', 'Terrasse',
-  'Balcon', 'Proche marchÃ©', 'Transport', 'SÃ©curitÃ© 24h/24'
+  'Salle de sport', 'Vue panoramique', 'Cuisine équipée', 'Terrasse',
+  'Balcon', 'Proche marché', 'Transport', 'Sécurité 24h/24'
 ]
 
-const cities = ['Bamako', 'Sikasso', 'SÃ©gou', 'Mopti', 'Tombouctou', 'Kayes', 'Koutiala', 'Gao']
+const cities = ['Bamako', 'Sikasso', 'Ségou', 'Mopti', 'Tombouctou', 'Kayes', 'Koutiala', 'Gao']
 
 export default function HostPage() {
   const [formData, setFormData] = useState<PropertyForm>({
@@ -97,8 +97,8 @@ export default function HostPage() {
   }
 
   const handleSubmit = () => {
-    console.log('DonnÃ©es du formulaire:', formData)
-    alert('Votre hÃ©bergement a Ã©tÃ© soumis avec succÃ¨s! Il sera examinÃ© par notre Ã©quipe.')
+    console.log('Données du formulaire:', formData)
+    alert('Votre hébergement a été soumis avec succès! Il sera examiné par notre équipe.')
   }
 
   const formatPrice = (price: number) => {
@@ -120,7 +120,7 @@ export default function HostPage() {
               <span className="ml-2 text-sm text-gray-500">Chez Toi</span>
             </div>
             <div className="text-sm text-gray-600">
-              Ã‰tape {currentStep} sur {totalSteps}
+              Étape {currentStep} sur {totalSteps}
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function HostPage() {
           {/* Step 1: Type et informations de base */}
           {currentStep === 1 && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Quel type d'hÃ©bergement proposez-vous ?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Quel type d'hébergement proposez-vous ?</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <button
@@ -170,8 +170,8 @@ export default function HostPage() {
                   }`}
                 >
                   <Hotel className="h-12 w-12 mx-auto mb-4 text-primary-600" />
-                  <h3 className="font-semibold mb-2">HÃ´tel</h3>
-                  <p className="text-sm text-gray-600">HÃ´tel, auberge, etc.</p>
+                  <h3 className="font-semibold mb-2">Hôtel</h3>
+                  <p className="text-sm text-gray-600">Hôtel, auberge, etc.</p>
                 </button>
 
                 <button
@@ -191,12 +191,12 @@ export default function HostPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Titre de votre hÃ©bergement
+                    Titre de votre hébergement
                   </label>
                   <input
                     type="text"
                     className="input-field"
-                    placeholder="Ex: Belle villa avec piscine Ã  Bamako"
+                    placeholder="Ex: Belle villa avec piscine à Bamako"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
                   />
@@ -209,7 +209,7 @@ export default function HostPage() {
                   <textarea
                     rows={4}
                     className="input-field"
-                    placeholder="DÃ©crivez votre hÃ©bergement, ses atouts, l'environnement..."
+                    placeholder="Décrivez votre hébergement, ses atouts, l'environnement..."
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                   />
@@ -221,7 +221,7 @@ export default function HostPage() {
           {/* Step 2: Localisation */}
           {currentStep === 2 && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">OÃ¹ se trouve votre hÃ©bergement ?</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Où se trouve votre hébergement ?</h2>
               
               <div className="space-y-6">
                 <div>
@@ -249,7 +249,7 @@ export default function HostPage() {
                     <input
                       type="text"
                       className="input-field pl-10"
-                      placeholder="Ex: Quartier du Fleuve, prÃ¨s du marchÃ© central"
+                      placeholder="Ex: Quartier du Fleuve, près du marché central"
                       value={formData.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
                     />
@@ -306,13 +306,13 @@ export default function HostPage() {
             </div>
           )}
 
-          {/* Step 3: Ã‰quipements et photos */}
+          {/* Step 3: Équipements et photos */}
           {currentStep === 3 && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Ã‰quipements et photos</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Équipements et photos</h2>
               
               <div className="mb-8">
-                <h3 className="text-lg font-semibold mb-4">Quels Ã©quipements proposez-vous ?</h3>
+                <h3 className="text-lg font-semibold mb-4">Quels équipements proposez-vous ?</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                   {availableAmenities.map(amenity => (
                     <button
@@ -331,8 +331,8 @@ export default function HostPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">Photos de votre hÃ©bergement</h3>
-                <p className="text-gray-600 mb-4">Ajoutez des photos attrayantes de votre hÃ©bergement</p>
+                <h3 className="text-lg font-semibold mb-4">Photos de votre hébergement</h3>
+                <p className="text-gray-600 mb-4">Ajoutez des photos attrayantes de votre hébergement</p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                   {formData.images.map((image, index) => (
@@ -386,14 +386,14 @@ export default function HostPage() {
                 />
                 {formData.price > 0 && (
                   <p className="mt-2 text-sm text-gray-600">
-                    Prix affichÃ©: {formatPrice(formData.price)} par nuit
+                    Prix affiché: {formatPrice(formData.price)} par nuit
                   </p>
                 )}
               </div>
 
-              {/* RÃ©capitulatif */}
+              {/* Récapitulatif */}
               <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                <h3 className="text-lg font-semibold mb-4">RÃ©capitulatif de votre annonce</h3>
+                <h3 className="text-lg font-semibold mb-4">Récapitulatif de votre annonce</h3>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -402,23 +402,23 @@ export default function HostPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Titre:</span>
-                    <span className="font-medium">{formData.title || 'Non dÃ©fini'}</span>
+                    <span className="font-medium">{formData.title || 'Non défini'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Localisation:</span>
-                    <span className="font-medium">{formData.city || 'Non dÃ©finie'}</span>
+                    <span className="font-medium">{formData.city || 'Non définie'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">CapacitÃ©:</span>
+                    <span className="text-gray-600">Capacité:</span>
                     <span className="font-medium">{formData.guests} voyageurs</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Ã‰quipements:</span>
-                    <span className="font-medium">{formData.amenities.length} sÃ©lectionnÃ©s</span>
+                    <span className="text-gray-600">Équipements:</span>
+                    <span className="font-medium">{formData.amenities.length} sélectionnés</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Photos:</span>
-                    <span className="font-medium">{formData.images.length} ajoutÃ©es</span>
+                    <span className="font-medium">{formData.images.length} ajoutées</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Prix:</span>
@@ -428,12 +428,12 @@ export default function HostPage() {
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Prochaines Ã©tapes</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Prochaines étapes</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>â€¢ Votre annonce sera examinÃ©e par notre Ã©quipe (24-48h)</li>
+                  <li>â€¢ Votre annonce sera examinée par notre équipe (24-48h)</li>
                   <li>â€¢ Vous recevrez une confirmation par email</li>
-                  <li>â€¢ Votre hÃ©bergement sera publiÃ© sur Ikasso</li>
-                  <li>â€¢ Vous pourrez gÃ©rer vos rÃ©servations depuis votre espace hÃ´te</li>
+                  <li>â€¢ Votre hébergement sera publié sur Ikasso</li>
+                  <li>â€¢ Vous pourrez gérer vos réservations depuis votre espace hôte</li>
                 </ul>
               </div>
             </div>
@@ -450,7 +450,7 @@ export default function HostPage() {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              PrÃ©cÃ©dent
+              Précédent
             </button>
 
             {currentStep < totalSteps ? (
@@ -465,7 +465,7 @@ export default function HostPage() {
                 onClick={handleSubmit}
                 className="btn-primary px-6 py-2"
               >
-                Publier mon hÃ©bergement
+                Publier mon hébergement
               </button>
             )}
           </div>
