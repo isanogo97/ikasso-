@@ -135,8 +135,8 @@ export default function HomePage() {
           <div className="md:hidden bg-white border-t">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link href="/" className="block px-3 py-2 text-gray-700">Accueil</Link>
-              <Link href="/search" className="block px-3 py-2 text-gray-700">Hébergements</Link>
-              <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir Hôte</Link>
+              <Link href="/search" className="block px-3 py-2 text-gray-700">H\u00e9bergements</Link>
+              <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir H\u00f4te</Link>
               <Link href="/pricing" className="block px-3 py-2 text-gray-700">Tarifs</Link>
               <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
               <div className="border-t pt-2">
@@ -158,8 +158,8 @@ export default function HomePage() {
               Bienvenue chez toi au Mali
             </h2>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              DÃƒÂ©couvrez des hÃƒÂ©bergements authentiques et confortables dans tout le Mali. 
-              Des hÃƒÂ´tels modernes aux maisons traditionnelles.
+              D\u00e9couvrez des h\u00e9bergements authentiques et confortables dans tout le Mali. 
+              Des h\u00f4tels modernes aux maisons traditionnelles.
             </p>
           </div>
 
