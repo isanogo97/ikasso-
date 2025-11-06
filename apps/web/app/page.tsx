@@ -108,14 +108,14 @@ export default function HomePage() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>
-              <Link href="/search" className="text-gray-700 hover:text-primary-600">HÃƒÂ©bergements</Link>
-              <Link href="/host" className="text-gray-700 hover:text-primary-600">Devenir HÃƒÂ´te</Link>
+              <Link href="/search" className="text-gray-700 hover:text-primary-600">Hébergements</Link>
+              <Link href="/host" className="text-gray-700 hover:text-primary-600">Devenir Hôte</Link>
               <Link href="/pricing" className="text-gray-700 hover:text-primary-600">Tarifs</Link>
               <Link href="/help" className="text-gray-700 hover:text-primary-600">Aide</Link>
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/demo-accounts" className="text-primary-600 hover:text-primary-700 font-medium">DÃƒÂ©mo</Link>
+
               <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">Connexion</Link>
               <Link href="/auth/register" className="btn-primary">Inscription</Link>
             </div>
@@ -135,12 +135,12 @@ export default function HomePage() {
           <div className="md:hidden bg-white border-t">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link href="/" className="block px-3 py-2 text-gray-700">Accueil</Link>
-              <Link href="/search" className="block px-3 py-2 text-gray-700">H\u00e9bergements</Link>
-              <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir H\u00f4te</Link>
+              <Link href="/search" className="block px-3 py-2 text-gray-700">Hébergements</Link>
+              <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir Hôte</Link>
               <Link href="/pricing" className="block px-3 py-2 text-gray-700">Tarifs</Link>
               <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
               <div className="border-t pt-2">
-                <Link href="/demo-accounts" className="block px-3 py-2 text-primary-600 font-medium">DÃƒÂ©mo</Link>
+
                 <Link href="/auth/login" className="block px-3 py-2 text-gray-700">Connexion</Link>
                 <Link href="/auth/register" className="block px-3 py-2 text-primary-600 font-medium">Inscription</Link>
               </div>
@@ -158,8 +158,8 @@ export default function HomePage() {
               Bienvenue chez toi au Mali
             </h2>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-              D\u00e9couvrez des h\u00e9bergements authentiques et confortables dans tout le Mali. 
-              Des h\u00f4tels modernes aux maisons traditionnelles.
+              Découvrez des hébergements authentiques et confortables dans tout le Mali. 
+              Des hôtels modernes aux maisons traditionnelles.
             </p>
           </div>
 
