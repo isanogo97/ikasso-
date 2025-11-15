@@ -67,6 +67,9 @@ export default function TravelerDashboard() {
           email: userData.email,
           phone: userData.phone,
           address: userData.address,
+          postalCode: userData.postalCode,
+          city: userData.city,
+          country: userData.country,
           dateOfBirth: userData.dateOfBirth,
           avatar: userData.avatar, // null par défaut
           memberSince: userData.memberSince,
@@ -83,6 +86,9 @@ export default function TravelerDashboard() {
       email: 'utilisateur@email.com',
       phone: '+223 XX XX XX XX',
       address: 'Adresse non renseignée',
+      postalCode: '',
+      city: '',
+      country: '',
       dateOfBirth: '',
       avatar: null,
       memberSince: 'Novembre 2024',
@@ -270,7 +276,16 @@ export default function TravelerDashboard() {
               </nav>
 
               <div className="mt-6 pt-6 border-t">
-                <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md">
+                <button 
+                  onClick={() => {
+                    // Supprimer les données utilisateur
+                    localStorage.removeItem('ikasso_user')
+                    localStorage.removeItem('ikasso_cards')
+                    // Rediriger vers la page de connexion
+                    window.location.href = '/auth/login'
+                  }}
+                  className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
+                >
                   <LogOut className="h-4 w-4 mr-3" />
                   Déconnexion
                 </button>
@@ -718,7 +733,7 @@ export default function TravelerDashboard() {
                       )}
                       <div>
                         <button 
-                          onClick={() => setShowPhotoModal(true)}
+                          onClick={() => alert('Fonctionnalité de photo de profil en cours de développement.\n\nElle sera disponible dans une prochaine mise à jour.')}
                           className="btn-primary text-sm"
                         >
                           {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
@@ -782,8 +797,57 @@ export default function TravelerDashboard() {
                         type="text"
                         className="input-field"
                         defaultValue={user.address || ''}
-                        placeholder="Quartier, rue, ville, Mali"
+                        placeholder="123 Rue de la Paix"
                       />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Code postal
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field"
+                          defaultValue={user.postalCode || ''}
+                          placeholder="75001"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Ville
+                        </label>
+                        <input
+                          type="text"
+                          className="input-field"
+                          defaultValue={user.city || ''}
+                          placeholder="Paris"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pays
+                      </label>
+                      <select
+                        className="input-field"
+                        defaultValue={user.country || ''}
+                      >
+                        <option value="">Sélectionnez un pays</option>
+                        <option value="France">France</option>
+                        <option value="Belgique">Belgique</option>
+                        <option value="Suisse">Suisse</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Maroc">Maroc</option>
+                        <option value="Tunisie">Tunisie</option>
+                        <option value="Algérie">Algérie</option>
+                        <option value="Sénégal">Sénégal</option>
+                        <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                        <option value="Mali">Mali</option>
+                        <option value="Burkina Faso">Burkina Faso</option>
+                        <option value="Autre">Autre</option>
+                      </select>
                     </div>
 
                     <div>
@@ -929,69 +993,6 @@ export default function TravelerDashboard() {
         </div>
       )}
 
-      {/* Modale Ajouter/Changer photo */}
-      {showPhotoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">Photo de profil</h3>
-              <button
-                type="button"
-                onClick={() => setShowPhotoModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mx-auto mb-4">
-                  <User className="h-12 w-12 text-gray-600" />
-                </div>
-                <p className="text-sm text-gray-600">Aucune photo de profil</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <svg className="h-8 w-8 text-gray-400 mb-2 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p className="text-sm font-medium text-gray-900 mb-1">Télécharger une photo</p>
-                  <p className="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
-                </div>
-
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-3">Ou choisir un avatar :</p>
-                  <div className="flex justify-center space-x-2">
-                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">A1</div>
-                    <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">A2</div>
-                    <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">A3</div>
-                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">A4</div>
-                  </div>
-                </div>
-                
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowPhotoModal(false)}
-                    className="flex-1 btn-secondary"
-                  >
-                    Fermer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowPhotoModal(false)}
-                    className="flex-1 btn-primary"
-                  >
-                    Valider
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

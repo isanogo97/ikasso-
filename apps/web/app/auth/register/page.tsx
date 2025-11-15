@@ -14,6 +14,9 @@ export default function RegisterPage() {
     email: '',
     phone: '',
     address: '',
+    postalCode: '',
+    city: '',
+    country: '',
     dateOfBirth: '',
     password: '',
     confirmPassword: ''
@@ -60,7 +63,7 @@ export default function RegisterPage() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -248,10 +251,77 @@ export default function RegisterPage() {
                   type="text"
                   required
                   className="input-field"
-                  placeholder="Quartier, rue, ville, Mali"
+                  placeholder="123 Rue de la Paix"
                   value={formData.address}
                   onChange={handleInputChange}
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
+                  Code postal
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="postalCode"
+                    name="postalCode"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="75001"
+                    value={formData.postalCode}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  Ville
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="city"
+                    name="city"
+                    type="text"
+                    required
+                    className="input-field"
+                    placeholder="Paris"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+                Pays
+              </label>
+              <div className="mt-1">
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  className="input-field"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Sélectionnez un pays</option>
+                  <option value="France">France</option>
+                  <option value="Belgique">Belgique</option>
+                  <option value="Suisse">Suisse</option>
+                  <option value="Canada">Canada</option>
+                  <option value="Maroc">Maroc</option>
+                  <option value="Tunisie">Tunisie</option>
+                  <option value="Algérie">Algérie</option>
+                  <option value="Sénégal">Sénégal</option>
+                  <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                  <option value="Mali">Mali</option>
+                  <option value="Burkina Faso">Burkina Faso</option>
+                  <option value="Autre">Autre</option>
+                </select>
               </div>
             </div>
 
