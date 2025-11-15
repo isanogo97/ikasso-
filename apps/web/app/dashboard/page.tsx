@@ -39,6 +39,13 @@ export default function TravelerDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showAddCardModal, setShowAddCardModal] = useState(false)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [savedCards, setSavedCards] = useState<any[]>([])
+  const [cardForm, setCardForm] = useState({
+    number: '',
+    expiry: '',
+    cvv: '',
+    name: ''
+  })
 
   // Récupérer les données utilisateur depuis localStorage
   const getUserData = () => {
@@ -78,6 +85,29 @@ export default function TravelerDashboard() {
   }
 
   const user = getUserData()
+
+  // Fonction pour ajouter une carte
+  const handleAddCard = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!cardForm.number || !cardForm.expiry || !cardForm.cvv || !cardForm.name) {
+      alert('Veuillez remplir tous les champs')
+      return
+    }
+    
+    const newCard = {
+      id: Date.now().toString(),
+      number: cardForm.number,
+      expiry: cardForm.expiry,
+      name: cardForm.name,
+      type: cardForm.number.startsWith('4') ? 'Visa' : cardForm.number.startsWith('5') ? 'Mastercard' : 'Carte',
+      lastFour: cardForm.number.slice(-4)
+    }
+    
+    setSavedCards([...savedCards, newCard])
+    setCardForm({ number: '', expiry: '', cvv: '', name: '' })
+    setShowAddCardModal(false)
+    alert('Carte ajoutée avec succès !')
+  }
 
   const bookings: Booking[] = [
     // Empty for new users - bookings will be added when user makes reservations
@@ -486,17 +516,51 @@ export default function TravelerDashboard() {
 
                 {/* Moyens de paiement */}
                 <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Moyens de paiement</h2>
-                  <div className="text-center py-8">
-                    <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-600 mb-4">Aucun moyen de paiement enregistré</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Moyens de paiement</h2>
                     <button 
                       onClick={() => setShowAddCardModal(true)}
-                      className="btn-primary"
+                      className="btn-primary text-sm"
                     >
                       Ajouter une carte
                     </button>
                   </div>
+                  
+                  {savedCards.length === 0 ? (
+                    <div className="text-center py-8">
+                      <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-4">Aucun moyen de paiement enregistré</p>
+                      <p className="text-sm text-gray-500">Ajoutez une carte pour faciliter vos réservations</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {savedCards.map((card) => (
+                        <div key={card.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">{card.type}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">•••• •••• •••• {card.lastFour}</p>
+                              <p className="text-sm text-gray-600">{card.name} • Expire {card.expiry}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">Principale</span>
+                            <button 
+                              onClick={() => {
+                                setSavedCards(savedCards.filter(c => c.id !== card.id))
+                                alert('Carte supprimée avec succès')
+                              }}
+                              className="text-red-600 hover:text-red-800 text-sm"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Historique des paiements */}
@@ -752,7 +816,7 @@ export default function TravelerDashboard() {
             </div>
             
             <div className="p-6">
-              <form className="space-y-4">
+              <form onSubmit={handleAddCard} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Numéro de carte
@@ -761,7 +825,10 @@ export default function TravelerDashboard() {
                     type="text"
                     className="input-field"
                     placeholder="1234 5678 9012 3456"
+                    value={cardForm.number}
+                    onChange={(e) => setCardForm({...cardForm, number: e.target.value})}
                     maxLength={19}
+                    required
                   />
                 </div>
                 
@@ -774,7 +841,10 @@ export default function TravelerDashboard() {
                       type="text"
                       className="input-field"
                       placeholder="MM/AA"
+                      value={cardForm.expiry}
+                      onChange={(e) => setCardForm({...cardForm, expiry: e.target.value})}
                       maxLength={5}
+                      required
                     />
                   </div>
                   <div>
@@ -785,7 +855,10 @@ export default function TravelerDashboard() {
                       type="text"
                       className="input-field"
                       placeholder="123"
+                      value={cardForm.cvv}
+                      onChange={(e) => setCardForm({...cardForm, cvv: e.target.value})}
                       maxLength={4}
+                      required
                     />
                   </div>
                 </div>
@@ -798,7 +871,9 @@ export default function TravelerDashboard() {
                     type="text"
                     className="input-field"
                     placeholder="Nom complet"
-                    defaultValue={user.name}
+                    value={cardForm.name || user.name}
+                    onChange={(e) => setCardForm({...cardForm, name: e.target.value})}
+                    required
                   />
                 </div>
 
@@ -823,11 +898,6 @@ export default function TravelerDashboard() {
                   </button>
                   <button
                     type="submit"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      alert('Carte ajoutée avec succès !\n\nVotre carte sera utilisée pour vos prochaines réservations.')
-                      setShowAddCardModal(false)
-                    }}
                     className="flex-1 btn-primary"
                   >
                     Ajouter la carte
@@ -883,11 +953,15 @@ export default function TravelerDashboard() {
                     className="hidden"
                     accept="image/*"
                     onChange={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
                       const file = e.target.files?.[0]
                       if (file) {
                         // Simulation d'upload
-                        alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
-                        setShowPhotoModal(false)
+                        setTimeout(() => {
+                          alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
+                          setShowPhotoModal(false)
+                        }, 100)
                       }
                     }}
                   />
@@ -917,10 +991,14 @@ export default function TravelerDashboard() {
                     ].map((avatar, index) => (
                       <button
                         key={index}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
                           // Simulation de sélection d'avatar
-                          alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
-                          setShowPhotoModal(false)
+                          setTimeout(() => {
+                            alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
+                            setShowPhotoModal(false)
+                          }, 100)
                         }}
                         className="w-12 h-12 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
                       >
