@@ -38,16 +38,44 @@ export default function TravelerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // User data - in a real app, this would come from authentication/API
-  const user = {
-    name: 'Nouvel Utilisateur',
-    email: 'utilisateur@email.com',
-    phone: '+223 XX XX XX XX',
-    avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100',
-    memberSince: 'Novembre 2024',
-    totalBookings: 0,
-    totalSpent: 0
+  // Récupérer les données utilisateur depuis localStorage
+  const getUserData = () => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('ikasso_user')
+      if (savedUser) {
+        const userData = JSON.parse(savedUser)
+        return {
+          name: `${userData.firstName} ${userData.lastName}`,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          phone: userData.phone,
+          address: userData.address,
+          dateOfBirth: userData.dateOfBirth,
+          avatar: userData.avatar, // null par défaut
+          memberSince: userData.memberSince,
+          totalBookings: userData.totalBookings || 0,
+          totalSpent: userData.totalSpent || 0
+        }
+      }
+    }
+    // Données par défaut si aucune donnée sauvegardée
+    return {
+      name: 'Nouvel Utilisateur',
+      firstName: 'Nouvel',
+      lastName: 'Utilisateur',
+      email: 'utilisateur@email.com',
+      phone: '+223 XX XX XX XX',
+      address: 'Adresse non renseignée',
+      dateOfBirth: '',
+      avatar: null,
+      memberSince: 'Novembre 2024',
+      totalBookings: 0,
+      totalSpent: 0
+    }
   }
+
+  const user = getUserData()
 
   const bookings: Booking[] = [
     // Empty for new users - bookings will be added when user makes reservations
@@ -122,13 +150,19 @@ export default function TravelerDashboard() {
                 <Bell className="h-5 w-5" />
               </button>
               <div className="flex items-center space-x-3">
-                <Image 
-                  src={user.avatar} 
-                  alt={user.name}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full"
-                />
+                {user.avatar ? (
+                  <Image 
+                    src={user.avatar} 
+                    alt={user.name}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                    <User className="h-4 w-4 text-gray-600" />
+                  </div>
+                )}
                 <span className="text-sm font-medium text-gray-700">{user.name}</span>
               </div>
               <button 
@@ -148,13 +182,19 @@ export default function TravelerDashboard() {
           <div className={`lg:w-64 ${isMobileMenuOpen ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="text-center mb-6">
-                <Image 
-                  src={user.avatar} 
-                  alt={user.name}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 rounded-full mx-auto mb-4"
-                />
+                {user.avatar ? (
+                  <Image 
+                    src={user.avatar} 
+                    alt={user.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full mx-auto mb-4"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center mx-auto mb-4">
+                    <User className="h-10 w-10 text-gray-600" />
+                  </div>
+                )}
                 <h3 className="text-lg font-semibold text-gray-900">{user.name}</h3>
                 <p className="text-sm text-gray-600">Membre depuis {user.memberSince}</p>
               </div>
@@ -418,16 +458,22 @@ export default function TravelerDashboard() {
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <form className="space-y-6">
                     <div className="flex items-center space-x-6">
-                      <Image 
-                        src={user.avatar} 
-                        alt={user.name}
-                        width={96}
-                        height={96}
-                        className="w-24 h-24 rounded-full"
-                      />
+                      {user.avatar ? (
+                        <Image 
+                          src={user.avatar} 
+                          alt={user.name}
+                          width={96}
+                          height={96}
+                          className="w-24 h-24 rounded-full"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
+                          <User className="h-12 w-12 text-gray-600" />
+                        </div>
+                      )}
                       <div>
                         <button className="btn-primary text-sm">
-                          Changer la photo
+                          {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
                         </button>
                         <p className="text-xs text-gray-500 mt-1">
                           JPG, GIF ou PNG. 1MB max.
@@ -443,7 +489,7 @@ export default function TravelerDashboard() {
                         <input
                           type="text"
                           className="input-field"
-                          defaultValue="Amadou"
+                          defaultValue={user.firstName || ''}
                         />
                       </div>
                       <div>
@@ -453,7 +499,7 @@ export default function TravelerDashboard() {
                         <input
                           type="text"
                           className="input-field"
-                          defaultValue="Diallo"
+                          defaultValue={user.lastName || ''}
                         />
                       </div>
                     </div>
@@ -477,6 +523,29 @@ export default function TravelerDashboard() {
                         type="tel"
                         className="input-field"
                         defaultValue={user.phone}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Adresse postale
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field"
+                        defaultValue={user.address || ''}
+                        placeholder="Quartier, rue, ville, Mali"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date de naissance
+                      </label>
+                      <input
+                        type="date"
+                        className="input-field"
+                        defaultValue={user.dateOfBirth || ''}
                       />
                     </div>
 

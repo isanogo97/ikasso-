@@ -13,6 +13,8 @@ export default function RegisterPage() {
     lastName: '',
     email: '',
     phone: '',
+    address: '',
+    dateOfBirth: '',
     password: '',
     confirmPassword: ''
   })
@@ -75,8 +77,25 @@ export default function RegisterPage() {
     
     setIsLoading(true)
     
-    // Simulation d'inscription
+    // Simulation d'inscription - sauvegarde des données utilisateur
     setTimeout(() => {
+      // Sauvegarder les données utilisateur dans localStorage (en attendant une vraie base de données)
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        dateOfBirth: formData.dateOfBirth,
+        userType: userType,
+        memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        avatar: null, // Pas de photo par défaut
+        totalBookings: 0,
+        totalSpent: 0
+      }
+      
+      localStorage.setItem('ikasso_user', JSON.stringify(userData))
+      
       setIsLoading(false)
       // Redirection vers le dashboard approprié
       const dashboardUrl = userType === 'host' ? '/dashboard/host' : '/dashboard'
@@ -213,6 +232,42 @@ export default function RegisterPage() {
                   className="input-field pl-10"
                   placeholder="+223 XX XX XX XX"
                   value={formData.phone}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                Adresse postale
+              </label>
+              <div className="mt-1">
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  required
+                  className="input-field"
+                  placeholder="Quartier, rue, ville, Mali"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
+                Date de naissance
+              </label>
+              <div className="mt-1">
+                <input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  required
+                  className="input-field"
+                  max={new Date().toISOString().split('T')[0]}
+                  value={formData.dateOfBirth}
                   onChange={handleInputChange}
                 />
               </div>
