@@ -919,8 +919,19 @@ export default function TravelerDashboard() {
 
       {/* Modale Ajouter/Changer photo */}
       {showPhotoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            // Ne fermer que si on clique sur l'overlay, pas sur la modale
+            if (e.target === e.currentTarget) {
+              setShowPhotoModal(false)
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-6 border-b">
               <h3 className="text-lg font-semibold">
                 {user.avatar ? 'Changer la photo de profil' : 'Ajouter une photo de profil'}
@@ -969,7 +980,11 @@ export default function TravelerDashboard() {
                       }
                     }}
                   />
-                  <label htmlFor="photo-upload" className="cursor-pointer">
+                  <label 
+                    htmlFor="photo-upload" 
+                    className="cursor-pointer block"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex flex-col items-center">
                       <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -995,7 +1010,8 @@ export default function TravelerDashboard() {
                     ].map((avatar, index) => (
                       <button
                         key={index}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           // Simulation de sélection d'avatar
                           alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
                           // Ne pas fermer automatiquement, laisser l'utilisateur fermer
@@ -1017,13 +1033,17 @@ export default function TravelerDashboard() {
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowPhotoModal(false)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowPhotoModal(false)
+                    }}
                     className="flex-1 btn-secondary"
                   >
                     Fermer
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       alert('Photo sauvegardée avec succès !')
                       setShowPhotoModal(false)
                     }}
@@ -1033,7 +1053,8 @@ export default function TravelerDashboard() {
                   </button>
                   {user.avatar && (
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation()
                         alert('Photo de profil supprimée !\n\nVous utilisez maintenant l\'icône par défaut.')
                         setShowPhotoModal(false)
                       }}
