@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { 
   Calendar, MapPin, Star, Heart, User, Settings, Bell, 
   CreditCard, BookOpen, MessageCircle, LogOut, Menu, X,
@@ -371,10 +372,10 @@ export default function HostDashboard() {
                     <h1 className="text-2xl font-bold text-gray-900">Mes propriétés</h1>
                     <p className="text-gray-600">Gérez vos hébergements</p>
                   </div>
-                  <a href="/host/add-property" className="btn-primary flex items-center">
+                  <Link href="/host/add-property" className="btn-primary flex items-center">
                     <Plus className="h-4 w-4 mr-2" />
                     Ajouter une propriété
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
