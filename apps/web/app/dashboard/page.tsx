@@ -37,6 +37,8 @@ interface Favorite {
 export default function TravelerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [showAddCardModal, setShowAddCardModal] = useState(false)
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
 
   // Récupérer les données utilisateur depuis localStorage
   const getUserData = () => {
@@ -488,7 +490,10 @@ export default function TravelerDashboard() {
                   <div className="text-center py-8">
                     <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-600 mb-4">Aucun moyen de paiement enregistré</p>
-                    <button className="btn-primary">
+                    <button 
+                      onClick={() => setShowAddCardModal(true)}
+                      className="btn-primary"
+                    >
                       Ajouter une carte
                     </button>
                   </div>
@@ -628,7 +633,10 @@ export default function TravelerDashboard() {
                         </div>
                       )}
                       <div>
-                        <button className="btn-primary text-sm">
+                        <button 
+                          onClick={() => setShowPhotoModal(true)}
+                          className="btn-primary text-sm"
+                        >
                           {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
                         </button>
                         <p className="text-xs text-gray-500 mt-1">
@@ -728,6 +736,231 @@ export default function TravelerDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modale Ajouter une carte */}
+      {showAddCardModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold">Ajouter une carte bancaire</h3>
+              <button
+                onClick={() => setShowAddCardModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Numéro de carte
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="1234 5678 9012 3456"
+                    maxLength={19}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date d'expiration
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="MM/AA"
+                      maxLength={5}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      CVV
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="123"
+                      maxLength={4}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom sur la carte
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Nom complet"
+                    defaultValue={user.name}
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="save-card"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="save-card" className="ml-2 block text-sm text-gray-900">
+                    Enregistrer cette carte pour les futurs paiements
+                  </label>
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCardModal(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      alert('Carte ajoutée avec succès !\n\nVotre carte sera utilisée pour vos prochaines réservations.')
+                      setShowAddCardModal(false)
+                    }}
+                    className="flex-1 btn-primary"
+                  >
+                    Ajouter la carte
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Ajouter/Changer photo */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h3 className="text-lg font-semibold">
+                {user.avatar ? 'Changer la photo de profil' : 'Ajouter une photo de profil'}
+              </h3>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center mb-6">
+                {user.avatar ? (
+                  <Image 
+                    src={user.avatar} 
+                    alt={user.name}
+                    width={96}
+                    height={96}
+                    className="w-24 h-24 rounded-full mx-auto mb-4"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mx-auto mb-4">
+                    <User className="h-12 w-12 text-gray-600" />
+                  </div>
+                )}
+                <p className="text-sm text-gray-600">
+                  Formats acceptés : JPG, PNG, GIF (max 1MB)
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+                  <input
+                    type="file"
+                    id="photo-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        // Simulation d'upload
+                        alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
+                        setShowPhotoModal(false)
+                      }
+                    }}
+                  />
+                  <label htmlFor="photo-upload" className="cursor-pointer">
+                    <div className="flex flex-col items-center">
+                      <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span className="text-sm font-medium text-gray-900">
+                        Cliquez pour sélectionner une photo
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ou glissez-déposez ici
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-xs text-gray-500 mb-4">Ou choisissez un avatar par défaut :</p>
+                  <div className="flex justify-center space-x-3">
+                    {[
+                      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
+                      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
+                      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100'
+                    ].map((avatar, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          // Simulation de sélection d'avatar
+                          alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
+                          setShowPhotoModal(false)
+                        }}
+                        className="w-12 h-12 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
+                      >
+                        <Image 
+                          src={avatar}
+                          alt={`Avatar ${index + 1}`}
+                          width={48}
+                          height={48}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPhotoModal(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    Annuler
+                  </button>
+                  {user.avatar && (
+                    <button
+                      onClick={() => {
+                        alert('Photo de profil supprimée !\n\nVous utilisez maintenant l\'icône par défaut.')
+                        setShowPhotoModal(false)
+                      }}
+                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Supprimer la photo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
