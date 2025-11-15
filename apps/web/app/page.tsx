@@ -18,9 +18,12 @@ interface Property {
   amenities: string[]
 }
 
-// Propriétés réelles - seront ajoutées par les hôtes après le lancement
-// Mise à jour: 15 novembre 2024 - Suppression des données de démonstration
+// SITE EN PRODUCTION - PLUS DE DONNÉES DE DÉMONSTRATION
+// Toutes les fausses annonces ont été supprimées pour le lancement officiel
 const sampleProperties: Property[] = []
+
+// Vérification: le tableau est bien vide
+console.log('Propriétés chargées:', sampleProperties.length)
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 
