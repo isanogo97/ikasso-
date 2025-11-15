@@ -132,7 +132,7 @@ export default function RegisterPage() {
         </div>
         
         <h2 className="text-center text-3xl font-bold text-gray-900">
-          Créer votre compte
+          Créer votre compte Ikasso
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Ou{' '}
