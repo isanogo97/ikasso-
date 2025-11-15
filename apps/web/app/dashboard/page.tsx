@@ -38,7 +38,6 @@ export default function TravelerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showAddCardModal, setShowAddCardModal] = useState(false)
-  const [showPhotoModal, setShowPhotoModal] = useState(false)
   // Récupérer les cartes sauvegardées depuis localStorage
   const [savedCards, setSavedCards] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
@@ -732,12 +731,26 @@ export default function TravelerDashboard() {
                         </div>
                       )}
                       <div>
-                        <button 
-                          onClick={() => alert('Fonctionnalité de photo de profil en cours de développement.\n\nElle sera disponible dans une prochaine mise à jour.')}
-                          className="btn-primary text-sm"
-                        >
-                          {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
-                        </button>
+                        <div>
+                          <input
+                            type="file"
+                            id="avatar-upload"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                alert(`Photo "${file.name}" sélectionnée avec succès !\n\nEn mode démo, votre photo sera mise à jour prochainement.`)
+                              }
+                            }}
+                          />
+                          <label 
+                            htmlFor="avatar-upload"
+                            className="btn-primary text-sm cursor-pointer inline-block"
+                          >
+                            {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
+                          </label>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
                           JPG, GIF ou PNG. 1MB max.
                         </p>
