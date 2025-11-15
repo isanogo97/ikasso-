@@ -932,15 +932,11 @@ export default function TravelerDashboard() {
       {/* Modale Ajouter/Changer photo */}
       {showPhotoModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div 
-            className="bg-white rounded-lg shadow-xl max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">
-                {user.avatar ? 'Changer la photo de profil' : 'Ajouter une photo de profil'}
-              </h3>
+              <h3 className="text-lg font-semibold">Photo de profil</h3>
               <button
+                type="button"
                 onClick={() => setShowPhotoModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
@@ -950,123 +946,46 @@ export default function TravelerDashboard() {
             
             <div className="p-6">
               <div className="text-center mb-6">
-                {user.avatar ? (
-                  <Image 
-                    src={user.avatar} 
-                    alt={user.name}
-                    width={96}
-                    height={96}
-                    className="w-24 h-24 rounded-full mx-auto mb-4"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mx-auto mb-4">
-                    <User className="h-12 w-12 text-gray-600" />
-                  </div>
-                )}
-                <p className="text-sm text-gray-600">
-                  Formats acceptés : JPG, PNG, GIF (max 1MB)
-                </p>
+                <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mx-auto mb-4">
+                  <User className="h-12 w-12 text-gray-600" />
+                </div>
+                <p className="text-sm text-gray-600">Aucune photo de profil</p>
               </div>
 
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
-                  <input
-                    type="file"
-                    id="photo-upload"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        // Simulation d'upload - NE PAS FERMER LA MODALE
-                        console.log(`Fichier sélectionné: ${file.name}`)
-                        // Pas d'alert qui pourrait causer des problèmes
-                      }
-                    }}
-                  />
-                  <label 
-                    htmlFor="photo-upload" 
-                    className="cursor-pointer block"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex flex-col items-center">
-                      <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <span className="text-sm font-medium text-gray-900">
-                        Cliquez pour sélectionner une photo
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ou glissez-déposez ici
-                      </span>
-                    </div>
-                  </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <svg className="h-8 w-8 text-gray-400 mb-2 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="text-sm font-medium text-gray-900 mb-1">Télécharger une photo</p>
+                  <p className="text-xs text-gray-500">PNG, JPG jusqu'à 10MB</p>
                 </div>
 
                 <div className="text-center">
-                  <p className="text-xs text-gray-500 mb-4">Ou choisissez un avatar par défaut :</p>
-                  <div className="flex justify-center space-x-3">
-                    {[
-                      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-                      'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-                      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100'
-                    ].map((avatar, index) => (
-                      <button
-                        key={index}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          // Simulation de sélection d'avatar - NE PAS FERMER LA MODALE
-                          console.log(`Avatar ${index + 1} sélectionné`)
-                          // Pas d'alert qui pourrait causer des problèmes
-                        }}
-                        className="w-12 h-12 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
-                      >
-                        <Image 
-                          src={avatar}
-                          alt={`Avatar ${index + 1}`}
-                          width={48}
-                          height={48}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
+                  <p className="text-sm text-gray-600 mb-3">Ou choisir un avatar :</p>
+                  <div className="flex justify-center space-x-2">
+                    <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">A1</div>
+                    <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">A2</div>
+                    <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">A3</div>
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">A4</div>
                   </div>
                 </div>
                 
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowPhotoModal(false)
-                    }}
+                    onClick={() => setShowPhotoModal(false)}
                     className="flex-1 btn-secondary"
                   >
                     Fermer
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      alert('Photo sauvegardée avec succès !')
-                      setShowPhotoModal(false)
-                    }}
+                    type="button"
+                    onClick={() => setShowPhotoModal(false)}
                     className="flex-1 btn-primary"
                   >
                     Valider
                   </button>
-                  {user.avatar && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        alert('Photo de profil supprimée !\n\nVous utilisez maintenant l\'icône par défaut.')
-                        setShowPhotoModal(false)
-                      }}
-                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
-                    >
-                      Supprimer la photo
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
