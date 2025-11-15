@@ -21,7 +21,21 @@ export default function LoginPage() {
       
       // Vérifier si l'utilisateur existe dans localStorage
       const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-      const user = existingUsers.find((u: any) => u.email === email)
+      let user = existingUsers.find((u: any) => u.email === email)
+      
+      // Si l'utilisateur n'est pas dans la liste globale, vérifier s'il existe déjà dans ikasso_user
+      if (!user) {
+        const currentUser = localStorage.getItem('ikasso_user')
+        if (currentUser) {
+          const userData = JSON.parse(currentUser)
+          if (userData.email === email) {
+            user = userData
+            // Ajouter à la liste globale pour les prochaines fois
+            const updatedUsers = [...existingUsers, userData]
+            localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
+          }
+        }
+      }
       
       if (user) {
         // Restaurer les données de l'utilisateur connecté
@@ -34,8 +48,30 @@ export default function LoginPage() {
           window.location.href = '/dashboard'
         }
       } else {
-        // Utilisateur non trouvé - connexion par défaut
+        // Créer un compte temporaire pour cet email
         const isHost = email.includes('host') || email.includes('hote') || email.includes('fatou')
+        const tempUser = {
+          firstName: email.split('@')[0].split('.')[0] || 'Utilisateur',
+          lastName: email.split('@')[0].split('.')[1] || '',
+          email: email,
+          phone: '+223 XX XX XX XX',
+          address: 'Adresse à compléter',
+          postalCode: '',
+          city: '',
+          country: '',
+          dateOfBirth: '',
+          userType: isHost ? 'host' : 'traveler',
+          memberSince: new Date().toLocaleDateString('fr-FR'),
+          avatar: null,
+          totalBookings: 0,
+          totalSpent: 0
+        }
+        
+        localStorage.setItem('ikasso_user', JSON.stringify(tempUser))
+        
+        // Ajouter à la liste globale
+        const updatedUsers = [...existingUsers, tempUser]
+        localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
         
         if (isHost) {
           window.location.href = '/dashboard/host'
