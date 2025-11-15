@@ -9,9 +9,9 @@ const securityHeaders = () => {
     "frame-ancestors 'none'",
     "object-src 'none'",
     // Allow inline styles only in development; be strict in production
-    (isProd ? "style-src 'self'" : "style-src 'self' 'unsafe-inline'"),
+    (isProd ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'"),
     // Next dev needs eval/websocket; keep strict in prod
-    isProd ? "script-src 'self'" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
     isProd ? "connect-src 'self'" : "connect-src 'self' ws: http://localhost:*",
     "img-src 'self' data: https://images.unsplash.com https://via.placeholder.com",
     "font-src 'self' data:",
@@ -62,12 +62,8 @@ const nextConfig = {
     domains: ['images.unsplash.com', 'via.placeholder.com'],
   },
   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: securityHeaders(),
-      },
-    ]
+    // Temporarily disable custom security headers to diagnose CSP-related blank pages
+    return []
   },
 }
 

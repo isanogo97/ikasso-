@@ -67,10 +67,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValidNinaFormat(nina)) {
-      alert('Veuillez renseigner un NINA valide (14 chiffres).')
-      return
-    }
+    // NINA non requis à l'inscription
     if (formData.password !== formData.confirmPassword) {
       alert('Les mots de passe ne correspondent pas')
       return
@@ -222,7 +219,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Verification NINA (Mali) */}
-{true && (
+{false && (
               <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-sm font-semibold text-gray-900">Vérification d'identité (NINA - Mali)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -348,7 +345,7 @@ export default function RegisterPage() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading || !acceptTerms || !/^[0-9]{14}$/.test(nina.replace(/\s+/g, ''))}
+                disabled={isLoading || !acceptTerms}
                 className="w-full btn-primary py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
