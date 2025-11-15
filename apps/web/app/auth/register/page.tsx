@@ -19,7 +19,16 @@ export default function RegisterPage() {
     country: '',
     dateOfBirth: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    // Nouveaux champs pour les hôtes
+    hostType: '', // 'particulier' ou 'professionnel'
+    locationDescription: '',
+    // Champs professionnels
+    companyName: '',
+    siret: '',
+    tva: '',
+    businessAddress: '',
+    businessPhone: ''
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -63,7 +72,7 @@ export default function RegisterPage() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -330,6 +339,152 @@ export default function RegisterPage() {
                 </select>
               </div>
             </div>
+
+            {/* Champs spécifiques aux hôtes */}
+            {userType === 'host' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Type d'activité
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, hostType: 'particulier'})}
+                      className={`p-3 border rounded-lg text-sm font-medium ${
+                        formData.hostType === 'particulier'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Particulier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, hostType: 'professionnel'})}
+                      className={`p-3 border rounded-lg text-sm font-medium ${
+                        formData.hostType === 'professionnel'
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Professionnel
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="locationDescription" className="block text-sm font-medium text-gray-700">
+                    Description de l'emplacement
+                  </label>
+                  <div className="mt-1">
+                    <textarea
+                      id="locationDescription"
+                      name="locationDescription"
+                      rows={3}
+                      className="input-field"
+                      placeholder="Décrivez l'emplacement de votre hébergement (quartier, proximité, accès...)"
+                      value={formData.locationDescription}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Champs professionnels */}
+                {formData.hostType === 'professionnel' && (
+                  <>
+                    <div>
+                      <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                        Nom de l'entreprise
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="companyName"
+                          name="companyName"
+                          type="text"
+                          required
+                          className="input-field"
+                          placeholder="Nom de votre entreprise"
+                          value={formData.companyName}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="siret" className="block text-sm font-medium text-gray-700">
+                          SIRET
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            id="siret"
+                            name="siret"
+                            type="text"
+                            required
+                            className="input-field"
+                            placeholder="14 chiffres"
+                            value={formData.siret}
+                            onChange={handleInputChange}
+                            maxLength={14}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="tva" className="block text-sm font-medium text-gray-700">
+                          N° TVA (optionnel)
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            id="tva"
+                            name="tva"
+                            type="text"
+                            className="input-field"
+                            placeholder="FR12345678901"
+                            value={formData.tva}
+                            onChange={handleInputChange}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700">
+                        Adresse de l'entreprise (si différente)
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="businessAddress"
+                          name="businessAddress"
+                          type="text"
+                          className="input-field"
+                          placeholder="Adresse du siège social"
+                          value={formData.businessAddress}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700">
+                        Téléphone professionnel
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="businessPhone"
+                          name="businessPhone"
+                          type="tel"
+                          className="input-field"
+                          placeholder="+33 1 23 45 67 89"
+                          value={formData.businessPhone}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
 
             <div>
               <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
