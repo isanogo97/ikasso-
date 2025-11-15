@@ -38,63 +38,23 @@ export default function TravelerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Sample data
+  // User data - in a real app, this would come from authentication/API
   const user = {
-    name: 'Amadou Diallo',
-    email: 'amadou.diallo@email.com',
-    phone: '+223 70 12 34 56',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-    memberSince: 'Janvier 2024',
-    totalBookings: 8,
-    totalSpent: 450000
+    name: 'Nouvel Utilisateur',
+    email: 'utilisateur@email.com',
+    phone: '+223 XX XX XX XX',
+    avatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100',
+    memberSince: 'Novembre 2024',
+    totalBookings: 0,
+    totalSpent: 0
   }
 
   const bookings: Booking[] = [
-    {
-      id: '1',
-      property: {
-        name: 'Villa Moderne à Bamako',
-        location: 'Bamako, Mali',
-        image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300'
-      },
-      checkIn: '2024-12-15',
-      checkOut: '2024-12-18',
-      guests: 4,
-      status: 'confirmed',
-      total: 75000
-    },
-    {
-      id: '2',
-      property: {
-        name: 'Hôtel Le Diplomate',
-        location: 'Sikasso, Mali',
-        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300'
-      },
-      checkIn: '2024-11-20',
-      checkOut: '2024-11-23',
-      guests: 2,
-      status: 'completed',
-      total: 105000
-    }
+    // Empty for new users - bookings will be added when user makes reservations
   ]
 
   const favorites: Favorite[] = [
-    {
-      id: '1',
-      name: 'Maison Traditionnelle Dogon',
-      location: 'Mopti, Mali',
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300',
-      price: 15000,
-      rating: 4.9
-    },
-    {
-      id: '2',
-      name: 'Appartement Centre-ville',
-      location: 'Ségou, Mali',
-      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=300',
-      price: 20000,
-      rating: 4.5
-    }
+    // Empty for new users - favorites will be added when user saves properties
   ]
 
   const formatPrice = (price: number) => {
@@ -273,33 +233,43 @@ export default function TravelerDashboard() {
                 {/* Recent Bookings */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Réservations récentes</h2>
-                  <div className="space-y-4">
-                    {bookings.slice(0, 2).map((booking) => (
-                      <div key={booking.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                        <Image 
-                          src={booking.property.image} 
-                          alt={booking.property.name}
-                          width={64}
-                          height={64}
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{booking.property.name}</h3>
-                          <p className="text-sm text-gray-600">{booking.property.location}</p>
-                          <p className="text-sm text-gray-600">
-                            {new Date(booking.checkIn).toLocaleDateString('fr-FR')} - {new Date(booking.checkOut).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(booking.status)}
-                            <span className="text-sm font-medium">{getStatusText(booking.status)}</span>
+                  {bookings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-4">Aucune réservation pour le moment</p>
+                      <a href="/search" className="btn-primary text-sm">
+                        Faire ma première réservation
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {bookings.slice(0, 2).map((booking) => (
+                        <div key={booking.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                          <Image 
+                            src={booking.property.image} 
+                            alt={booking.property.name}
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-lg object-cover"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">{booking.property.name}</h3>
+                            <p className="text-sm text-gray-600">{booking.property.location}</p>
+                            <p className="text-sm text-gray-600">
+                              {new Date(booking.checkIn).toLocaleDateString('fr-FR')} - {new Date(booking.checkOut).toLocaleDateString('fr-FR')}
+                            </p>
                           </div>
-                          <p className="text-lg font-bold text-gray-900">{formatPrice(booking.total)}</p>
+                          <div className="text-right">
+                            <div className="flex items-center space-x-2">
+                              {getStatusIcon(booking.status)}
+                              <span className="text-sm font-medium">{getStatusText(booking.status)}</span>
+                            </div>
+                            <p className="text-lg font-bold text-gray-900">{formatPrice(booking.total)}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -313,8 +283,18 @@ export default function TravelerDashboard() {
 
                 <div className="bg-white rounded-lg shadow-md">
                   <div className="p-6">
-                    <div className="space-y-4">
-                      {bookings.map((booking) => (
+                    {bookings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune réservation pour le moment</h3>
+                        <p className="text-gray-600 mb-6">Commencez à explorer nos hébergements et faites votre première réservation !</p>
+                        <a href="/search" className="btn-primary">
+                          Découvrir les hébergements
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {bookings.map((booking) => (
                         <div key={booking.id} className="border rounded-lg p-4">
                           <div className="flex items-start space-x-4">
                             <Image 
@@ -362,8 +342,9 @@ export default function TravelerDashboard() {
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -376,8 +357,18 @@ export default function TravelerDashboard() {
                   <p className="text-gray-600">Vos hébergements préférés</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {favorites.map((favorite) => (
+                {favorites.length === 0 ? (
+                  <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                    <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun favori pour le moment</h3>
+                    <p className="text-gray-600 mb-6">Explorez nos hébergements et ajoutez vos préférés à vos favoris !</p>
+                    <a href="/search" className="btn-primary">
+                      Découvrir les hébergements
+                    </a>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {favorites.map((favorite) => (
                     <div key={favorite.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                       <Image 
                         src={favorite.image} 
@@ -411,8 +402,9 @@ export default function TravelerDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
