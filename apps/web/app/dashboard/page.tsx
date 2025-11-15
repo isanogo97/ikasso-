@@ -39,7 +39,14 @@ export default function TravelerDashboard() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showAddCardModal, setShowAddCardModal] = useState(false)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
-  const [savedCards, setSavedCards] = useState<any[]>([])
+  // Récupérer les cartes sauvegardées depuis localStorage
+  const [savedCards, setSavedCards] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ikasso_cards')
+      return saved ? JSON.parse(saved) : []
+    }
+    return []
+  })
   const [cardForm, setCardForm] = useState({
     number: '',
     expiry: '',
@@ -111,7 +118,10 @@ export default function TravelerDashboard() {
       lastFour: number.slice(-4)
     }
     
-    setSavedCards([...savedCards, newCard])
+    const updatedCards = [...savedCards, newCard]
+    setSavedCards(updatedCards)
+    // Sauvegarder dans localStorage
+    localStorage.setItem('ikasso_cards', JSON.stringify(updatedCards))
     setCardForm({ number: '', expiry: '', cvv: '', name: '' })
     setShowAddCardModal(false)
     alert('Carte ajoutée avec succès !')
@@ -557,7 +567,9 @@ export default function TravelerDashboard() {
                             <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">Principale</span>
                             <button 
                               onClick={() => {
-                                setSavedCards(savedCards.filter(c => c.id !== card.id))
+                                const updatedCards = savedCards.filter(c => c.id !== card.id)
+                                setSavedCards(updatedCards)
+                                localStorage.setItem('ikasso_cards', JSON.stringify(updatedCards))
                                 alert('Carte supprimée avec succès')
                               }}
                               className="text-red-600 hover:text-red-800 text-sm"
@@ -919,15 +931,7 @@ export default function TravelerDashboard() {
 
       {/* Modale Ajouter/Changer photo */}
       {showPhotoModal && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={(e) => {
-            // Ne fermer que si on clique sur l'overlay, pas sur la modale
-            if (e.target === e.currentTarget) {
-              setShowPhotoModal(false)
-            }
-          }}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
             className="bg-white rounded-lg shadow-xl max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
@@ -974,9 +978,9 @@ export default function TravelerDashboard() {
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        // Simulation d'upload
-                        alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
-                        // Ne pas fermer automatiquement, laisser l'utilisateur fermer
+                        // Simulation d'upload - NE PAS FERMER LA MODALE
+                        console.log(`Fichier sélectionné: ${file.name}`)
+                        // Pas d'alert qui pourrait causer des problèmes
                       }
                     }}
                   />
@@ -1012,9 +1016,9 @@ export default function TravelerDashboard() {
                         key={index}
                         onClick={(e) => {
                           e.stopPropagation()
-                          // Simulation de sélection d'avatar
-                          alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
-                          // Ne pas fermer automatiquement, laisser l'utilisateur fermer
+                          // Simulation de sélection d'avatar - NE PAS FERMER LA MODALE
+                          console.log(`Avatar ${index + 1} sélectionné`)
+                          // Pas d'alert qui pourrait causer des problèmes
                         }}
                         className="w-12 h-12 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
                       >
