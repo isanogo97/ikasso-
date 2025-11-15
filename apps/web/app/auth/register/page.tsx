@@ -97,7 +97,13 @@ export default function RegisterPage() {
         totalSpent: 0
       }
       
+      // Sauvegarder l'utilisateur actuel
       localStorage.setItem('ikasso_user', JSON.stringify(userData))
+      
+      // Sauvegarder dans la liste globale des utilisateurs
+      const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+      const updatedUsers = [...existingUsers, userData]
+      localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
       
       setIsLoading(false)
       // Redirection vers le dashboard approprié

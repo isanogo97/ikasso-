@@ -15,18 +15,33 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulation de connexion avec détection du type d'utilisateur
+    // Simulation de connexion avec récupération des données utilisateur
     setTimeout(() => {
       setIsLoading(false)
       
-      // Simulation : déterminer le type d'utilisateur basé sur l'email
-      const isHost = email.includes('host') || email.includes('hote') || email.includes('fatou')
+      // Vérifier si l'utilisateur existe dans localStorage
+      const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+      const user = existingUsers.find((u: any) => u.email === email)
       
-      // Redirection vers le dashboard approprié
-      if (isHost) {
-        window.location.href = '/dashboard/host'
+      if (user) {
+        // Restaurer les données de l'utilisateur connecté
+        localStorage.setItem('ikasso_user', JSON.stringify(user))
+        
+        // Redirection vers le dashboard approprié
+        if (user.userType === 'host') {
+          window.location.href = '/dashboard/host'
+        } else {
+          window.location.href = '/dashboard'
+        }
       } else {
-        window.location.href = '/dashboard'
+        // Utilisateur non trouvé - connexion par défaut
+        const isHost = email.includes('host') || email.includes('hote') || email.includes('fatou')
+        
+        if (isHost) {
+          window.location.href = '/dashboard/host'
+        } else {
+          window.location.href = '/dashboard'
+        }
       }
     }, 2000)
   }

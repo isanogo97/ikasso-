@@ -18,12 +18,8 @@ interface Property {
   amenities: string[]
 }
 
-const sampleProperties: Property[] = [
-  { id: "1", title: "Villa Moderne à Bamako", location: "Bamako, Mali", price: 25000, rating: 4.8, reviews: 24, image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400", type: "maison", amenities: ["WiFi", "Climatisation", "Piscine", "Parking"] },
-  { id: "2", title: "Hôtel Le Diplomate", location: "Sikasso, Mali", price: 35000, rating: 4.6, reviews: 18, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400", type: "hotel", amenities: ["WiFi", "Restaurant", "Spa", "Salle de sport"] },
-  { id: "3", title: "Maison Traditionnelle Dogon", location: "Mopti, Mali", price: 15000, rating: 4.9, reviews: 32, image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400", type: "maison", amenities: ["Vue panoramique", "Cuisine équipée", "Terrasse"] },
-  { id: "4", title: "Appartement Centre-ville", location: "Ségou, Mali", price: 20000, rating: 4.5, reviews: 15, image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400", type: "appartement", amenities: ["WiFi", "Climatisation", "Balcon", "Proche marché"] },
-]
+// Propriétés réelles - seront ajoutées par les hôtes après le lancement
+const sampleProperties: Property[] = []
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 
@@ -145,8 +141,30 @@ export default function HomePage() {
           <h3 className="text-3xl font-bold text-gray-900 mb-4">Hébergements populaires</h3>
           <p className="text-lg text-gray-600">Découvrez nos hébergements les mieux notés au Mali</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {sampleProperties.map((property) => (
+        {sampleProperties.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center">
+                <MapPin className="h-12 w-12 text-primary-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Bientôt disponible !</h3>
+              <p className="text-gray-600 mb-6">
+                Nous préparons une sélection exceptionnelle d'hébergements au Mali. 
+                Les premiers hôtes rejoignent notre plateforme très prochainement.
+              </p>
+              <div className="space-y-3">
+                <Link href="/auth/register" className="btn-primary inline-block">
+                  Devenir hôte
+                </Link>
+                <p className="text-sm text-gray-500">
+                  Soyez parmi les premiers à proposer votre hébergement
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {sampleProperties.map((property) => (
             <div key={property.id} className="card overflow-hidden">
               <div className="relative">
                 <Link href={`/property/${property.id}`}>
@@ -174,7 +192,8 @@ export default function HomePage() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </section>
 
       <section className="bg-white py-16">
