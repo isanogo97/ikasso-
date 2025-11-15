@@ -448,6 +448,162 @@ export default function TravelerDashboard() {
               </div>
             )}
 
+            {activeTab === 'messages' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+                  <p className="text-gray-600">Communiquez avec vos hôtes et notre équipe support</p>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md">
+                  <div className="p-6">
+                    <div className="text-center py-12">
+                      <MessageCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun message pour le moment</h3>
+                      <p className="text-gray-600 mb-6">Vos conversations avec les hôtes et notre équipe support apparaîtront ici.</p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a href="/contact" className="btn-primary">
+                          Contacter le support
+                        </a>
+                        <a href="/search" className="btn-secondary">
+                          Faire une réservation
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'payments' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Paiements</h1>
+                  <p className="text-gray-600">Gérez vos moyens de paiement et historique des transactions</p>
+                </div>
+
+                {/* Moyens de paiement */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Moyens de paiement</h2>
+                  <div className="text-center py-8">
+                    <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-600 mb-4">Aucun moyen de paiement enregistré</p>
+                    <button className="btn-primary">
+                      Ajouter une carte
+                    </button>
+                  </div>
+                </div>
+
+                {/* Historique des paiements */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Historique des paiements</h2>
+                  <div className="text-center py-8">
+                    <div className="bg-gray-100 rounded-full p-3 w-12 h-12 mx-auto mb-3">
+                      <span className="text-gray-500 text-xl">💳</span>
+                    </div>
+                    <p className="text-gray-600 mb-4">Aucune transaction pour le moment</p>
+                    <p className="text-sm text-gray-500">Vos paiements et remboursements apparaîtront ici</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Paramètres</h1>
+                  <p className="text-gray-600">Gérez vos préférences et paramètres de compte</p>
+                </div>
+
+                {/* Notifications */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Notifications</h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">Notifications par email</h3>
+                        <p className="text-sm text-gray-600">Recevez des emails pour les réservations et mises à jour</p>
+                      </div>
+                      <input type="checkbox" className="toggle" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">Notifications SMS</h3>
+                        <p className="text-sm text-gray-600">Recevez des SMS pour les confirmations importantes</p>
+                      </div>
+                      <input type="checkbox" className="toggle" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">Offres promotionnelles</h3>
+                        <p className="text-sm text-gray-600">Recevez nos offres spéciales et réductions</p>
+                      </div>
+                      <input type="checkbox" className="toggle" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Confidentialité */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Confidentialité</h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">Profil public</h3>
+                        <p className="text-sm text-gray-600">Permettre aux hôtes de voir votre profil</p>
+                      </div>
+                      <input type="checkbox" className="toggle" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-gray-900">Partage de données</h3>
+                        <p className="text-sm text-gray-600">Autoriser le partage anonyme pour améliorer nos services</p>
+                      </div>
+                      <input type="checkbox" className="toggle" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Langue et région */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Langue et région</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Langue</label>
+                      <select className="input-field">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                        <option value="bm">Bambara</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Devise</label>
+                      <select className="input-field">
+                        <option value="XOF">Franc CFA (XOF)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="USD">Dollar US (USD)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions de compte */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions de compte</h2>
+                  <div className="space-y-4">
+                    <button className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <h3 className="font-medium text-gray-900">Télécharger mes données</h3>
+                      <p className="text-sm text-gray-600">Obtenez une copie de toutes vos données personnelles</p>
+                    </button>
+                    <button className="w-full text-left p-3 border border-red-200 rounded-lg hover:bg-red-50 text-red-600">
+                      <h3 className="font-medium">Supprimer mon compte</h3>
+                      <p className="text-sm">Cette action est irréversible</p>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <div>
