@@ -21,13 +21,8 @@ interface Property {
   bathrooms: number
 }
 
+// PRODUCTION: Toutes les fausses propriétés supprimées pour le lancement
 const allProperties: Property[] = [
-  { id: "1", title: "Villa Moderne à Bamako", location: "Bamako, Mali", price: 25000, rating: 4.8, reviews: 24, image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400", type: "maison", amenities: ["WiFi", "Climatisation", "Piscine", "Parking"], guests: 6, bedrooms: 3, bathrooms: 2 },
-  { id: "2", title: "Hôtel Le Diplomate", location: "Sikasso, Mali", price: 35000, rating: 4.6, reviews: 18, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400", type: "hotel", amenities: ["WiFi", "Restaurant", "Spa", "Salle de sport"], guests: 2, bedrooms: 1, bathrooms: 1 },
-  { id: "3", title: "Maison Traditionnelle Dogon", location: "Mopti, Mali", price: 15000, rating: 4.9, reviews: 32, image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400", type: "maison", amenities: ["Vue panoramique", "Cuisine équipée", "Terrasse"], guests: 4, bedrooms: 2, bathrooms: 1 },
-  { id: "4", title: "Appartement Centre-ville", location: "Ségou, Mali", price: 20000, rating: 4.5, reviews: 15, image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400", type: "appartement", amenities: ["WiFi", "Climatisation", "Balcon", "Proche marché"], guests: 3, bedrooms: 1, bathrooms: 1 },
-  { id: "5", title: "Riad Authentique", location: "Tombouctou, Mali", price: 30000, rating: 4.7, reviews: 21, image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400", type: "maison", amenities: ["WiFi", "Climatisation", "Terrasse", "Vue historique"], guests: 5, bedrooms: 2, bathrooms: 2 },
-  { id: "6", title: "Hôtel des Voyageurs", location: "Kayes, Mali", price: 18000, rating: 4.3, reviews: 12, image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400", type: "hotel", amenities: ["WiFi", "Restaurant", "Parking", "Climatisation"], guests: 2, bedrooms: 1, bathrooms: 1 },
 ]
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
