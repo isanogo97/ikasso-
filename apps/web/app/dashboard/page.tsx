@@ -89,18 +89,26 @@ export default function TravelerDashboard() {
   // Fonction pour ajouter une carte
   const handleAddCard = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!cardForm.number || !cardForm.expiry || !cardForm.cvv || !cardForm.name) {
+    
+    // Récupérer les valeurs directement du formulaire
+    const formData = new FormData(e.target as HTMLFormElement)
+    const number = formData.get('cardNumber') as string
+    const expiry = formData.get('cardExpiry') as string
+    const cvv = formData.get('cardCvv') as string
+    const name = formData.get('cardName') as string
+    
+    if (!number || !expiry || !cvv || !name) {
       alert('Veuillez remplir tous les champs')
       return
     }
     
     const newCard = {
       id: Date.now().toString(),
-      number: cardForm.number,
-      expiry: cardForm.expiry,
-      name: cardForm.name,
-      type: cardForm.number.startsWith('4') ? 'Visa' : cardForm.number.startsWith('5') ? 'Mastercard' : 'Carte',
-      lastFour: cardForm.number.slice(-4)
+      number: number,
+      expiry: expiry,
+      name: name,
+      type: number.startsWith('4') ? 'Visa' : number.startsWith('5') ? 'Mastercard' : 'Carte',
+      lastFour: number.slice(-4)
     }
     
     setSavedCards([...savedCards, newCard])
@@ -823,10 +831,10 @@ export default function TravelerDashboard() {
                   </label>
                   <input
                     type="text"
+                    name="cardNumber"
                     className="input-field"
                     placeholder="1234 5678 9012 3456"
-                    value={cardForm.number}
-                    onChange={(e) => setCardForm({...cardForm, number: e.target.value})}
+                    defaultValue=""
                     maxLength={19}
                     required
                   />
@@ -839,10 +847,10 @@ export default function TravelerDashboard() {
                     </label>
                     <input
                       type="text"
+                      name="cardExpiry"
                       className="input-field"
                       placeholder="MM/AA"
-                      value={cardForm.expiry}
-                      onChange={(e) => setCardForm({...cardForm, expiry: e.target.value})}
+                      defaultValue=""
                       maxLength={5}
                       required
                     />
@@ -853,10 +861,10 @@ export default function TravelerDashboard() {
                     </label>
                     <input
                       type="text"
+                      name="cardCvv"
                       className="input-field"
                       placeholder="123"
-                      value={cardForm.cvv}
-                      onChange={(e) => setCardForm({...cardForm, cvv: e.target.value})}
+                      defaultValue=""
                       maxLength={4}
                       required
                     />
@@ -869,10 +877,10 @@ export default function TravelerDashboard() {
                   </label>
                   <input
                     type="text"
+                    name="cardName"
                     className="input-field"
                     placeholder="Nom complet"
-                    value={cardForm.name || user.name}
-                    onChange={(e) => setCardForm({...cardForm, name: e.target.value})}
+                    defaultValue={user.name}
                     required
                   />
                 </div>
@@ -953,15 +961,11 @@ export default function TravelerDashboard() {
                     className="hidden"
                     accept="image/*"
                     onChange={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
                       const file = e.target.files?.[0]
                       if (file) {
                         // Simulation d'upload
-                        setTimeout(() => {
-                          alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
-                          setShowPhotoModal(false)
-                        }, 100)
+                        alert(`Photo "${file.name}" sélectionnée !\n\nEn mode démo, la photo sera mise à jour après validation.`)
+                        // Ne pas fermer automatiquement, laisser l'utilisateur fermer
                       }
                     }}
                   />
@@ -991,14 +995,10 @@ export default function TravelerDashboard() {
                     ].map((avatar, index) => (
                       <button
                         key={index}
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
+                        onClick={() => {
                           // Simulation de sélection d'avatar
-                          setTimeout(() => {
-                            alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
-                            setShowPhotoModal(false)
-                          }, 100)
+                          alert(`Avatar ${index + 1} sélectionné !\n\nVotre photo de profil sera mise à jour.`)
+                          // Ne pas fermer automatiquement, laisser l'utilisateur fermer
                         }}
                         className="w-12 h-12 rounded-full overflow-hidden hover:ring-2 hover:ring-primary-500 transition-all"
                       >
@@ -1020,7 +1020,16 @@ export default function TravelerDashboard() {
                     onClick={() => setShowPhotoModal(false)}
                     className="flex-1 btn-secondary"
                   >
-                    Annuler
+                    Fermer
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert('Photo sauvegardée avec succès !')
+                      setShowPhotoModal(false)
+                    }}
+                    className="flex-1 btn-primary"
+                  >
+                    Valider
                   </button>
                   {user.avatar && (
                     <button
