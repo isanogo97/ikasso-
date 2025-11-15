@@ -98,12 +98,26 @@ export default function RegisterPage() {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
+        postalCode: formData.postalCode,
+        city: formData.city,
+        country: formData.country,
         dateOfBirth: formData.dateOfBirth,
         userType: userType,
         memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
         avatar: null, // Pas de photo par défaut
         totalBookings: 0,
-        totalSpent: 0
+        totalSpent: 0,
+        // Données spécifiques aux hôtes
+        hostType: formData.hostType,
+        locationDescription: formData.locationDescription,
+        companyName: formData.companyName,
+        siret: formData.siret,
+        tva: formData.tva,
+        businessAddress: formData.businessAddress,
+        businessPhone: formData.businessPhone,
+        // Statut de validation pour les hôtes
+        status: userType === 'host' ? 'pending' : 'approved',
+        createdAt: new Date().toISOString()
       }
       
       // Sauvegarder l'utilisateur actuel
@@ -115,9 +129,16 @@ export default function RegisterPage() {
       localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
       
       setIsLoading(false)
-      // Redirection vers le dashboard approprié
-      const dashboardUrl = userType === 'host' ? '/dashboard/host' : '/dashboard'
-      router.push(dashboardUrl)
+      
+      // Redirection selon le type d'utilisateur et le statut
+      if (userType === 'host') {
+        // Les hôtes doivent attendre la validation
+        alert('Votre demande d\'inscription en tant qu\'hôte a été soumise avec succès !\n\nElle sera examinée par notre équipe dans les plus brefs délais. Vous recevrez un email de confirmation une fois votre compte validé.')
+        router.push('/')
+      } else {
+        // Les voyageurs sont directement approuvés
+        router.push('/dashboard')
+      }
     }, 2000)
   }
 

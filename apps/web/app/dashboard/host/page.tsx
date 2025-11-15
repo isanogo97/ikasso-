@@ -42,96 +42,59 @@ export default function HostDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Sample data
-  const host = {
-    name: 'Fatou Keita',
-    email: 'fatou.keita@email.com',
-    phone: '+223 76 54 32 10',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-    memberSince: 'Mars 2023',
-    totalProperties: 3,
-    totalEarnings: 850000,
-    totalBookings: 24,
-    rating: 4.7
+  // Données utilisateur réelles - récupérées depuis localStorage
+  const getUserData = () => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('ikasso_user')
+      if (savedUser) {
+        const userData = JSON.parse(savedUser)
+        return {
+          name: `${userData.firstName} ${userData.lastName}`,
+          email: userData.email,
+          phone: userData.phone,
+          avatar: userData.avatar,
+          memberSince: userData.memberSince || 'Novembre 2024',
+          totalProperties: 0,
+          totalEarnings: 0,
+          totalBookings: 0,
+          rating: 0,
+          hostType: userData.hostType || 'particulier',
+          companyName: userData.companyName || '',
+          siret: userData.siret || ''
+        }
+      }
+    }
+    return {
+      name: 'Nouvel Hôte',
+      email: 'hote@email.com',
+      phone: '+223 XX XX XX XX',
+      avatar: null,
+      memberSince: 'Novembre 2024',
+      totalProperties: 0,
+      totalEarnings: 0,
+      totalBookings: 0,
+      rating: 0,
+      hostType: 'particulier',
+      companyName: '',
+      siret: ''
+    }
   }
 
-  const properties: Property[] = [
-    {
-      id: '1',
-      name: 'Villa Moderne à Bamako',
-      location: 'Bamako, Mali',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300',
-      type: 'maison',
-      price: 25000,
-      rating: 4.8,
-      reviews: 24,
-      bookings: 12,
-      status: 'active',
-      earnings: 450000
-    },
-    {
-      id: '2',
-      name: 'Appartement Centre-ville',
-      location: 'Ségou, Mali',
-      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=300',
-      type: 'appartement',
-      price: 20000,
-      rating: 4.5,
-      reviews: 15,
-      bookings: 8,
-      status: 'active',
-      earnings: 280000
-    },
-    {
-      id: '3',
-      name: 'Maison Traditionnelle',
-      location: 'Mopti, Mali',
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=300',
-      type: 'maison',
-      price: 15000,
-      rating: 4.9,
-      reviews: 18,
-      bookings: 4,
-      status: 'pending',
-      earnings: 120000
-    }
-  ]
+  const host = getUserData()
 
-  const bookings: Booking[] = [
-    {
-      id: '1',
-      guestName: 'Amadou Diallo',
-      guestAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-      property: 'Villa Moderne à Bamako',
-      checkIn: '2024-12-15',
-      checkOut: '2024-12-18',
-      guests: 4,
-      status: 'confirmed',
-      total: 75000
-    },
-    {
-      id: '2',
-      guestName: 'Aïcha Traoré',
-      guestAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-      property: 'Appartement Centre-ville',
-      checkIn: '2024-12-20',
-      checkOut: '2024-12-23',
-      guests: 2,
-      status: 'pending',
-      total: 60000
-    },
-    {
-      id: '3',
-      guestName: 'Moussa Coulibaly',
-      guestAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-      property: 'Maison Traditionnelle',
-      checkIn: '2024-11-25',
-      checkOut: '2024-11-28',
-      guests: 3,
-      status: 'completed',
-      total: 45000
+  // Propriétés réelles - récupérées depuis localStorage
+  const getHostProperties = () => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ikasso_host_properties')
+      return saved ? JSON.parse(saved) : []
     }
-  ]
+    return []
+  }
+
+  const properties: Property[] = getHostProperties()
+  
+  // Réservations réelles - pour l'instant vides
+  const bookings: Booking[] = []
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {

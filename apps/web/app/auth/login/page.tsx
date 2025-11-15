@@ -38,6 +38,19 @@ export default function LoginPage() {
       }
       
       if (user) {
+        // Vérifier le statut de validation pour les hôtes
+        if (user.userType === 'host' && user.status === 'pending') {
+          alert('Votre compte hôte est en cours de validation par notre équipe.\n\nVous recevrez un email de confirmation une fois votre compte approuvé.')
+          setIsLoading(false)
+          return
+        }
+        
+        if (user.userType === 'host' && user.status === 'rejected') {
+          alert('Votre demande d\'inscription en tant qu\'hôte a été rejetée.\n\nRaison: ' + (user.rejectionReason || 'Non spécifiée') + '\n\nContactez notre support pour plus d\'informations.')
+          setIsLoading(false)
+          return
+        }
+        
         // Restaurer les données de l'utilisateur connecté
         localStorage.setItem('ikasso_user', JSON.stringify(user))
         
