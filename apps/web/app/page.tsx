@@ -35,6 +35,10 @@ export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
 
+  // FORCE: Vérification que les propriétés sont bien vides
+  console.log('🚀 IKASSO - Mode Production - Propriétés:', sampleProperties.length)
+  console.log('🚀 IKASSO - Timestamp:', new Date().toISOString())
+
   const toggleFavorite = (propertyId: string) => {
     setFavorites((prev) => (prev.includes(propertyId) ? prev.filter((id) => id !== propertyId) : [...prev, propertyId]))
   }
@@ -151,7 +155,7 @@ export default function HomePage() {
               <div className="w-24 h-24 mx-auto mb-6 bg-primary-100 rounded-full flex items-center justify-center">
                 <MapPin className="h-12 w-12 text-primary-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Bientôt disponible !</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">🚀 Site en Production - Bientôt disponible !</h3>
               <p className="text-gray-600 mb-6">
                 Nous préparons une sélection exceptionnelle d'hébergements au Mali. 
                 Les premiers hôtes rejoignent notre plateforme très prochainement.
