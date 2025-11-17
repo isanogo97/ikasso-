@@ -35,12 +35,17 @@ export default function AdminHostsPage() {
     // Récupérer les hôtes en attente depuis localStorage
     const loadPendingHosts = () => {
       if (typeof window !== 'undefined') {
-        const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-        const hosts = allUsers.filter((user: any) => 
-          user.userType === 'host' && 
-          (user.status === 'pending' || !user.status)
-        )
-        setPendingHosts(hosts)
+        try {
+          const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+          const hosts = allUsers.filter((user: any) => 
+            user.userType === 'host' && 
+            (user.status === 'pending' || !user.status)
+          )
+          setPendingHosts(hosts)
+        } catch (error) {
+          console.error('Erreur lors du chargement des hôtes:', error)
+          setPendingHosts([])
+        }
       }
     }
     

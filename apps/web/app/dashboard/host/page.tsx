@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { 
@@ -42,59 +42,58 @@ export default function HostDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Données utilisateur réelles - récupérées depuis localStorage
-  const getUserData = () => {
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('ikasso_user')
-      if (savedUser) {
-        const userData = JSON.parse(savedUser)
-        return {
-          name: `${userData.firstName} ${userData.lastName}`,
-          email: userData.email,
-          phone: userData.phone,
-          avatar: userData.avatar,
-          memberSince: userData.memberSince || 'Novembre 2024',
-          totalProperties: 0,
-          totalEarnings: 0,
-          totalBookings: 0,
-          rating: 0,
-          hostType: userData.hostType || 'particulier',
-          companyName: userData.companyName || '',
-          siret: userData.siret || ''
+  // État pour les données utilisateur
+  const [host, setHost] = useState({
+    name: 'Nouvel Hôte',
+    email: 'hote@email.com',
+    phone: '+223 XX XX XX XX',
+    avatar: null,
+    memberSince: 'Novembre 2024',
+    totalProperties: 0,
+    totalEarnings: 0,
+    totalBookings: 0,
+    rating: 0,
+    hostType: 'particulier',
+    companyName: '',
+    siret: ''
+  })
+
+  const [properties, setProperties] = useState<Property[]>([])
+  const [bookings] = useState<Booking[]>([])
+
+  // Charger les données utilisateur au montage du composant
+  useEffect(() => {
+    const getUserData = () => {
+      if (typeof window !== 'undefined') {
+        const savedUser = localStorage.getItem('ikasso_user')
+        if (savedUser) {
+          const userData = JSON.parse(savedUser)
+          setHost({
+            name: `${userData.firstName} ${userData.lastName}`,
+            email: userData.email,
+            phone: userData.phone,
+            avatar: userData.avatar,
+            memberSince: userData.memberSince || 'Novembre 2024',
+            totalProperties: 0,
+            totalEarnings: 0,
+            totalBookings: 0,
+            rating: 0,
+            hostType: userData.hostType || 'particulier',
+            companyName: userData.companyName || '',
+            siret: userData.siret || ''
+          })
+        }
+
+        // Charger les propriétés
+        const saved = localStorage.getItem('ikasso_host_properties')
+        if (saved) {
+          setProperties(JSON.parse(saved))
         }
       }
     }
-    return {
-      name: 'Nouvel Hôte',
-      email: 'hote@email.com',
-      phone: '+223 XX XX XX XX',
-      avatar: null,
-      memberSince: 'Novembre 2024',
-      totalProperties: 0,
-      totalEarnings: 0,
-      totalBookings: 0,
-      rating: 0,
-      hostType: 'particulier',
-      companyName: '',
-      siret: ''
-    }
-  }
 
-  const host = getUserData()
-
-  // Propriétés réelles - récupérées depuis localStorage
-  const getHostProperties = () => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ikasso_host_properties')
-      return saved ? JSON.parse(saved) : []
-    }
-    return []
-  }
-
-  const properties: Property[] = getHostProperties()
-  
-  // Réservations réelles - pour l'instant vides
-  const bookings: Booking[] = []
+    getUserData()
+  }, [])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -172,13 +171,19 @@ export default function HostDashboard() {
                 <Bell className="h-5 w-5" />
               </button>
               <div className="flex items-center space-x-3">
-                <Image 
-                  src={host.avatar} 
-                  alt={host.name}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full"
-                />
+                {host.avatar ? (
+                  <Image 
+                    src={host.avatar} 
+                    alt={host.name}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-gray-600" />
+                  </div>
+                )}
                 <span className="text-sm font-medium text-gray-700">{host.name}</span>
               </div>
               <button 
@@ -198,13 +203,19 @@ export default function HostDashboard() {
           <div className={`lg:w-64 ${isMobileMenuOpen ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="text-center mb-6">
-                <Image 
-                  src={host.avatar} 
-                  alt={host.name}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 rounded-full mx-auto mb-4"
-                />
+                {host.avatar ? (
+                  <Image 
+                    src={host.avatar} 
+                    alt={host.name}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 rounded-full mx-auto mb-4"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="h-8 w-8 text-gray-600" />
+                  </div>
+                )}
                 <h3 className="text-lg font-semibold text-gray-900">{host.name}</h3>
                 <p className="text-sm text-gray-600">Hôte depuis {host.memberSince}</p>
                 <div className="flex items-center justify-center mt-2">
