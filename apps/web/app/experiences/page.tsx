@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Search, MapPin, Calendar, Users, Star, Heart, Clock, Filter } from 'lucide-react'
+import { Search, MapPin, Calendar, Users, Star, Heart, Clock, Filter, Menu, X } from 'lucide-react'
 import Logo from '../components/Logo'
 
 interface Experience {
