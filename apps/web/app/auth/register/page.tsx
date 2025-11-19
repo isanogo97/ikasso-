@@ -40,6 +40,16 @@ export default function RegisterPage() {
   const [ninaChecking, setNinaChecking] = useState(false)
   const [ninaVerified, setNinaVerified] = useState(false)
   const [ninaMessage, setNinaMessage] = useState<string | null>(null)
+  
+  // États pour la vérification email et téléphone
+  const [emailVerificationCode, setEmailVerificationCode] = useState('')
+  const [phoneVerificationCode, setPhoneVerificationCode] = useState('')
+  const [sentEmailCode, setSentEmailCode] = useState('')
+  const [sentPhoneCode, setSentPhoneCode] = useState('')
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [sendingPhone, setSendingPhone] = useState(false)
 
   const normalizeNina = (n: string) => n.replace(/\s+/g, '').toUpperCase()
   const isValidNinaFormat = (n: string) => /^\d{14}$/.test(normalizeNina(n))
@@ -72,6 +82,95 @@ export default function RegisterPage() {
     }
   }
 
+  // Envoyer le code de vérification par email
+  const sendEmailVerification = async () => {
+    if (!formData.email) {
+      alert('Veuillez entrer votre adresse email')
+      return
+    }
+    
+    setSendingEmail(true)
+    try {
+      const response = await fetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: formData.email, 
+          name: `${formData.firstName} ${formData.lastName}` 
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // En mode démo, on affiche le code (à retirer en production)
+        setSentEmailCode(data.verificationCode)
+        localStorage.setItem(`verification_code_${formData.email}`, data.verificationCode)
+        alert(`✅ Email envoyé à ${formData.email}\n\n📧 Code de vérification (démo): ${data.verificationCode}`)
+      } else {
+        alert('❌ Erreur lors de l\'envoi de l\'email')
+      }
+    } catch (error) {
+      alert('❌ Erreur de connexion au serveur')
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  // Envoyer le code de vérification par SMS
+  const sendPhoneVerification = async () => {
+    if (!formData.phone) {
+      alert('Veuillez entrer votre numéro de téléphone')
+      return
+    }
+    
+    setSendingPhone(true)
+    try {
+      const response = await fetch('/api/auth/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        // En mode démo, on affiche le code (à retirer en production)
+        setSentPhoneCode(data.otpCode)
+        localStorage.setItem(`phone_code_${formData.phone}`, data.otpCode)
+        alert(`✅ SMS envoyé au ${formData.phone}\n\n📱 Code de vérification (démo): ${data.otpCode}`)
+      } else {
+        alert('❌ Erreur lors de l\'envoi du SMS')
+      }
+    } catch (error) {
+      alert('❌ Erreur de connexion au serveur')
+    } finally {
+      setSendingPhone(false)
+    }
+  }
+
+  // Vérifier le code email
+  const verifyEmailCode = () => {
+    const savedCode = localStorage.getItem(`verification_code_${formData.email}`)
+    if (emailVerificationCode === savedCode || emailVerificationCode === sentEmailCode) {
+      setEmailVerified(true)
+      alert('✅ Email vérifié avec succès !')
+    } else {
+      alert('❌ Code incorrect. Veuillez réessayer.')
+    }
+  }
+
+  // Vérifier le code téléphone
+  const verifyPhoneCode = () => {
+    const savedCode = localStorage.getItem(`phone_code_${formData.phone}`)
+    if (phoneVerificationCode === savedCode || phoneVerificationCode === sentPhoneCode) {
+      setPhoneVerified(true)
+      alert('✅ Numéro de téléphone vérifié avec succès !')
+    } else {
+      alert('❌ Code incorrect. Veuillez réessayer.')
+    }
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -81,7 +180,18 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // NINA non requis à l'inscription
+    
+    // Vérifications obligatoires
+    if (!emailVerified) {
+      alert('❌ Veuillez vérifier votre adresse email avant de continuer')
+      return
+    }
+    
+    if (!phoneVerified) {
+      alert('❌ Veuillez vérifier votre numéro de téléphone avant de continuer')
+      return
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       alert('Les mots de passe ne correspondent pas')
       return
@@ -107,6 +217,10 @@ export default function RegisterPage() {
         avatar: null, // Pas de photo par défaut
         totalBookings: 0,
         totalSpent: 0,
+        // Vérifications
+        emailVerified: emailVerified,
+        phoneVerified: phoneVerified,
+        verifiedAt: new Date().toISOString(),
         // Données spécifiques aux hôtes
         hostType: formData.hostType,
         locationDescription: formData.locationDescription,
@@ -237,9 +351,10 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Email avec vérification obligatoire */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Adresse email
+                Adresse email <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -249,17 +364,56 @@ export default function RegisterPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="input-field pl-10"
+                  className={`input-field pl-10 ${emailVerified ? 'border-green-500 bg-green-50' : ''}`}
                   placeholder="votre@email.com"
                   value={formData.email}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    handleInputChange(e)
+                    setEmailVerified(false) // Reset si changement
+                  }}
+                  disabled={emailVerified}
                 />
+                {emailVerified && (
+                  <span className="absolute right-3 top-3 text-green-500 font-medium text-sm">
+                    ✓ Vérifié
+                  </span>
+                )}
               </div>
+              {!emailVerified && formData.email && (
+                <button
+                  type="button"
+                  onClick={sendEmailVerification}
+                  disabled={sendingEmail}
+                  className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+                >
+                  {sendingEmail ? '⏳ Envoi en cours...' : '📧 Envoyer le code de vérification'}
+                </button>
+              )}
+              {!emailVerified && sentEmailCode && (
+                <div className="mt-2 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Entrez le code reçu par email"
+                    value={emailVerificationCode}
+                    onChange={(e) => setEmailVerificationCode(e.target.value)}
+                    className="input-field text-center text-lg font-mono"
+                    maxLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={verifyEmailCode}
+                    className="w-full btn-primary py-2 text-sm"
+                  >
+                    Vérifier le code
+                  </button>
+                </div>
+              )}
             </div>
 
+            {/* Téléphone avec vérification obligatoire */}
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Numéro de téléphone
+                Numéro de téléphone <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -268,12 +422,50 @@ export default function RegisterPage() {
                   name="phone"
                   type="tel"
                   required
-                  className="input-field pl-10"
+                  className={`input-field pl-10 ${phoneVerified ? 'border-green-500 bg-green-50' : ''}`}
                   placeholder="+223 XX XX XX XX"
                   value={formData.phone}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    handleInputChange(e)
+                    setPhoneVerified(false) // Reset si changement
+                  }}
+                  disabled={phoneVerified}
                 />
+                {phoneVerified && (
+                  <span className="absolute right-3 top-3 text-green-500 font-medium text-sm">
+                    ✓ Vérifié
+                  </span>
+                )}
               </div>
+              {!phoneVerified && formData.phone && (
+                <button
+                  type="button"
+                  onClick={sendPhoneVerification}
+                  disabled={sendingPhone}
+                  className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
+                >
+                  {sendingPhone ? '⏳ Envoi en cours...' : '📱 Envoyer le code par SMS'}
+                </button>
+              )}
+              {!phoneVerified && sentPhoneCode && (
+                <div className="mt-2 space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Entrez le code reçu par SMS"
+                    value={phoneVerificationCode}
+                    onChange={(e) => setPhoneVerificationCode(e.target.value)}
+                    className="input-field text-center text-lg font-mono"
+                    maxLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={verifyPhoneCode}
+                    className="w-full btn-primary py-2 text-sm"
+                  >
+                    Vérifier le code
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
