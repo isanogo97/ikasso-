@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Import dynamique de nodemailer (compatible avec Vercel)
-    const nodemailer = require('nodemailer')
+    // Import dynamique de nodemailer
+    const nodemailer = await import('nodemailer')
 
     // Configuration du transporteur Netim
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.default.createTransporter({
       host: process.env.SMTP_HOST || 'mail1.netim.hosting',
       port: parseInt(process.env.SMTP_PORT || '465'),
       secure: true, // true pour port 465, false pour autres ports
