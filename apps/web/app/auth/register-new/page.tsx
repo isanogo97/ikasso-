@@ -45,7 +45,7 @@ export default function RegisterNewPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   // ========== ÉTAPE 1 : VALIDATION TÉLÉPHONE ==========
-  const sendPhoneVerification = () => {
+  const sendPhoneVerification = async () => {
     if (!phone || phone.length < 8) {
       alert('❌ Veuillez entrer un numéro de téléphone valide')
       return
@@ -54,12 +54,32 @@ export default function RegisterNewPage() {
     setSendingPhone(true)
     const code = Math.floor(1000 + Math.random() * 9000).toString()
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/send-sms-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSentPhoneCode(code)
+        localStorage.setItem(`phone_verification_${phone}`, code)
+        alert(`📱 SMS envoyé au ${phone}\n\nEntrez le code à 4 chiffres reçu.\n\n(Mode démo - Code: ${code})`)
+      } else {
+        alert(`❌ Erreur SMS: ${data.message}\n\nCode temporaire: ${code}`)
+        setSentPhoneCode(code)
+        localStorage.setItem(`phone_verification_${phone}`, code)
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert(`⚠️ Impossible d'envoyer le SMS.\n\nCode temporaire: ${code}`)
       setSentPhoneCode(code)
       localStorage.setItem(`phone_verification_${phone}`, code)
-      alert(`📱 Code de vérification envoyé au ${phone}\n\n✅ Code: ${code}\n\n(En production, ce code sera envoyé par SMS ou appel vocal)`)
+    } finally {
       setSendingPhone(false)
-    }, 1000)
+    }
   }
 
   const verifyPhoneCode = () => {
@@ -92,7 +112,7 @@ export default function RegisterNewPage() {
   }
 
   // ========== ÉTAPE 3 : VALIDATION EMAIL ==========
-  const sendEmailVerification = () => {
+  const sendEmailVerification = async () => {
     if (!personalData.email) {
       alert('❌ Veuillez entrer votre adresse email')
       return
@@ -101,12 +121,36 @@ export default function RegisterNewPage() {
     setSendingEmail(true)
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/send-email-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: personalData.email,
+          name: `${personalData.firstName} ${personalData.lastName}`,
+          code: code
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSentEmailCode(code)
+        localStorage.setItem(`email_verification_${personalData.email}`, code)
+        alert(`✅ Email envoyé à ${personalData.email}\n\nVérifiez votre boîte de réception et entrez le code à 6 chiffres.`)
+      } else {
+        alert(`❌ Erreur lors de l'envoi: ${data.message}\n\nCode temporaire (démo): ${code}`)
+        setSentEmailCode(code)
+        localStorage.setItem(`email_verification_${personalData.email}`, code)
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert(`⚠️ Impossible d'envoyer l'email.\n\nCode temporaire (démo): ${code}`)
       setSentEmailCode(code)
       localStorage.setItem(`email_verification_${personalData.email}`, code)
-      alert(`📧 Code de vérification envoyé à ${personalData.email}\n\n✅ Code: ${code}\n\n(En production, ce code sera envoyé par email)`)
+    } finally {
       setSendingEmail(false)
-    }, 1000)
+    }
   }
 
   const verifyEmailCode = () => {
