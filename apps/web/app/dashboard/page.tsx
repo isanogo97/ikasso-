@@ -737,12 +737,31 @@ export default function TravelerDashboard() {
                             id="avatar-upload"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0]
-                              if (file) {
-                                alert(`Photo "${file.name}" sélectionnée avec succès !\n\nEn mode démo, votre photo sera mise à jour prochainement.`)
-                              }
-                            }}
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) {
+                // Simuler l'upload de la photo
+                const reader = new FileReader()
+                reader.onload = (event) => {
+                  const imageUrl = event.target?.result as string
+                  // Sauvegarder dans localStorage
+                  const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+                  currentUser.avatar = imageUrl
+                  localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
+                  
+                  // Mettre à jour dans la liste globale
+                  const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+                  const updatedUsers = allUsers.map((u: any) => 
+                    u.email === currentUser.email ? currentUser : u
+                  )
+                  localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
+                  
+                  alert(`Photo "${file.name}" mise à jour avec succès !`)
+                  window.location.reload() // Recharger pour voir la photo
+                }
+                reader.readAsDataURL(file)
+              }
+            }}
                           />
                           <label 
                             htmlFor="avatar-upload"

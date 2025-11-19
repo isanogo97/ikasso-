@@ -56,8 +56,8 @@ export default function HomePage() {
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>
               <Link href="/search" className="text-gray-700 hover:text-primary-600">Hébergements</Link>
+              <Link href="/experiences" className="text-gray-700 hover:text-primary-600">Expériences</Link>
               <Link href="/host" className="text-gray-700 hover:text-primary-600">Devenir Hôte</Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-primary-600">Tarifs</Link>
               <Link href="/help" className="text-gray-700 hover:text-primary-600">Aide</Link>
             </nav>
             <div className="hidden md:flex items-center space-x-4">
@@ -73,8 +73,8 @@ export default function HomePage() {
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link href="/" className="block px-3 py-2 text-gray-700">Accueil</Link>
               <Link href="/search" className="block px-3 py-2 text-gray-700">Hébergements</Link>
+              <Link href="/experiences" className="block px-3 py-2 text-gray-700">Expériences</Link>
               <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir Hôte</Link>
-              <Link href="/pricing" className="block px-3 py-2 text-gray-700">Tarifs</Link>
               <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
               <div className="border-t pt-2">
                 <Link href="/auth/login" className="block px-3 py-2 text-gray-700">Connexion</Link>
