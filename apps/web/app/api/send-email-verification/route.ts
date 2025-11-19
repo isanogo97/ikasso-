@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+
+// Forcer l'utilisation de Node.js runtime au lieu de Edge
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +13,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Import dynamique de nodemailer (compatible avec Vercel)
+    const nodemailer = require('nodemailer')
 
     // Configuration du transporteur Netim
     const transporter = nodemailer.createTransporter({
