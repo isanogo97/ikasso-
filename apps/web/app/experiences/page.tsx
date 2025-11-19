@@ -21,93 +21,8 @@ interface Experience {
   description: string
 }
 
-// Expériences d'exemple (à remplacer par de vraies données)
-const sampleExperiences: Experience[] = [
-  {
-    id: '1',
-    title: 'Cours de cuisine malienne traditionnelle',
-    location: 'Bamako, Mali',
-    price: 15000,
-    rating: 4.9,
-    reviews: 127,
-    image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
-    duration: '3 heures',
-    category: 'Gastronomie',
-    hostName: 'Aminata Traoré',
-    hostAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-    description: 'Apprenez à préparer des plats traditionnels maliens avec une chef locale'
-  },
-  {
-    id: '2',
-    title: 'Visite guidée des marchés de Bamako',
-    location: 'Bamako, Mali',
-    price: 8000,
-    rating: 4.7,
-    reviews: 89,
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    duration: '2 heures',
-    category: 'Culture',
-    hostName: 'Moussa Keita',
-    hostAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-    description: 'Découvrez les marchés colorés et l\'artisanat local avec un guide expérimenté'
-  },
-  {
-    id: '3',
-    title: 'Atelier de percussion djembé',
-    location: 'Ségou, Mali',
-    price: 12000,
-    rating: 4.8,
-    reviews: 64,
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
-    duration: '2.5 heures',
-    category: 'Musique',
-    hostName: 'Bakary Coulibaly',
-    hostAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
-    description: 'Initiez-vous aux rythmes traditionnels maliens avec un maître percussionniste'
-  },
-  {
-    id: '4',
-    title: 'Safari photo au parc national',
-    location: 'Mopti, Mali',
-    price: 35000,
-    rating: 4.9,
-    reviews: 43,
-    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400',
-    duration: 'Journée complète',
-    category: 'Nature',
-    hostName: 'Seydou Diarra',
-    hostAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    description: 'Explorez la faune et la flore maliennes avec un guide naturaliste'
-  },
-  {
-    id: '5',
-    title: 'Initiation à la poterie traditionnelle',
-    location: 'Sikasso, Mali',
-    price: 10000,
-    rating: 4.6,
-    reviews: 52,
-    image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
-    duration: '3 heures',
-    category: 'Artisanat',
-    hostName: 'Fatoumata Sanogo',
-    hostAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100',
-    description: 'Créez vos propres objets en argile selon les techniques ancestrales'
-  },
-  {
-    id: '6',
-    title: 'Balade en pirogue sur le fleuve Niger',
-    location: 'Mopti, Mali',
-    price: 18000,
-    rating: 4.8,
-    reviews: 76,
-    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400',
-    duration: '4 heures',
-    category: 'Nature',
-    hostName: 'Ibrahim Maiga',
-    hostAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100',
-    description: 'Naviguez sur le fleuve Niger et découvrez les villages de pêcheurs'
-  }
-]
+// Expériences réelles (vide pour l'instant - seront ajoutées par les hôtes)
+const sampleExperiences: Experience[] = []
 
 const categories = ['Tous', 'Gastronomie', 'Culture', 'Musique', 'Nature', 'Artisanat', 'Sport']
 
@@ -335,11 +250,14 @@ export default function ExperiencesPage() {
               <Search className="h-16 w-16 mx-auto" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Aucune expérience trouvée
+              Bientôt disponible !
             </h3>
-            <p className="text-gray-600">
-              Essayez de modifier vos critères de recherche ou explorez d'autres catégories.
+            <p className="text-gray-600 mb-4">
+              Aucune expérience n'est encore proposée. Soyez parmi les premiers à partager votre passion et créer des expériences inoubliables.
             </p>
+            <Link href="/host/add-experience" className="btn-primary inline-flex items-center">
+              Proposer une expérience
+            </Link>
           </div>
         )}
       </div>
