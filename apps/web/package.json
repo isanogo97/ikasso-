@@ -10,9 +10,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@types/nodemailer": "^7.0.4",
     "clsx": "^2.0.0",
     "lucide-react": "^0.294.0",
     "next": "^14.0.4",
+    "next-auth": "^4.24.13",
+    "nodemailer": "^7.0.10",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.0.0"

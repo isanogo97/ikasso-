@@ -546,10 +546,110 @@ export default function TravelerDashboard() {
                   <p className="text-gray-600">Gérez vos moyens de paiement et historique des transactions</p>
                 </div>
 
-                {/* Moyens de paiement */}
+                {/* Bouton pour aller à la page de paiement */}
+                <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-lg p-6 text-white">
+                  <h2 className="text-xl font-bold mb-2">Effectuer un paiement</h2>
+                  <p className="mb-4 text-primary-100">
+                    Payez facilement avec Orange Money, PayPal ou votre carte bancaire
+                  </p>
+                  <Link 
+                    href="/payment" 
+                    className="inline-flex items-center bg-white text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-primary-50 transition-colors"
+                  >
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Accéder aux paiements
+                  </Link>
+                </div>
+
+                {/* Méthodes de paiement disponibles */}
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Méthodes de paiement</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Orange Money */}
+                    <button
+                      onClick={async () => {
+                        const phone = prompt('🍊 Orange Money\n\nEntrez votre numéro Orange Money:\n(Ex: +223 70 00 00 00)')
+                        if (!phone) return
+                        
+                        const amount = prompt('Montant à payer (FCFA):')
+                        if (!amount) return
+                        
+                        try {
+                          const response = await fetch('/api/payment/orange-money', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone, amount: parseFloat(amount) })
+                          })
+                          
+                          const data = await response.json()
+                          
+                          if (data.success) {
+                            alert(`✅ Paiement Orange Money initié !\n\nTransaction ID: ${data.transactionId}\n\nVous recevrez une demande de confirmation sur votre téléphone ${phone}.`)
+                          } else {
+                            alert('❌ Erreur lors du paiement')
+                          }
+                        } catch (error) {
+                          alert('❌ Erreur de connexion au serveur')
+                        }
+                      }}
+                      className="flex items-center justify-between p-6 border-2 border-orange-500 rounded-lg hover:bg-orange-50 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
+                          <span className="text-white font-bold text-xl">OM</span>
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold text-gray-900">Orange Money</h3>
+                          <p className="text-sm text-gray-600">Paiement mobile Mali</p>
+                        </div>
+                      </div>
+                      <span className="text-orange-500 text-2xl">→</span>
+                    </button>
+
+                    {/* PayPal */}
+                    <button
+                      onClick={async () => {
+                        const amount = prompt('💳 PayPal\n\nMontant à payer (EUR):')
+                        if (!amount) return
+                        
+                        try {
+                          const response = await fetch('/api/payment/paypal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount: parseFloat(amount), currency: 'EUR' })
+                          })
+                          
+                          const data = await response.json()
+                          
+                          if (data.success) {
+                            alert(`✅ Paiement PayPal créé !\n\nOrder ID: ${data.orderId}\n\n(En production, vous seriez redirigé vers PayPal)`)
+                          } else {
+                            alert('❌ Erreur lors du paiement')
+                          }
+                        } catch (error) {
+                          alert('❌ Erreur de connexion au serveur')
+                        }
+                      }}
+                      className="flex items-center justify-between p-6 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mr-4">
+                          <span className="text-white font-bold text-xs">PayPal</span>
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-semibold text-gray-900">PayPal</h3>
+                          <p className="text-sm text-gray-600">Paiement international</p>
+                        </div>
+                      </div>
+                      <span className="text-blue-600 text-2xl">→</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Moyens de paiement - Cartes */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Moyens de paiement</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">Cartes bancaires</h2>
                     <button 
                       onClick={() => setShowAddCardModal(true)}
                       className="btn-primary text-sm"
@@ -561,7 +661,7 @@ export default function TravelerDashboard() {
                   {savedCards.length === 0 ? (
                     <div className="text-center py-8">
                       <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-600 mb-4">Aucun moyen de paiement enregistré</p>
+                      <p className="text-gray-600 mb-4">Aucune carte enregistrée</p>
                       <p className="text-sm text-gray-500">Ajoutez une carte pour faciliter vos réservations</p>
                     </div>
                   ) : (

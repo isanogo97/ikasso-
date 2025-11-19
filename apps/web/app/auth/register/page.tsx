@@ -82,7 +82,7 @@ export default function RegisterPage() {
     }
   }
 
-  // Envoyer le code de vérification par email
+  // Envoyer le code de vérification par email (VERSION SIMPLIFIÉE)
   const sendEmailVerification = async () => {
     if (!formData.email) {
       alert('Veuillez entrer votre adresse email')
@@ -90,34 +90,19 @@ export default function RegisterPage() {
     }
     
     setSendingEmail(true)
-    try {
-      const response = await fetch('/api/auth/send-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: formData.email, 
-          name: `${formData.firstName} ${formData.lastName}` 
-        })
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        // En mode démo, on affiche le code (à retirer en production)
-        setSentEmailCode(data.verificationCode)
-        localStorage.setItem(`verification_code_${formData.email}`, data.verificationCode)
-        alert(`✅ Email envoyé à ${formData.email}\n\n📧 Code de vérification (démo): ${data.verificationCode}`)
-      } else {
-        alert('❌ Erreur lors de l\'envoi de l\'email')
-      }
-    } catch (error) {
-      alert('❌ Erreur de connexion au serveur')
-    } finally {
+    // Générer un code à 6 chiffres
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    
+    // Simuler l'envoi (en production, remplacer par un vrai service d'email)
+    setTimeout(() => {
+      setSentEmailCode(code)
+      localStorage.setItem(`verification_code_${formData.email}`, code)
+      alert(`✅ Email simulé envoyé à ${formData.email}\n\n📧 Code de vérification: ${code}\n\n(En production, ce code sera envoyé par email)`)
       setSendingEmail(false)
-    }
+    }, 1000)
   }
 
-  // Envoyer le code de vérification par SMS
+  // Envoyer le code de vérification par SMS (VERSION SIMPLIFIÉE)
   const sendPhoneVerification = async () => {
     if (!formData.phone) {
       alert('Veuillez entrer votre numéro de téléphone')
@@ -125,28 +110,16 @@ export default function RegisterPage() {
     }
     
     setSendingPhone(true)
-    try {
-      const response = await fetch('/api/auth/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formData.phone })
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        // En mode démo, on affiche le code (à retirer en production)
-        setSentPhoneCode(data.otpCode)
-        localStorage.setItem(`phone_code_${formData.phone}`, data.otpCode)
-        alert(`✅ SMS envoyé au ${formData.phone}\n\n📱 Code de vérification (démo): ${data.otpCode}`)
-      } else {
-        alert('❌ Erreur lors de l\'envoi du SMS')
-      }
-    } catch (error) {
-      alert('❌ Erreur de connexion au serveur')
-    } finally {
+    // Générer un code à 6 chiffres
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    
+    // Simuler l'envoi (en production, remplacer par Orange Money API ou autre)
+    setTimeout(() => {
+      setSentPhoneCode(code)
+      localStorage.setItem(`phone_code_${formData.phone}`, code)
+      alert(`✅ SMS simulé envoyé au ${formData.phone}\n\n📱 Code de vérification: ${code}\n\n(En production, ce code sera envoyé par SMS)`)
       setSendingPhone(false)
-    }
+    }, 1000)
   }
 
   // Vérifier le code email
