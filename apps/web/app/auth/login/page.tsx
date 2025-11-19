@@ -55,7 +55,7 @@ export default function LoginPage() {
         localStorage.setItem('ikasso_user', JSON.stringify(user))
         
         // Redirection vers le dashboard approprié
-        if (user.userType === 'host') {
+        if (user.userType === 'hote' || user.userType === 'host') {
           window.location.href = '/dashboard/host'
         } else {
           window.location.href = '/dashboard'
@@ -110,7 +110,7 @@ export default function LoginPage() {
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Ou{' '}
-          <a href="/auth/register" className="font-medium text-primary-600 hover:text-primary-500">
+          <a href="/auth/register-new" className="font-medium text-primary-600 hover:text-primary-500">
             créez un nouveau compte
           </a>
         </p>

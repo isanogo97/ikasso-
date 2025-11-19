@@ -62,7 +62,7 @@ export default function HomePage() {
             </nav>
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register" className="btn-primary">Inscription</Link>
+              <Link href="/auth/register-new" className="btn-primary">Inscription</Link>
             </div>
             <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>{isMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
           </div>
@@ -78,7 +78,7 @@ export default function HomePage() {
               <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
               <div className="border-t pt-2">
                 <Link href="/auth/login" className="block px-3 py-2 text-gray-700">Connexion</Link>
-                <Link href="/auth/register" className="block px-3 py-2 text-primary-600 font-medium">Inscription</Link>
+                <Link href="/auth/register-new" className="block px-3 py-2 text-primary-600 font-medium">Inscription</Link>
               </div>
             </div>
           </div>
