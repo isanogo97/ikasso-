@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import * as nodemailer from 'nodemailer'
+import nodemailer from 'nodemailer'
 
 // Forcer l'utilisation de Node.js runtime au lieu de Edge
 export const runtime = 'nodejs'
