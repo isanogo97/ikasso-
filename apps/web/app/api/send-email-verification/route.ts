@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as nodemailer from 'nodemailer'
 
 // Forcer l'utilisation de Node.js runtime au lieu de Edge
 export const runtime = 'nodejs'
@@ -14,11 +15,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Import dynamique de nodemailer
-    const nodemailer = await import('nodemailer')
-
     // Configuration du transporteur Netim
-    const transporter = nodemailer.default.createTransporter({
+    const transporter = nodemailer.createTransporter({
       host: process.env.SMTP_HOST || 'mail1.netim.hosting',
       port: parseInt(process.env.SMTP_PORT || '465'),
       secure: true, // true pour port 465, false pour autres ports
