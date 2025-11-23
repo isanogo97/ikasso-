@@ -94,7 +94,7 @@ export default function HomePage() {
               🇲🇱 Plateforme malienne d'hébergement
             </div>
             <h2 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-              Bienvenue <span className="text-yellow-300">chez toi</span> au Mali
+              Trouvez votre <span className="text-yellow-300">hébergement idéal</span> au Mali
             </h2>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto font-light leading-relaxed">
               Découvrez des hébergements authentiques et confortables dans tout le Mali.<br/>
@@ -329,8 +329,8 @@ export default function HomePage() {
               <p className="text-gray-400 text-center md:text-left">
                 &copy; {new Date().getFullYear()} <span className="font-semibold text-primary-300">Ikasso</span>. Tous droits réservés.
               </p>
-              <p className="text-gray-400 text-center md:text-right flex items-center gap-2">
-                Fait avec <Heart className="h-4 w-4 text-red-500 inline animate-pulse" /> pour le Mali 🇲🇱
+              <p className="text-gray-400 text-center md:text-right">
+                Plateforme malienne d'hébergement 🇲🇱
               </p>
             </div>
           </div>

@@ -104,10 +104,9 @@ export default function HelpPage() {
               <Logo size="md" />
             </Link>
             <div className="flex items-center space-x-4">
-              <Link href="/demo-accounts" className="text-primary-600 hover:text-primary-700 font-medium">Démo</Link>
-              <Link href="/contact" className="text-gray-600 hover:text-primary-600">Contact</Link>
+              <Link href="/help" className="text-gray-600 hover:text-primary-600">Contact</Link>
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">Inscription</Link>
+              <Link href="/auth/register-new" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">Inscription</Link>
             </div>
           </div>
         </div>
