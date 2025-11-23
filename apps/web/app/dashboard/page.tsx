@@ -218,8 +218,19 @@ export default function TravelerDashboard() {
                     <User className="h-4 w-4 text-gray-600" />
                   </div>
                 )}
-                <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                <span className="text-sm font-medium text-gray-700 hidden md:block">{user.name}</span>
               </div>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('ikasso_user')
+                  localStorage.removeItem('ikasso_cards')
+                  window.location.href = '/auth/login'
+                }}
+                className="hidden md:flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </button>
               <button 
                 className="md:hidden"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

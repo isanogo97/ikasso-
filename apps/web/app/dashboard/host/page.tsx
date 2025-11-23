@@ -184,8 +184,15 @@ export default function HostDashboard() {
                     <User className="h-4 w-4 text-gray-600" />
                   </div>
                 )}
-                <span className="text-sm font-medium text-gray-700">{host.name}</span>
+                <span className="text-sm font-medium text-gray-700 hidden md:block">{host.name}</span>
               </div>
+              <Link 
+                href="/"
+                className="hidden md:flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Link>
               <button 
                 className="md:hidden"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -496,24 +503,20 @@ export default function HostDashboard() {
                   <p className="text-gray-600">Suivez vos gains et paiements</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Ce mois</h3>
-                    <p className="text-3xl font-bold text-primary-600">{formatPrice(125000)}</p>
-                    <p className="text-sm text-green-600 mt-1">+15% vs mois dernier</p>
+                <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-2xl shadow-xl p-12 text-center">
+                  <div className="inline-block mb-6 px-6 py-3 bg-white rounded-full shadow-md">
+                    <TrendingUp className="h-8 w-8 text-primary-600 mx-auto mb-2" />
                   </div>
-
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Cette année</h3>
-                    <p className="text-3xl font-bold text-primary-600">{formatPrice(host.totalEarnings)}</p>
-                    <p className="text-sm text-green-600 mt-1">+28% vs année dernière</p>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">En attente</h3>
-                    <p className="text-3xl font-bold text-yellow-600">{formatPrice(45000)}</p>
-                    <p className="text-sm text-gray-600 mt-1">Paiement dans 3 jours</p>
-                  </div>
+                  <h3 className="text-3xl font-extrabold text-gray-900 mb-4">
+                    Vos revenus apparaîtront ici
+                  </h3>
+                  <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    Une fois que vous aurez reçu vos premières réservations, vous pourrez suivre vos gains en temps réel.
+                  </p>
+                  <Link href="/host/add-property" className="inline-flex items-center bg-primary-600 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Ajouter une propriété
+                  </Link>
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
