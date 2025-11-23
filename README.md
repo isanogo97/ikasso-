@@ -1,6 +1,8 @@
 ﻿# Ikasso — Chez toi au Mali
 
-Ikasso est une plateforme de réservation d’hébergements dédiée au Mali, inspirée d’Airbnb. Le nom « Ikasso » signifie « chez toi » en bambara, et reflète l’esprit d’hospitalité malienne.
+Ikasso est une plateforme de réservation d'hébergements dédiée au Mali, inspirée d'Airbnb. Le nom « Ikasso » signifie « chez toi » en bambara, et reflète l'esprit d'hospitalité malienne.
+
+**Version déployée : 23 novembre 2025**
 
 ## Fonctionnalités
 
