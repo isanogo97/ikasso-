@@ -41,6 +41,8 @@ Tous les prix sont affichés en Francs CFA (XOF).
 - Style: Tailwind CSS
 - Icônes: Lucide React
 - Architecture: Monorepo (workspaces)
+- Email: Resend (envoi d'emails de vérification)
+- Paiements: PayPal, Orange Money
 
 ## Installation et développement
 
@@ -53,6 +55,27 @@ Tous les prix sont affichés en Francs CFA (XOF).
 git clone [repository-url]
 cd ikasso
 npm install
+```
+
+### Configuration
+
+1. **Copier le fichier d'environnement**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Configurer les variables d'environnement**
+   - Éditer `.env.local` et ajouter vos clés API
+   - Variable obligatoire : `RESEND_API_KEY` (pour les emails)
+   - Voir `.env.example` pour la liste complète
+
+3. **Configuration des emails (IMPORTANT)**
+   - 📧 **[Guide Complet](./EMAIL_SETUP_GUIDE.md)** - Configuration détaillée (30-60 min)
+   - ⚡ **[Guide Rapide](./QUICK_START_EMAIL.md)** - Configuration express (15 min)
+   - 🌐 **[Référence DNS](./DNS_CONFIG_REFERENCE.md)** - Configuration DNS détaillée
+
+### Démarrage
+```bash
 npm run dev
 ```
 Application: http://localhost:3000
@@ -90,13 +113,22 @@ ikasso/
 - Villes majeures du pays
 - Culture: hospitalité malienne (« Ikasso » = « chez toi »)
 
+## Fonctionnalités actuelles
+- ✅ Système d'inscription en 3 étapes
+- ✅ Envoi d'emails de vérification (Resend + noreply@ikasso.ml)
+- ✅ Dashboards séparés : clients et hôtes
+- ✅ Système de paiements (PayPal, Orange Money, Carte)
+- ✅ Recherche et filtrage d'hébergements
+- ✅ Interface responsive (mobile, tablette, desktop)
+- ✅ Déployé sur Vercel : https://ikasso-pwxa.vercel.app
+
 ## Évolutions prévues
-- [ ] Paiement mobile (Orange Money, etc.)
 - [ ] Chat temps réel hôte–voyageur
-- [ ] Application mobile
-- [ ] Recommandations IA
+- [ ] Application mobile native
+- [ ] Recommandations personnalisées (IA)
 - [ ] Intégration transports locaux
 - [ ] Multilingue (Bambara, Français, Anglais)
+- [ ] Vérification d'identité (NINA API Mali)
 
 ## Contribution
 Les contributions sont les bienvenues. Merci de consulter le guide de contribution.

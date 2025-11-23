@@ -72,7 +72,7 @@ export default function RegisterPage() {
   }
 
   // ÉTAPE 3: Envoyer code email
-  const sendEmailVerification = () => {
+  const sendEmailVerification = async () => {
     if (!formData.email) {
       alert('❌ Veuillez entrer votre adresse email')
       return
@@ -81,12 +81,36 @@ export default function RegisterPage() {
     setSendingEmailCode(true)
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/send-email-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: formData.email,
+          name: `${formData.firstName} ${formData.lastName}`,
+          code: code
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSentEmailCode(code)
+        localStorage.setItem(`email_verification_${formData.email}`, code)
+        alert(`✅ Email envoyé à ${formData.email}\n\nVérifiez votre boîte de réception et entrez le code à 6 chiffres.`)
+      } else {
+        alert(`❌ Erreur lors de l'envoi: ${data.message}\n\nCode temporaire (démo): ${code}`)
+        setSentEmailCode(code)
+        localStorage.setItem(`email_verification_${formData.email}`, code)
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert(`⚠️ Impossible d'envoyer l'email.\n\nCode temporaire (démo): ${code}`)
       setSentEmailCode(code)
       localStorage.setItem(`email_verification_${formData.email}`, code)
-      alert(`📧 CODE DE VÉRIFICATION EMAIL\n\nVotre code: ${code}\n\n(En production, ce code sera envoyé par email)`)
+    } finally {
       setSendingEmailCode(false)
-    }, 1500)
+    }
   }
 
   // ÉTAPE 3: Vérifier le code email

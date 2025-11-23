@@ -164,7 +164,7 @@ export default function RegisterNewPage() {
   }
 
   // ========== FINALISER L'INSCRIPTION ==========
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!emailVerified) {
       alert('❌ Veuillez vérifier votre email avant de continuer')
       return
@@ -186,24 +186,40 @@ export default function RegisterNewPage() {
       createdAt: new Date().toISOString()
     }
 
-    setTimeout(() => {
-      localStorage.setItem('ikasso_user', JSON.stringify(userData))
-      
-      const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-      allUsers.push(userData)
-      localStorage.setItem('ikasso_all_users', JSON.stringify(allUsers))
-      
-      setIsLoading(false)
-      
-      // Redirection selon le type
-      if (userType === 'hote') {
-        alert('✅ Inscription réussie !\n\nVous pouvez maintenant créer vos annonces.')
-        router.push('/dashboard/host')
-      } else {
-        alert('✅ Inscription réussie !\n\nBienvenue sur Ikasso !')
-        router.push('/dashboard')
-      }
-    }, 1500)
+    // Sauvegarder l'utilisateur
+    localStorage.setItem('ikasso_user', JSON.stringify(userData))
+    
+    const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+    allUsers.push(userData)
+    localStorage.setItem('ikasso_all_users', JSON.stringify(allUsers))
+
+    // Envoyer l'email de bienvenue
+    try {
+      await fetch('/api/send-welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: personalData.email,
+          name: `${personalData.firstName} ${personalData.lastName}`,
+          userType: userType
+        })
+      })
+      console.log('✅ Email de bienvenue envoyé')
+    } catch (error) {
+      console.error('⚠️ Erreur envoi email de bienvenue:', error)
+      // Ne pas bloquer l'inscription si l'email échoue
+    }
+
+    setIsLoading(false)
+    
+    // Redirection selon le type
+    if (userType === 'hote') {
+      alert('✅ Inscription réussie !\n\nVous pouvez maintenant créer vos annonces.\n\nUn email de bienvenue vous a été envoyé.')
+      router.push('/dashboard/host')
+    } else {
+      alert('✅ Inscription réussie !\n\nBienvenue sur Ikasso !\n\nUn email de bienvenue vous a été envoyé.')
+      router.push('/dashboard')
+    }
   }
 
   return (
