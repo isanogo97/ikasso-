@@ -33,7 +33,9 @@ export default function RegisterNewPage() {
     postalCode: '',
     city: '',
     country: 'Mali',
-    email: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   })
   
   // Étape 3 : Validation email
@@ -107,7 +109,9 @@ export default function RegisterNewPage() {
       personalData.city.trim() !== '' &&
       personalData.country.trim() !== '' &&
       personalData.email.trim() !== '' &&
-      personalData.email.includes('@')
+      personalData.email.includes('@') &&
+      personalData.password.length >= 8 &&
+      personalData.password === personalData.confirmPassword
     )
   }
 
@@ -115,6 +119,15 @@ export default function RegisterNewPage() {
   const sendEmailVerification = async () => {
     if (!personalData.email) {
       alert('❌ Veuillez entrer votre adresse email')
+      return
+    }
+
+    // Vérifier si l'email existe déjà
+    const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+    const emailExists = existingUsers.some((user: any) => user.email === personalData.email)
+    
+    if (emailExists) {
+      alert('❌ Un compte existe déjà avec cet email.\n\nVeuillez vous connecter ou utiliser un autre email.')
       return
     }
 
@@ -294,7 +307,7 @@ export default function RegisterNewPage() {
                     }`}
                   >
                     <Home className={`h-8 w-8 mx-auto mb-2 ${userType === 'client' ? 'text-primary-600' : 'text-gray-400'}`} />
-                    <div className="font-medium text-gray-900">Voyager</div>
+                    <div className="font-medium text-gray-900">Client</div>
                     <div className="text-xs text-gray-500 mt-1">Réserver des hébergements</div>
                   </button>
                   <button
@@ -307,7 +320,7 @@ export default function RegisterNewPage() {
                     }`}
                   >
                     <Building className={`h-8 w-8 mx-auto mb-2 ${userType === 'hote' ? 'text-primary-600' : 'text-gray-400'}`} />
-                    <div className="font-medium text-gray-900">Héberger</div>
+                    <div className="font-medium text-gray-900">Hôte</div>
                     <div className="text-xs text-gray-500 mt-1">Proposer des logements</div>
                   </button>
                 </div>
@@ -504,6 +517,38 @@ export default function RegisterNewPage() {
                     onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mot de passe <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Minimum 8 caractères"
+                  className="input-field"
+                  value={personalData.password}
+                  onChange={(e) => setPersonalData({...personalData, password: e.target.value})}
+                  minLength={8}
+                />
+                <p className="mt-1 text-xs text-gray-500">Au moins 8 caractères</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirmer le mot de passe <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Confirmez votre mot de passe"
+                  className="input-field"
+                  value={personalData.confirmPassword}
+                  onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
+                  minLength={8}
+                />
+                {personalData.password && personalData.confirmPassword && personalData.password !== personalData.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-500">⚠️ Les mots de passe ne correspondent pas</p>
+                )}
               </div>
 
               <div className="flex gap-4">

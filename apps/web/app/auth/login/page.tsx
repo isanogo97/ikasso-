@@ -38,6 +38,13 @@ export default function LoginPage() {
       }
       
       if (user) {
+        // Vérifier le mot de passe (si l'utilisateur en a un)
+        if (user.password && user.password !== password) {
+          alert('❌ Mot de passe incorrect.\n\nVeuillez réessayer ou cliquez sur "Mot de passe oublié ?"')
+          setIsLoading(false)
+          return
+        }
+        
         // Vérifier le statut de validation pour les hôtes
         if (user.userType === 'host' && user.status === 'pending') {
           alert('Votre compte hôte est en cours de validation par notre équipe.\n\nVous recevrez un email de confirmation une fois votre compte approuvé.')
@@ -218,12 +225,9 @@ export default function LoginPage() {
 
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button 
+                type="button"
                 onClick={() => {
-                  // Simulation de connexion Google
-                  alert('Connexion avec Google en cours...\n\nEn mode démo, vous serez redirigé vers le tableau de bord voyageur.')
-                  setTimeout(() => {
-                    window.location.href = '/dashboard'
-                  }, 1000)
+                  alert('🔐 Connexion Google\n\nCette fonctionnalité nécessite la configuration OAuth Google.\n\nPour l\'activer en production :\n1. Créer un projet sur Google Cloud Console\n2. Configurer OAuth 2.0\n3. Ajouter les credentials dans NextAuth\n\nEn attendant, utilisez l\'inscription classique avec email.')
                 }}
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
               >
@@ -237,12 +241,9 @@ export default function LoginPage() {
               </button>
 
               <button 
+                type="button"
                 onClick={() => {
-                  // Simulation de connexion Apple
-                  alert('Connexion avec Apple en cours...\n\nEn mode démo, vous serez redirigé vers le tableau de bord voyageur.')
-                  setTimeout(() => {
-                    window.location.href = '/dashboard'
-                  }, 1000)
+                  alert('🍎 Connexion Apple\n\nCette fonctionnalité nécessite la configuration Sign in with Apple.\n\nPour l\'activer en production :\n1. Créer un App ID sur Apple Developer\n2. Configurer Sign in with Apple\n3. Ajouter les credentials dans NextAuth\n\nEn attendant, utilisez l\'inscription classique avec email.')
                 }}
                 className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
               >

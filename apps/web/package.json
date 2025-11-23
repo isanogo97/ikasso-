@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth/core": "^0.34.3",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@types/nodemailer": "^7.0.4",
     "clsx": "^2.0.0",
