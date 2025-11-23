@@ -87,7 +87,8 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🏠 Bienvenue sur Ikasso !</h1>
+            <img src="https://em-content.zobj.net/source/apple/391/house_1f3e0.png" alt="Ikasso" style="width: 60px; height: 60px; margin: 0 auto 10px;">
+            <h1>Bienvenue sur Ikasso !</h1>
           </div>
           <div class="content">
             <p style="font-size: 16px;">Bonjour <strong>${name || 'Cher utilisateur'}</strong>,</p>

@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>🔐 Réinitialisation de mot de passe</h1>
+            <img src="https://em-content.zobj.net/source/apple/391/locked-with-key_1f510.png" alt="Sécurité" style="width: 60px; height: 60px; margin: 0 auto 10px;">
+            <h1>Réinitialisation de mot de passe</h1>
           </div>
           <div class="content">
             <p style="font-size: 16px;">Bonjour <strong>${name || 'Cher utilisateur'}</strong>,</p>

@@ -101,17 +101,21 @@ export default function ExperiencesPage() {
       </header>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Découvrez le Mali Authentique
+      <div className="relative bg-gradient-to-br from-primary-600 via-secondary-600 to-primary-800 text-white py-24 overflow-hidden">
+        <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+            🎭 Expériences authentiques
+          </div>
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+            Découvrez le <span className="text-yellow-300">Mali Authentique</span>
           </h1>
-          <p className="text-xl mb-8 text-primary-100">
+          <p className="text-2xl mb-12 text-white/90 max-w-3xl mx-auto font-light">
             Vivez des expériences uniques avec des locaux passionnés
           </p>
           
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-4">
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-6 backdrop-blur-sm">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
@@ -119,13 +123,13 @@ export default function ExperiencesPage() {
                   <input
                     type="text"
                     placeholder="Où souhaitez-vous aller ?"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 text-lg transition-all"
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
                   />
                 </div>
               </div>
-              <button className="btn-primary flex items-center justify-center">
+              <button className="btn-primary flex items-center justify-center px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all">
                 <Search className="h-5 w-5 mr-2" />
                 Rechercher
               </button>
@@ -245,35 +249,48 @@ export default function ExperiencesPage() {
         </div>
 
         {filteredExperiences.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-gray-400 mb-4">
-              <Search className="h-16 w-16 mx-auto" />
+          <div className="text-center py-20">
+            <div className="max-w-2xl mx-auto">
+              <div className="relative w-32 h-32 mx-auto mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full animate-pulse"></div>
+                <div className="relative w-full h-full bg-white rounded-full flex items-center justify-center shadow-2xl">
+                  <Search className="h-16 w-16 text-primary-600" />
+                </div>
+              </div>
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-4">
+                🎉 Bientôt disponible !
+              </h3>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Aucune expérience n'est encore proposée.<br/>
+                <span className="font-semibold text-primary-600">Soyez parmi les premiers à partager votre passion et créer des expériences inoubliables.</span>
+              </p>
+              <Link href="/auth/register-new" className="btn-primary inline-flex items-center text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all">
+                <Star className="mr-2 h-5 w-5" />
+                Proposer une expérience
+              </Link>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Bientôt disponible !
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Aucune expérience n'est encore proposée. Soyez parmi les premiers à partager votre passion et créer des expériences inoubliables.
-            </p>
-            <Link href="/host/add-experience" className="btn-primary inline-flex items-center">
-              Proposer une expérience
-            </Link>
           </div>
         )}
       </div>
 
       {/* CTA Section */}
-      <div className="bg-primary-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Vous êtes un expert local ?
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Partagez votre passion et créez des expériences inoubliables pour les voyageurs
-          </p>
-          <Link href="/host/add-experience" className="btn-primary text-lg px-8 py-3">
-            Proposer une expérience
-          </Link>
+      <div className="bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl shadow-2xl p-12 text-center transform hover:scale-105 transition-transform duration-300">
+            <div className="inline-block mb-6 px-6 py-3 bg-primary-100 text-primary-700 rounded-full text-sm font-bold">
+              💼 Devenez guide
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
+              Vous êtes un expert local ?
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Partagez votre passion et créez des expériences inoubliables pour les voyageurs
+            </p>
+            <Link href="/auth/register-new" className="btn-primary inline-flex items-center text-xl px-10 py-5 shadow-xl hover:shadow-2xl transition-all">
+              <Heart className="mr-3 h-6 w-6" />
+              Proposer une expérience
+            </Link>
+          </div>
         </div>
       </div>
     </div>

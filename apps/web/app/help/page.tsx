@@ -113,11 +113,16 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Centre d'aide Ikasso</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-block mb-4 px-6 py-3 bg-primary-100 text-primary-700 rounded-full text-sm font-bold">
+            💬 Support 24/7
+          </div>
+          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+            Centre d'aide <span className="text-primary-600">Ikasso</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Trouvez rapidement des réponses à vos questions ou contactez notre équipe support
           </p>
         </div>
@@ -137,35 +142,37 @@ export default function HelpPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <Link href="/contact" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center mb-4">
-              <div className="bg-primary-100 p-3 rounded-lg mr-4">
-                <MessageCircle className="h-6 w-6 text-primary-600" />
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <Link href="/help" className="group bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
+                <MessageCircle className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Chat en direct</h3>
+              <h3 className="text-xl font-bold text-gray-900">Chat en direct</h3>
             </div>
-            <p className="text-gray-600">Chattez avec notre équipe support pour une aide immédiate</p>
+            <p className="text-gray-600 text-lg leading-relaxed">Chattez avec notre équipe support pour une aide immédiate</p>
           </Link>
 
-          <Link href="/contact" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center mb-4">
-              <div className="bg-primary-100 p-3 rounded-lg mr-4">
-                <Phone className="h-6 w-6 text-primary-600" />
+          <Link href="/help" className="group bg-gradient-to-br from-white to-secondary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-br from-secondary-500 to-secondary-700 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
+                <Phone className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Nous appeler</h3>
+              <h3 className="text-xl font-bold text-gray-900">Nous appeler</h3>
             </div>
-            <p className="text-gray-600">+223 20 22 45 67 - Lun-Ven 8h-18h, Sam 9h-15h</p>
+            <p className="text-gray-600 text-lg leading-relaxed font-semibold">+223 20 22 45 67</p>
+            <p className="text-gray-500 text-sm mt-2">Lun-Ven 8h-18h, Sam 9h-15h</p>
           </Link>
 
-          <Link href="/contact" className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center mb-4">
-              <div className="bg-primary-100 p-3 rounded-lg mr-4">
-                <Mail className="h-6 w-6 text-primary-600" />
+          <Link href="/help" className="group bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
+            <div className="flex items-center mb-6">
+              <div className="bg-gradient-to-br from-primary-500 to-secondary-500 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
+                <Mail className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Envoyer un email</h3>
+              <h3 className="text-xl font-bold text-gray-900">Envoyer un email</h3>
             </div>
-            <p className="text-gray-600">support@ikasso.ml - Réponse sous 24h</p>
+            <p className="text-gray-600 text-lg leading-relaxed font-semibold">support@ikasso.ml</p>
+            <p className="text-gray-500 text-sm mt-2">Réponse sous 24h</p>
           </Link>
         </div>
 
@@ -243,22 +250,25 @@ export default function HelpPage() {
             </div>
 
             {/* Still need help */}
-            <div className="mt-8 bg-primary-50 rounded-xl p-8 text-center">
-              <h3 className="text-xl font-semibold text-primary-900 mb-4">
+            <div className="mt-8 bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 rounded-2xl p-12 text-center shadow-xl">
+              <div className="inline-block mb-4 px-6 py-3 bg-white text-primary-700 rounded-full text-sm font-bold shadow-md">
+                🆘 Besoin d'aide supplémentaire ?
+              </div>
+              <h3 className="text-3xl font-extrabold text-primary-900 mb-6">
                 Vous n'avez pas trouvé votre réponse ?
               </h3>
-              <p className="text-primary-700 mb-6">
-                Notre équipe support est là pour vous aider 24h/7j
+              <p className="text-xl text-primary-700 mb-8 max-w-2xl mx-auto">
+                Notre équipe support est là pour vous aider <span className="font-bold">24h/7j</span>
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/contact"
-                  className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+                <Link href="/help"
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition-all transform hover:scale-105"
                 >
                   Contacter le support
                 </Link>
                 <button
-                  onClick={() => alert('Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider ?')}
-                  className="border border-primary-600 text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-primary-600 hover:text-white transition-colors"
+                  onClick={() => alert('💬 Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider aujourd\'hui ?')}
+                  className="border-2 border-primary-600 text-primary-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary-600 hover:text-white transition-all transform hover:scale-105"
                 >
                   Chat en direct
                 </button>

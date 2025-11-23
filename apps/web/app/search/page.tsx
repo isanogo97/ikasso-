@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Search, MapPin, Calendar, Users, Star, Heart, SlidersHorizontal, Grid, List, ChevronDown } from "lucide-react"
+import Logo from "../components/Logo"
 
 interface Property {
   id: string
@@ -95,19 +96,23 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-primary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-primary-600">Ikasso</Link>
-              <span className="ml-2 text-sm text-gray-500">Chez Toi</span>
+              <Link href="/"><Logo size="md" /></Link>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>
-              <Link href="/search" className="text-primary-600 font-medium">Hébergements</Link>
-              <Link href="/host" className="text-gray-700 hover:text-primary-600">Devenir Hôte</Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-primary-600">Tarifs</Link>
+              <Link href="/" className="text-gray-700 hover:text-primary-600 transition-colors">Accueil</Link>
+              <Link href="/search" className="text-primary-600 font-semibold border-b-2 border-primary-600">Hébergements</Link>
+              <Link href="/experiences" className="text-gray-700 hover:text-primary-600 transition-colors">Expériences</Link>
+              <Link href="/host" className="text-gray-700 hover:text-primary-600 transition-colors">Devenir Hôte</Link>
+              <Link href="/help" className="text-gray-700 hover:text-primary-600 transition-colors">Aide</Link>
             </nav>
+            <div className="hidden md:flex items-center space-x-4">
+              <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">Connexion</Link>
+              <Link href="/auth/register-new" className="btn-primary">Inscription</Link>
+            </div>
           </div>
         </div>
       </header>
@@ -237,7 +242,25 @@ export default function SearchPage() {
             </div>
 
             {filteredProperties.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500 text-lg">Aucun hébergement ne correspond à vos critères.</div>
+              <div className="bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-12 text-center">
+                <div className="relative w-24 h-24 mx-auto mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full animate-pulse"></div>
+                  <div className="relative w-full h-full bg-white rounded-full flex items-center justify-center shadow-xl">
+                    <MapPin className="h-12 w-12 text-primary-600" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  🚀 Bientôt disponible !
+                </h3>
+                <p className="text-xl text-gray-600 mb-6 max-w-md mx-auto leading-relaxed">
+                  Les premiers hébergements arrivent très prochainement.<br/>
+                  <span className="font-semibold text-primary-600">Soyez parmi les premiers hôtes !</span>
+                </p>
+                <Link href="/auth/register-new" className="btn-primary inline-flex items-center text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all">
+                  <Star className="mr-2 h-5 w-5" />
+                  Devenir hôte
+                </Link>
+              </div>
             ) : (
               <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
                 {filteredProperties.map((property) => (
