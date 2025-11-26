@@ -108,6 +108,14 @@ export default function AdminManagementPage() {
       }
       storedAdmins.push(superAdmin)
       localStorage.setItem('ikasso_admins', JSON.stringify(storedAdmins))
+    } else {
+      // Vérifier et activer le super admin s'il existe mais n'est pas activé
+      const superAdminIndex = storedAdmins.findIndex((a: AdminUser) => a.email === 'admin@ikasso.ml')
+      if (superAdminIndex !== -1 && !storedAdmins[superAdminIndex].isActivated) {
+        storedAdmins[superAdminIndex].isActivated = true
+        storedAdmins[superAdminIndex].password = 'Admin@2024'
+        localStorage.setItem('ikasso_admins', JSON.stringify(storedAdmins))
+      }
     }
     
     setAdmins(storedAdmins)
