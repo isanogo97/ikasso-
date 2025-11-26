@@ -105,59 +105,113 @@ export default function AdminPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Validation des hôtes */}
-          <Link href="/admin/hosts" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+          {/* Gestion des utilisateurs */}
+          <Link href="/admin/users" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Users className="h-8 w-8 text-blue-600" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">Validation des hôtes</h3>
-                <p className="text-sm text-gray-600">Examiner et approuver les demandes d'inscription</p>
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des utilisateurs</h3>
+                <p className="text-sm text-gray-600">Rechercher et gérer tous les comptes</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                ✅ Disponible
+              </span>
+            </div>
+          </Link>
+
+          {/* Gestion des administrateurs */}
+          <Link href="/admin/admins" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Shield className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Administrateurs</h3>
+                <p className="text-sm text-gray-600">Gérer les comptes admin et permissions</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                ✅ Disponible
+              </span>
+            </div>
+          </Link>
+
+          {/* Statistiques */}
+          <Link href="/admin/stats" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <BarChart3 className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Statistiques</h3>
+                <p className="text-sm text-gray-600">Analyser les performances de la plateforme</p>
               </div>
             </div>
             <div className="mt-4">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                En attente de validation
+                🔜 Bientôt
               </span>
             </div>
           </Link>
 
           {/* Gestion des propriétés */}
-          <div className="bg-white rounded-lg shadow-md p-6 opacity-50">
+          <Link href="/admin/properties" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <Settings className="h-8 w-8 text-gray-400" />
+                <Settings className="h-8 w-8 text-orange-600" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-500">Gestion des propriétés</h3>
-                <p className="text-sm text-gray-400">Modérer les annonces et propriétés</p>
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des propriétés</h3>
+                <p className="text-sm text-gray-600">Modérer les annonces et propriétés</p>
               </div>
             </div>
             <div className="mt-4">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                Bientôt disponible
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                🔜 Bientôt
               </span>
             </div>
-          </div>
+          </Link>
 
-          {/* Statistiques */}
-          <div className="bg-white rounded-lg shadow-md p-6 opacity-50">
+          {/* Validation des hôtes */}
+          <Link href="/admin/hosts" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <BarChart3 className="h-8 w-8 text-gray-400" />
+                <Users className="h-8 w-8 text-indigo-600" />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-500">Statistiques</h3>
-                <p className="text-sm text-gray-400">Analyser les performances de la plateforme</p>
+                <h3 className="text-lg font-semibold text-gray-900">Validation des hôtes</h3>
+                <p className="text-sm text-gray-600">Examiner et approuver les demandes</p>
               </div>
             </div>
             <div className="mt-4">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                Bientôt disponible
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                🔜 Bientôt
               </span>
             </div>
-          </div>
+          </Link>
+
+          {/* Support client */}
+          <Link href="/admin/support" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow transform hover:scale-105">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Shield className="h-8 w-8 text-red-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">Support client</h3>
+                <p className="text-sm text-gray-600">Messages et tickets de support</p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                🔜 Bientôt
+              </span>
+            </div>
+          </Link>
         </div>
 
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
