@@ -300,7 +300,7 @@ export default function AdminPage() {
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex">
             <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="ml-3">
+            <div className="ml-3 flex-1">
               <h3 className="text-sm font-medium text-blue-900">Accès administrateur</h3>
               <p className="text-sm text-blue-800 mt-1">
                 Vous êtes connecté en tant qu'administrateur. Toutes vos actions sont enregistrées pour des raisons de sécurité.
@@ -308,6 +308,16 @@ export default function AdminPage() {
               <p className="text-xs text-blue-700 mt-2">
                 <strong>URL d'accès :</strong> ikasso-pwxa.vercel.app/admin
               </p>
+              {currentAdmin?.role === 'super_admin' && (
+                <div className="mt-3">
+                  <Link 
+                    href="/admin/test-email" 
+                    className="inline-flex items-center text-xs text-blue-700 hover:text-blue-900 font-medium"
+                  >
+                    📧 Tester l'envoi d'emails →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
