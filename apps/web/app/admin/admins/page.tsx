@@ -9,6 +9,7 @@ interface AdminUser {
   id: string
   name: string
   email: string
+  password?: string
   role: 'super_admin' | 'admin' | 'moderator' | 'support'
   permissions: {
     viewUsers: boolean
@@ -24,6 +25,8 @@ interface AdminUser {
   createdAt: string
   lastLogin?: string
   status: 'active' | 'suspended'
+  inviteToken?: string
+  isActivated?: boolean
 }
 
 const defaultPermissions = {
@@ -75,10 +78,18 @@ const defaultPermissions = {
 
 export default function AdminManagementPage() {
   const [admins, setAdmins] = useState<AdminUser[]>([])
+  const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingAdmin, setEditingAdmin] = useState<AdminUser | null>(null)
 
   useEffect(() => {
+    // Récupérer l'admin connecté
+    const loggedAdmin = localStorage.getItem('ikasso_logged_admin')
+    if (loggedAdmin) {
+      const admin = JSON.parse(loggedAdmin)
+      setCurrentAdmin(admin)
+    }
+
     // Charger les administrateurs
     const storedAdmins = JSON.parse(localStorage.getItem('ikasso_admins') || '[]')
     
@@ -88,10 +99,12 @@ export default function AdminManagementPage() {
         id: '1',
         name: 'Super Administrateur',
         email: 'admin@ikasso.ml',
+        password: 'Admin@2024',
         role: 'super_admin',
         permissions: defaultPermissions.super_admin,
         createdAt: new Date().toISOString(),
-        status: 'active'
+        status: 'active',
+        isActivated: true
       }
       storedAdmins.push(superAdmin)
       localStorage.setItem('ikasso_admins', JSON.stringify(storedAdmins))
@@ -100,19 +113,27 @@ export default function AdminManagementPage() {
     setAdmins(storedAdmins)
   }, [])
 
-  const handleSaveAdmin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveAdmin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     
     const role = formData.get('role') as AdminUser['role']
+    const email = formData.get('email') as string
+    const name = formData.get('name') as string
+    
+    // Générer un token unique pour l'invitation
+    const inviteToken = Date.now().toString() + Math.random().toString(36)
+    
     const newAdmin: AdminUser = {
       id: editingAdmin?.id || Date.now().toString(),
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
+      name,
+      email,
       role,
       permissions: defaultPermissions[role],
       createdAt: editingAdmin?.createdAt || new Date().toISOString(),
-      status: 'active'
+      status: 'active',
+      inviteToken: editingAdmin ? undefined : inviteToken,
+      isActivated: editingAdmin ? true : false
     }
 
     let updatedAdmins
@@ -124,9 +145,35 @@ export default function AdminManagementPage() {
 
     setAdmins(updatedAdmins)
     localStorage.setItem('ikasso_admins', JSON.stringify(updatedAdmins))
+    
+    // Envoyer l'email d'invitation pour les nouveaux admins
+    if (!editingAdmin) {
+      try {
+        const response = await fetch('/api/send-admin-invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            name,
+            token: inviteToken
+          })
+        })
+
+        if (response.ok) {
+          alert(`✅ Administrateur créé avec succès !\n\n📧 Un email d'invitation a été envoyé à ${email} avec un lien pour créer son mot de passe.`)
+        } else {
+          alert(`✅ Administrateur créé mais l'email n'a pas pu être envoyé.\n\nVeuillez partager manuellement le lien de création de mot de passe.`)
+        }
+      } catch (error) {
+        console.error('Erreur envoi email:', error)
+        alert(`✅ Administrateur créé mais l'email n'a pas pu être envoyé.\n\nVeuillez partager manuellement le lien de création de mot de passe.`)
+      }
+    } else {
+      alert('✅ Administrateur modifié avec succès')
+    }
+    
     setShowModal(false)
     setEditingAdmin(null)
-    alert(editingAdmin ? '✅ Administrateur modifié' : '✅ Administrateur créé')
   }
 
   const handleDeleteAdmin = (adminId: string) => {
@@ -220,23 +267,54 @@ export default function AdminManagementPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Gestion des administrateurs</h1>
-            <p className="text-gray-600 mt-2">Gérez les comptes administrateurs et leurs permissions</p>
+            <p className="text-gray-600 mt-2">
+              {currentAdmin?.role === 'super_admin' 
+                ? 'Gérez les comptes administrateurs et leurs permissions' 
+                : 'Consultez votre compte administrateur'}
+            </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingAdmin(null)
-              setShowModal(true)
-            }}
-            className="flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Nouvel administrateur
-          </button>
+          {currentAdmin?.role === 'super_admin' && (
+            <button
+              onClick={() => {
+                setEditingAdmin(null)
+                setShowModal(true)
+              }}
+              className="flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-lg"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Nouvel administrateur
+            </button>
+          )}
         </div>
+
+        {/* Message pour les admins non super_admin */}
+        {currentAdmin && currentAdmin.role !== 'super_admin' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <div className="flex items-start">
+              <Shield className="h-6 w-6 text-blue-600 mt-0.5 mr-3" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  Accès limité
+                </h3>
+                <p className="text-blue-800">
+                  Vous pouvez uniquement consulter votre propre compte administrateur. 
+                  Seuls les super administrateurs peuvent voir et gérer tous les comptes administrateurs.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Liste des administrateurs */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {admins.map((admin) => (
+          {admins
+            .filter(admin => {
+              // Si super_admin, voir tous les admins
+              if (currentAdmin?.role === 'super_admin') return true
+              // Sinon, voir seulement son propre compte
+              return admin.id === currentAdmin?.id
+            })
+            .map((admin) => (
             <div key={admin.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center space-x-4">
@@ -249,24 +327,33 @@ export default function AdminManagementPage() {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditingAdmin(admin)
-                      setShowModal(true)
-                    }}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  {admin.id !== '1' && (
-                    <button
-                      onClick={() => handleDeleteAdmin(admin.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                  {currentAdmin?.role === 'super_admin' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setEditingAdmin(admin)
+                          setShowModal(true)
+                        }}
+                        className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      {admin.id !== '1' && (
+                        <button
+                          onClick={() => handleDeleteAdmin(admin.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {currentAdmin?.role !== 'super_admin' && admin.id === currentAdmin?.id && (
+                    <span className="text-xs text-gray-500 italic px-2 py-1">
+                      Consultation uniquement
+                    </span>
                   )}
                 </div>
               </div>

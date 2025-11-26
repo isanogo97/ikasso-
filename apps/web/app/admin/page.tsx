@@ -1,27 +1,79 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Shield, Users, Settings, BarChart3 } from 'lucide-react'
+import { Shield, Users, Settings, BarChart3, LogOut } from 'lucide-react'
 import Logo from '../components/Logo'
+
+interface AdminUser {
+  id: string
+  name: string
+  email: string
+  password?: string
+  role: 'super_admin' | 'admin' | 'moderator' | 'support'
+  permissions: any
+  isActivated?: boolean
+}
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(null)
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+
+  useEffect(() => {
+    // Vérifier si un admin est déjà connecté
+    const loggedAdmin = localStorage.getItem('ikasso_logged_admin')
+    if (loggedAdmin) {
+      const admin = JSON.parse(loggedAdmin)
+      setCurrentAdmin(admin)
+      setIsAuthenticated(true)
+    }
+  }, [])
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    // Mot de passe simple pour la démo (à remplacer par une vraie authentification)
-    if (password === 'ikasso2024') {
-      setIsAuthenticated(true)
-    } else {
-      alert('Mot de passe incorrect')
+    setLoginError('')
+
+    // Récupérer tous les admins
+    const admins = JSON.parse(localStorage.getItem('ikasso_admins') || '[]')
+    
+    // Trouver l'admin par email
+    const admin = admins.find((a: AdminUser) => a.email === email)
+
+    if (!admin) {
+      setLoginError('Email ou mot de passe incorrect')
+      return
     }
+
+    if (!admin.isActivated) {
+      setLoginError('Votre compte n\'est pas encore activé. Veuillez créer votre mot de passe via le lien reçu par email.')
+      return
+    }
+
+    if (admin.password !== password) {
+      setLoginError('Email ou mot de passe incorrect')
+      return
+    }
+
+    // Connexion réussie
+    localStorage.setItem('ikasso_logged_admin', JSON.stringify(admin))
+    setCurrentAdmin(admin)
+    setIsAuthenticated(true)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('ikasso_logged_admin')
+    setCurrentAdmin(null)
+    setIsAuthenticated(false)
+    setEmail('')
+    setPassword('')
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <Logo size="lg" />
@@ -35,11 +87,29 @@ export default function AdminPage() {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div className="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10">
             <form className="space-y-6" onSubmit={handleLogin}>
               <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email administrateur
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    className="input-field"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@ikasso.ml"
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Mot de passe administrateur
+                  Mot de passe
                 </label>
                 <div className="mt-1">
                   <input
@@ -50,23 +120,29 @@ export default function AdminPage() {
                     className="input-field"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Entrez le mot de passe"
+                    placeholder="Entrez votre mot de passe"
                   />
                 </div>
               </div>
 
+              {loginError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-800">{loginError}</p>
+                </div>
+              )}
+
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                 >
                   Se connecter
                 </button>
               </div>
             </form>
 
-            <div className="mt-6">
-              <Link href="/" className="text-sm text-primary-600 hover:text-primary-500">
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
                 ← Retour au site
               </Link>
             </div>
@@ -78,19 +154,26 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
               <Logo size="md" />
-              <span className="ml-4 text-lg font-semibold text-gray-900">Administration</span>
+              <div>
+                <span className="text-lg font-semibold text-gray-900">Administration</span>
+                <p className="text-xs text-gray-500">{currentAdmin?.name}</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Administrateur connecté</span>
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{currentAdmin?.name}</p>
+                <p className="text-xs text-gray-500">{currentAdmin?.role === 'super_admin' ? 'Super Admin' : currentAdmin?.role === 'admin' ? 'Administrateur' : currentAdmin?.role === 'moderator' ? 'Modérateur' : 'Support'}</p>
+              </div>
               <button
-                onClick={() => setIsAuthenticated(false)}
-                className="text-sm text-red-600 hover:text-red-500"
+                onClick={handleLogout}
+                className="flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
+                <LogOut className="h-4 w-4 mr-2" />
                 Déconnexion
               </button>
             </div>
