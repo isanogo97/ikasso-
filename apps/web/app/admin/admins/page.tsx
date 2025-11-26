@@ -146,11 +146,8 @@ export default function AdminManagementPage() {
     setAdmins(updatedAdmins)
     localStorage.setItem('ikasso_admins', JSON.stringify(updatedAdmins))
     
-    // Générer le lien d'activation
+    // Envoyer l'email d'invitation pour les nouveaux admins
     if (!editingAdmin) {
-      const activationLink = `${window.location.origin}/admin/set-password?token=${inviteToken}`
-      
-      // Essayer d'envoyer l'email
       try {
         const response = await fetch('/api/send-admin-invite', {
           method: 'POST',
@@ -163,23 +160,13 @@ export default function AdminManagementPage() {
         })
 
         if (response.ok) {
-          alert(`✅ Administrateur créé avec succès !\n\n📧 Un email d'invitation a été envoyé à ${email}.\n\nSi l'email n'arrive pas, voici le lien d'activation :\n\n${activationLink}\n\n📋 Copiez ce lien et envoyez-le manuellement à ${name}.`)
+          alert(`✅ Administrateur créé avec succès !\n\n📧 Un email d'invitation a été envoyé à ${email} avec un lien pour créer son mot de passe.`)
         } else {
-          throw new Error('Email non envoyé')
+          alert(`✅ Administrateur créé mais l'email n'a pas pu être envoyé.\n\nVeuillez partager manuellement le lien de création de mot de passe.`)
         }
       } catch (error) {
         console.error('Erreur envoi email:', error)
-        
-        // Afficher le lien d'activation dans une alerte
-        alert(`✅ Administrateur créé avec succès !\n\n⚠️ L'email n'a pas pu être envoyé automatiquement.\n\nVoici le lien d'activation à envoyer manuellement à ${name} :\n\n${activationLink}\n\n📋 Copiez ce lien et envoyez-le par email, WhatsApp ou tout autre moyen.`)
-        
-        // Copier automatiquement dans le presse-papier
-        try {
-          await navigator.clipboard.writeText(activationLink)
-          console.log('✅ Lien copié dans le presse-papier')
-        } catch (clipboardError) {
-          console.error('Erreur copie presse-papier:', clipboardError)
-        }
+        alert(`✅ Administrateur créé mais l'email n'a pas pu être envoyé.\n\nVeuillez partager manuellement le lien de création de mot de passe.`)
       }
     } else {
       alert('✅ Administrateur modifié avec succès')
