@@ -1,30 +1,16 @@
 "use client"
 
 import React, { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
-import { Search, MapPin, Calendar, Users, Star, Heart, Menu, X, Shield, Clock, CreditCard, Home, Building2, Hotel, ArrowRight, CheckCircle, Play, Sparkles } from "lucide-react"
+import { Search, MapPin, Calendar, Users, Star, Menu, X, Shield, Clock, CreditCard, Home, Building2, Hotel, ArrowRight, CheckCircle, Play, Sparkles } from "lucide-react"
 import Logo from "./components/Logo"
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 
-const destinations = [
-  { name: "Bamako", image: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=400&h=300&fit=crop", properties: 12, description: "Capitale dynamique" },
-  { name: "Ségou", image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&h=300&fit=crop", properties: 8, description: "Ville historique" },
-  { name: "Mopti", image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400&h=300&fit=crop", properties: 6, description: "Venise du Mali" },
-  { name: "Tombouctou", image: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=400&h=300&fit=crop", properties: 4, description: "Cité mystérieuse" },
-]
-
 const propertyTypes = [
-  { name: "Hôtels", icon: Hotel, count: "15+", color: "from-blue-500 to-blue-700" },
-  { name: "Maisons", icon: Home, count: "20+", color: "from-green-500 to-green-700" },
-  { name: "Appartements", icon: Building2, count: "10+", color: "from-purple-500 to-purple-700" },
-]
-
-const testimonials = [
-  { name: "Aminata D.", location: "Bamako", text: "Ikasso m'a permis de trouver un hébergement parfait pour mon voyage d'affaires. Service impeccable !", rating: 5, avatar: "A" },
-  { name: "Moussa K.", location: "Paris", text: "Enfin une plateforme malienne ! J'ai pu réserver facilement pour ma famille restée au pays.", rating: 5, avatar: "M" },
-  { name: "Fatou S.", location: "Sikasso", text: "En tant qu'hôte, Ikasso me permet de gérer mes locations facilement. Je recommande !", rating: 5, avatar: "F" },
+  { name: "Hôtels", icon: Hotel, description: "Confort et services", color: "from-blue-500 to-blue-700" },
+  { name: "Maisons", icon: Home, description: "Espace et authenticité", color: "from-green-500 to-green-700" },
+  { name: "Appartements", icon: Building2, description: "Pratique et économique", color: "from-purple-500 to-purple-700" },
 ]
 
 export default function HomePage() {
@@ -124,7 +110,7 @@ export default function HomePage() {
 
               <div className="flex flex-wrap gap-4">
                 <Link href="/search" className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all">
-                  Explorer les hébergements
+                  Explorer
                   <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link href="/host" className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold text-lg border-2 border-white/30 hover:bg-white/20 transition-all">
@@ -215,7 +201,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Explorez par type d'hébergement
+              Types d'hébergements
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Que vous cherchiez le confort d'un hôtel ou l'authenticité d'une maison traditionnelle
@@ -235,7 +221,7 @@ export default function HomePage() {
                     <type.icon className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 group-hover:text-white mb-2 transition-colors">{type.name}</h3>
-                  <p className="text-gray-600 group-hover:text-white/80 transition-colors">{type.count} hébergements disponibles</p>
+                  <p className="text-gray-600 group-hover:text-white/80 transition-colors">{type.description}</p>
                   <div className="mt-6 flex items-center text-primary-600 group-hover:text-white font-semibold transition-colors">
                     Découvrir <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform" />
                   </div>
@@ -246,44 +232,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Destinations populaires */}
+      {/* Message "Aucun hébergement pour l'instant" */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Destinations populaires
-              </h2>
-              <p className="text-lg text-gray-600">
-                Découvrez les plus belles villes du Mali
-              </p>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-3xl p-12">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-8">
+              <MapPin className="h-12 w-12 text-white" />
             </div>
-            <Link href="/search" className="mt-4 md:mt-0 text-primary-600 font-semibold flex items-center hover:text-primary-700 transition-colors">
-              Voir toutes les destinations <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {destinations.map((destination, index) => (
-              <Link 
-                key={destination.name}
-                href="/search"
-                className="group relative rounded-2xl overflow-hidden aspect-[4/5] shadow-lg hover:shadow-2xl transition-all duration-300"
-              >
-                <Image 
-                  src={destination.image} 
-                  alt={destination.name}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-white/80 text-sm mb-1">{destination.description}</p>
-                  <h3 className="text-2xl font-bold text-white mb-2">{destination.name}</h3>
-                  <p className="text-white/80 text-sm">{destination.properties} hébergements</p>
-                </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Aucun hébergement pour l'instant
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Nous lançons bientôt notre plateforme ! Soyez parmi les premiers hôtes à proposer 
+              votre hébergement au Mali et bénéficiez d'avantages exclusifs.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/host" className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:scale-105 transition-all">
+                <Star className="h-5 w-5" />
+                Devenir hôte
               </Link>
-            ))}
+              <Link href="/auth/register-new" className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-full font-bold text-lg border-2 border-primary-200 hover:border-primary-300 hover:shadow-lg transition-all">
+                Créer un compte
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -330,44 +301,8 @@ export default function HomePage() {
                 <Star className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Qualité vérifiée</h3>
-              <p className="text-gray-600">Tous nos hébergements sont inspectés et validés</p>
+              <p className="text-gray-600">Tous nos hébergements seront inspectés et validés</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Témoignages */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Ce que disent nos utilisateurs
-            </h2>
-            <p className="text-lg text-gray-600">
-              Découvrez les expériences de notre communauté
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-700 mb-6 leading-relaxed">"{testimonial.text}"</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

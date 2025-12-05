@@ -10,24 +10,18 @@ import {
 import Logo from '../../components/Logo'
 
 type UserType = 'client' | 'hote' | null
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
 export default function RegisterNewPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [userType, setUserType] = useState<UserType>(null)
   
-  // Étape 1 : Numéro de téléphone + SMS
-  const [phone, setPhone] = useState('')
-  const [phoneCode, setPhoneCode] = useState('')
-  const [sentPhoneCode, setSentPhoneCode] = useState('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
-  const [sendingPhone, setSendingPhone] = useState(false)
-  
-  // Étape 2 : Informations personnelles
+  // Informations personnelles (incluant téléphone)
   const [personalData, setPersonalData] = useState({
     firstName: '',
     lastName: '',
+    phone: '',
     dateOfBirth: '',
     address: '',
     postalCode: '',
@@ -38,7 +32,7 @@ export default function RegisterNewPage() {
     confirmPassword: ''
   })
   
-  // Étape 3 : Validation email
+  // Validation email
   const [emailCode, setEmailCode] = useState('')
   const [sentEmailCode, setSentEmailCode] = useState('')
   const [emailVerified, setEmailVerified] = useState(false)
@@ -46,63 +40,14 @@ export default function RegisterNewPage() {
   
   const [isLoading, setIsLoading] = useState(false)
 
-  // ========== ÉTAPE 1 : VALIDATION TÉLÉPHONE ==========
-  const sendPhoneVerification = async () => {
-    if (!phone || phone.length < 8) {
-      alert('❌ Veuillez entrer un numéro de téléphone valide')
-      return
-    }
-
-    setSendingPhone(true)
-    const code = Math.floor(1000 + Math.random() * 9000).toString()
-    
-    try {
-      const response = await fetch('/api/send-sms-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setSentPhoneCode(code)
-        localStorage.setItem(`phone_verification_${phone}`, code)
-        alert(`📱 SMS envoyé au ${phone}\n\nEntrez le code à 4 chiffres reçu.\n\n(Mode démo - Code: ${code})`)
-      } else {
-        alert(`❌ Erreur SMS: ${data.message}\n\nCode temporaire: ${code}`)
-        setSentPhoneCode(code)
-        localStorage.setItem(`phone_verification_${phone}`, code)
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      alert(`⚠️ Impossible d'envoyer le SMS.\n\nCode temporaire: ${code}`)
-      setSentPhoneCode(code)
-      localStorage.setItem(`phone_verification_${phone}`, code)
-    } finally {
-      setSendingPhone(false)
-    }
-  }
-
-  const verifyPhoneCode = () => {
-    const savedCode = localStorage.getItem(`phone_verification_${phone}`)
-    if (phoneCode === savedCode || phoneCode === sentPhoneCode) {
-      setPhoneVerified(true)
-      alert('✅ Numéro de téléphone vérifié avec succès !')
-    } else {
-      alert('❌ Code incorrect. Veuillez réessayer.')
-    }
-  }
-
+  // ========== ÉTAPE 1 : INFORMATIONS PERSONNELLES ==========
   const canGoToStep2 = () => {
-    return phoneVerified && userType !== null
-  }
-
-  // ========== ÉTAPE 2 : INFORMATIONS PERSONNELLES ==========
-  const canGoToStep3 = () => {
     return (
+      userType !== null &&
       personalData.firstName.trim() !== '' &&
       personalData.lastName.trim() !== '' &&
+      personalData.phone.trim() !== '' &&
+      personalData.phone.length >= 8 &&
       personalData.dateOfBirth !== '' &&
       personalData.address.trim() !== '' &&
       personalData.postalCode.trim() !== '' &&
@@ -115,7 +60,7 @@ export default function RegisterNewPage() {
     )
   }
 
-  // ========== ÉTAPE 3 : VALIDATION EMAIL ==========
+  // ========== ÉTAPE 2 : VALIDATION EMAIL ==========
   const sendEmailVerification = async () => {
     if (!personalData.email) {
       alert('❌ Veuillez entrer votre adresse email')
@@ -187,15 +132,22 @@ export default function RegisterNewPage() {
 
     const userData = {
       userType: userType,
-      phone: phone,
-      phoneVerified: true,
-      ...personalData,
+      phone: personalData.phone,
+      firstName: personalData.firstName,
+      lastName: personalData.lastName,
+      dateOfBirth: personalData.dateOfBirth,
+      address: personalData.address,
+      postalCode: personalData.postalCode,
+      city: personalData.city,
+      country: personalData.country,
+      email: personalData.email,
+      password: personalData.password,
       emailVerified: true,
       memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
       avatar: null,
       totalBookings: 0,
       totalSpent: 0,
-      status: userType === 'hote' ? 'active' : 'active', // Hôtes peuvent créer annonces directement
+      status: 'active',
       createdAt: new Date().toISOString()
     }
 
@@ -220,7 +172,6 @@ export default function RegisterNewPage() {
       console.log('✅ Email de bienvenue envoyé')
     } catch (error) {
       console.error('⚠️ Erreur envoi email de bienvenue:', error)
-      // Ne pas bloquer l'inscription si l'email échoue
     }
 
     setIsLoading(false)
@@ -256,38 +207,31 @@ export default function RegisterNewPage() {
           <div className="flex items-center justify-between mb-4">
             <div className={`flex items-center ${currentStep >= 1 ? 'text-primary-600' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}>
-                {phoneVerified ? <CheckCircle className="h-6 w-6" /> : '1'}
+                {currentStep > 1 ? <CheckCircle className="h-6 w-6" /> : '1'}
               </div>
-              <span className="ml-2 font-medium hidden sm:block">Téléphone</span>
+              <span className="ml-2 font-medium hidden sm:block">Informations</span>
             </div>
             <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
             <div className={`flex items-center ${currentStep >= 2 ? 'text-primary-600' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}>
-                {currentStep > 2 ? <CheckCircle className="h-6 w-6" /> : '2'}
+                {emailVerified ? <CheckCircle className="h-6 w-6" /> : '2'}
               </div>
-              <span className="ml-2 font-medium hidden sm:block">Infos</span>
-            </div>
-            <div className={`flex-1 h-1 mx-4 ${currentStep >= 3 ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center ${currentStep >= 3 ? 'text-primary-600' : 'text-gray-400'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}>
-                {emailVerified ? <CheckCircle className="h-6 w-6" /> : '3'}
-              </div>
-              <span className="ml-2 font-medium hidden sm:block">Email</span>
+              <span className="ml-2 font-medium hidden sm:block">Vérification email</span>
             </div>
           </div>
         </div>
 
         {/* Main Form */}
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
-          {/* ÉTAPE 1 : TÉLÉPHONE */}
+          {/* ÉTAPE 1 : INFORMATIONS PERSONNELLES */}
           {currentStep === 1 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Vérifiez votre numéro
+                  Vos informations
                 </h2>
                 <p className="text-gray-600">
-                  Nous vous enverrons un code par SMS ou appel vocal
+                  Remplissez tous les champs pour continuer
                 </p>
               </div>
 
@@ -326,95 +270,6 @@ export default function RegisterNewPage() {
                 </div>
               </div>
 
-              {/* Numéro de téléphone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Numéro de téléphone <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <input
-                    type="tel"
-                    placeholder="+223 XX XX XX XX"
-                    className={`input-field pl-10 ${phoneVerified ? 'border-green-500 bg-green-50' : ''}`}
-                    value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value)
-                      setPhoneVerified(false)
-                    }}
-                    disabled={phoneVerified}
-                  />
-                  {phoneVerified && (
-                    <CheckCircle className="absolute right-3 top-3 h-5 w-5 text-green-500" />
-                  )}
-                </div>
-              </div>
-
-              {!phoneVerified && phone && (
-                <button
-                  onClick={sendPhoneVerification}
-                  disabled={sendingPhone}
-                  className="w-full btn-primary py-3 disabled:opacity-50"
-                >
-                  {sendingPhone ? (
-                    <span className="flex items-center justify-center">
-                      <Loader className="animate-spin h-5 w-5 mr-2" />
-                      Envoi en cours...
-                    </span>
-                  ) : (
-                    '📱 Envoyer le code de vérification'
-                  )}
-                </button>
-              )}
-
-              {!phoneVerified && sentPhoneCode && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Code de vérification
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Entrez le code à 4 chiffres"
-                      className="input-field text-center text-2xl font-mono tracking-widest"
-                      maxLength={4}
-                      value={phoneCode}
-                      onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ''))}
-                    />
-                  </div>
-                  <button
-                    onClick={verifyPhoneCode}
-                    className="w-full btn-primary py-3"
-                  >
-                    Vérifier le code
-                  </button>
-                </div>
-              )}
-
-              {phoneVerified && canGoToStep2() && (
-                <button
-                  onClick={() => setCurrentStep(2)}
-                  className="w-full btn-primary py-3 flex items-center justify-center"
-                >
-                  Continuer
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* ÉTAPE 2 : INFORMATIONS PERSONNELLES */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Vos informations
-                </h2>
-                <p className="text-gray-600">
-                  Remplissez tous les champs pour continuer
-                </p>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -438,6 +293,24 @@ export default function RegisterNewPage() {
                     onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
                   />
                 </div>
+              </div>
+
+              {/* Numéro de téléphone (sans validation) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Numéro de téléphone <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="tel"
+                    placeholder="+223 XX XX XX XX"
+                    className="input-field pl-10"
+                    value={personalData.phone}
+                    onChange={(e) => setPersonalData({...personalData, phone: e.target.value})}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Nous vous contacterons uniquement si nécessaire</p>
               </div>
 
               <div>
@@ -551,34 +424,25 @@ export default function RegisterNewPage() {
                 )}
               </div>
 
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center"
-                >
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                  Retour
-                </button>
-                <button
-                  onClick={() => {
-                    if (canGoToStep3()) {
-                      setCurrentStep(3)
-                    } else {
-                      alert('❌ Veuillez remplir tous les champs obligatoires')
-                    }
-                  }}
-                  disabled={!canGoToStep3()}
-                  className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  Continuer
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  if (canGoToStep2()) {
+                    setCurrentStep(2)
+                  } else {
+                    alert('❌ Veuillez remplir tous les champs obligatoires')
+                  }
+                }}
+                disabled={!canGoToStep2()}
+                className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                Continuer
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </button>
             </div>
           )}
 
-          {/* ÉTAPE 3 : VALIDATION EMAIL */}
-          {currentStep === 3 && (
+          {/* ÉTAPE 2 : VALIDATION EMAIL */}
+          {currentStep === 2 && (
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -601,7 +465,7 @@ export default function RegisterNewPage() {
                 </div>
               </div>
 
-              {!emailVerified && (
+              {!emailVerified && !sentEmailCode && (
                 <button
                   onClick={sendEmailVerification}
                   disabled={sendingEmail}
@@ -639,6 +503,13 @@ export default function RegisterNewPage() {
                   >
                     Vérifier le code
                   </button>
+                  <button
+                    onClick={sendEmailVerification}
+                    disabled={sendingEmail}
+                    className="w-full text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    Renvoyer le code
+                  </button>
                 </div>
               )}
 
@@ -655,7 +526,7 @@ export default function RegisterNewPage() {
 
               <div className="flex gap-4">
                 <button
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => setCurrentStep(1)}
                   className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center"
                 >
                   <ArrowLeft className="mr-2 h-5 w-5" />
@@ -693,4 +564,3 @@ export default function RegisterNewPage() {
     </div>
   )
 }
-
