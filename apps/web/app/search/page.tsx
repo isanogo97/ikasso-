@@ -5,8 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { 
   Search, MapPin, Calendar, Users, Star, Home, Building2, Hotel, 
-  Filter, X, ArrowRight, Globe, Menu, Compass, SlidersHorizontal,
-  ChevronLeft, ChevronRight, Heart, Sparkles
+  X, ArrowRight, Globe, Menu, SlidersHorizontal, Sparkles
 } from "lucide-react"
 import Logo from "../components/Logo"
 
@@ -85,7 +84,7 @@ function SearchContent() {
             </div>
 
             {/* Actions droite */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <Link 
                 href="/host"
                 className="hidden md:block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
@@ -93,20 +92,31 @@ function SearchContent() {
                 Devenir hôte
               </Link>
               
+              <Link 
+                href="/auth/login"
+                className="hidden md:block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+              >
+                Connexion
+              </Link>
+              
+              <Link 
+                href="/auth/register-new"
+                className="hidden md:block px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all"
+              >
+                Inscription
+              </Link>
+              
               <button className="p-3 hover:bg-gray-100 rounded-full transition-all">
                 <Globe className="h-5 w-5 text-gray-700" />
               </button>
 
-              {/* Menu utilisateur */}
-              <div className="relative ml-2">
+              {/* Menu mobile */}
+              <div className="relative md:hidden">
                 <button 
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="flex items-center gap-3 p-2 pl-3 border border-gray-200 rounded-full hover:shadow-md transition-all"
                 >
                   <Menu className="h-4 w-4 text-gray-700" />
-                  <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">?</span>
-                  </div>
                 </button>
 
                 {isMenuOpen && (
@@ -134,47 +144,37 @@ function SearchContent() {
           </div>
         </div>
 
-        {/* Barre de catégories avec navigation */}
-        <div className="border-t border-gray-100">
-          <div className="max-w-[1760px] mx-auto px-6 md:px-10 lg:px-20">
-            <div className="flex items-center gap-4 py-4">
-              {/* Flèche gauche */}
-              <button className="hidden md:flex items-center justify-center w-8 h-8 border border-gray-200 rounded-full hover:shadow-md transition-all">
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-
+        {/* Barre de catégories - Agrandie et centrée */}
+        <div className="border-t border-gray-100 bg-white">
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="flex items-center justify-center gap-8 py-6">
               {/* Catégories */}
-              <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide flex-1">
+              <div className="flex items-center justify-center gap-12 overflow-x-auto scrollbar-hide">
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex flex-col items-center gap-2 min-w-fit pb-2 border-b-2 transition-all ${
+                    className={`flex flex-col items-center gap-3 min-w-fit pb-3 border-b-[3px] transition-all ${
                       selectedCategory === cat.id
-                        ? 'border-gray-900 text-gray-900'
+                        ? 'border-primary-500 text-primary-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
-                    <cat.icon className="h-6 w-6" />
-                    <span className="text-xs font-medium whitespace-nowrap">{cat.name}</span>
+                    <cat.icon className={`h-7 w-7 ${selectedCategory === cat.id ? 'text-primary-500' : ''}`} />
+                    <span className="text-sm font-semibold whitespace-nowrap">{cat.name}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Flèche droite */}
-              <button className="hidden md:flex items-center justify-center w-8 h-8 border border-gray-200 rounded-full hover:shadow-md transition-all">
-                <ChevronRight className="h-4 w-4" />
-              </button>
-
               {/* Bouton Filtres */}
               <button 
                 onClick={() => setShowMobileFilters(true)}
-                className="flex items-center gap-2 px-4 py-3 border border-gray-200 rounded-xl hover:shadow-md transition-all"
+                className="flex items-center gap-2 px-5 py-3 border border-gray-200 rounded-xl hover:shadow-md transition-all ml-8"
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="text-sm font-medium">Filtres</span>
+                <SlidersHorizontal className="h-5 w-5" />
+                <span className="text-sm font-semibold">Filtres</span>
                 {activeFiltersCount > 0 && (
-                  <span className="bg-gray-900 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="bg-primary-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                     {activeFiltersCount}
                   </span>
                 )}
