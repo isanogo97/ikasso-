@@ -3,29 +3,29 @@
 import React, { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Search, MapPin, Calendar, Users, Star, Heart, Menu, X } from "lucide-react"
+import { Search, MapPin, Calendar, Users, Star, Heart, Menu, X, Shield, Clock, CreditCard, Home, Building2, Hotel, ArrowRight, CheckCircle, Play, Sparkles } from "lucide-react"
 import Logo from "./components/Logo"
 
-interface Property {
-  id: string
-  title: string
-  location: string
-  price: number
-  rating: number
-  reviews: number
-  image: string
-  type: "hotel" | "maison" | "appartement"
-  amenities: string[]
-}
-
-// SITE EN PRODUCTION - PLUS DE DONNÉES DE DÉMONSTRATION
-// Toutes les fausses annonces ont été supprimées pour le lancement officiel
-const sampleProperties: Property[] = []
-
-// Vérification: le tableau est bien vide
-console.log('Propriétés chargées:', sampleProperties.length)
-
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
+
+const destinations = [
+  { name: "Bamako", image: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=400&h=300&fit=crop", properties: 12, description: "Capitale dynamique" },
+  { name: "Ségou", image: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&h=300&fit=crop", properties: 8, description: "Ville historique" },
+  { name: "Mopti", image: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400&h=300&fit=crop", properties: 6, description: "Venise du Mali" },
+  { name: "Tombouctou", image: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?w=400&h=300&fit=crop", properties: 4, description: "Cité mystérieuse" },
+]
+
+const propertyTypes = [
+  { name: "Hôtels", icon: Hotel, count: "15+", color: "from-blue-500 to-blue-700" },
+  { name: "Maisons", icon: Home, count: "20+", color: "from-green-500 to-green-700" },
+  { name: "Appartements", icon: Building2, count: "10+", color: "from-purple-500 to-purple-700" },
+]
+
+const testimonials = [
+  { name: "Aminata D.", location: "Bamako", text: "Ikasso m'a permis de trouver un hébergement parfait pour mon voyage d'affaires. Service impeccable !", rating: 5, avatar: "A" },
+  { name: "Moussa K.", location: "Paris", text: "Enfin une plateforme malienne ! J'ai pu réserver facilement pour ma famille restée au pays.", rating: 5, avatar: "M" },
+  { name: "Fatou S.", location: "Sikasso", text: "En tant qu'hôte, Ikasso me permet de gérer mes locations facilement. Je recommande !", rating: 5, avatar: "F" },
+]
 
 export default function HomePage() {
   const [searchLocation, setSearchLocation] = useState("")
@@ -33,306 +33,422 @@ export default function HomePage() {
   const [checkOut, setCheckOut] = useState("")
   const [guests, setGuests] = useState(1)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [favorites, setFavorites] = useState<string[]>([])
-
-  // FORCE: Vérification que les propriétés sont bien vides
-  console.log('🚀 IKASSO - Mode Production - Propriétés:', sampleProperties.length)
-  console.log('🚀 IKASSO - Timestamp:', new Date().toISOString())
-
-  const toggleFavorite = (propertyId: string) => {
-    setFavorites((prev) => (prev.includes(propertyId) ? prev.filter((id) => id !== propertyId) : [...prev, propertyId]))
-  }
-
-  const formatPrice = (price: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", minimumFractionDigits: 0 }).format(price)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/"><Logo size="md" /></Link>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>
-              <Link href="/search" className="text-gray-700 hover:text-primary-600">Hébergements</Link>
-              <Link href="/experiences" className="text-gray-700 hover:text-primary-600">Expériences</Link>
-              <Link href="/host" className="text-gray-700 hover:text-primary-600">Devenir Hôte</Link>
-              <Link href="/help" className="text-gray-700 hover:text-primary-600">Aide</Link>
+              <Link href="/" className="text-primary-600 font-semibold">Accueil</Link>
+              <Link href="/search" className="text-gray-700 hover:text-primary-600 transition-colors">Hébergements</Link>
+              <Link href="/experiences" className="text-gray-700 hover:text-primary-600 transition-colors">Expériences</Link>
+              <Link href="/host" className="text-gray-700 hover:text-primary-600 transition-colors">Devenir Hôte</Link>
+              <Link href="/help" className="text-gray-700 hover:text-primary-600 transition-colors">Aide</Link>
             </nav>
             <div className="hidden md:flex items-center space-x-4">
-              <Link href="/auth/login" className="text-gray-700 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register-new" className="btn-primary">Inscription</Link>
+              <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 font-medium">Connexion</Link>
+              <Link href="/auth/register-new" className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-5 py-2.5 rounded-full font-medium hover:shadow-lg hover:scale-105 transition-all">Inscription</Link>
             </div>
-            <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>{isMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
+            <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden bg-white border-t">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link href="/" className="block px-3 py-2 text-gray-700">Accueil</Link>
-              <Link href="/search" className="block px-3 py-2 text-gray-700">Hébergements</Link>
-              <Link href="/experiences" className="block px-3 py-2 text-gray-700">Expériences</Link>
-              <Link href="/host" className="block px-3 py-2 text-gray-700">Devenir Hôte</Link>
-              <Link href="/help" className="block px-3 py-2 text-gray-700">Aide</Link>
-              <div className="border-t pt-2">
-                <Link href="/auth/login" className="block px-3 py-2 text-gray-700">Connexion</Link>
-                <Link href="/auth/register-new" className="block px-3 py-2 text-primary-600 font-medium">Inscription</Link>
+          <div className="md:hidden bg-white border-t shadow-lg">
+            <div className="px-4 py-4 space-y-2">
+              <Link href="/" className="block px-4 py-3 text-primary-600 font-semibold rounded-lg bg-primary-50">Accueil</Link>
+              <Link href="/search" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">Hébergements</Link>
+              <Link href="/experiences" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">Expériences</Link>
+              <Link href="/host" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">Devenir Hôte</Link>
+              <Link href="/help" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">Aide</Link>
+              <div className="border-t pt-4 mt-4 space-y-2">
+                <Link href="/auth/login" className="block px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg">Connexion</Link>
+                <Link href="/auth/register-new" className="block px-4 py-3 text-center bg-primary-600 text-white rounded-lg font-medium">Inscription</Link>
               </div>
             </div>
           </div>
         )}
       </header>
 
-      <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-600 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-          <div className="text-center">
-            <div className="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-              🇲🇱 Plateforme malienne d'hébergement
-            </div>
-            <h2 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-              Trouvez votre <span className="text-yellow-300">hébergement idéal</span> au Mali
-            </h2>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto font-light leading-relaxed">
-              Découvrez des hébergements authentiques et confortables dans tout le Mali.<br/>
-              <span className="font-semibold text-yellow-200">Des hôtels modernes aux maisons traditionnelles.</span>
-            </p>
-          </div>
+      {/* Hero Section */}
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+        {/* Background avec gradient et pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700"></div>
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'1\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")' }}></div>
+        
+        {/* Cercles décoratifs */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary-500/20 rounded-full blur-3xl"></div>
 
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 mt-12 backdrop-blur-sm border border-white/20">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <select className="input-field pl-10" value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}>
-                    <option value="">Choisir une ville</option>
-                    {cities.map((city) => (<option key={city} value={city}>{city}</option>))}
-                  </select>
-                </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Texte */}
+            <div className="text-white">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
+                <Sparkles className="h-4 w-4 text-yellow-300" />
+                <span className="text-sm font-medium">La première plateforme malienne d'hébergement</span>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Arrivée</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="date" className="input-field pl-10" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Départ</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input type="date" className="input-field pl-10" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Voyageurs</label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <select className="input-field pl-10" value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (<option key={num} value={num}>{num} {num === 1 ? "voyageur" : "voyageurs"}</option>))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <button className="w-full md:w-auto btn-primary mt-6 px-8 py-3 text-lg">
-              <Search className="inline-block mr-2 h-5 w-5" />
-              Rechercher
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-gradient-to-b from-gray-50 to-white">
-        <div className="text-center mb-16">
-          <div className="inline-block mb-4 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
-            ⭐ Bientôt disponible
-          </div>
-          <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
-            Hébergements au Mali
-          </h3>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Découvrez bientôt nos premiers hébergements authentiques et confortables
-          </p>
-        </div>
-        {sampleProperties.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="max-w-2xl mx-auto">
-              <div className="relative w-32 h-32 mx-auto mb-8">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full animate-pulse"></div>
-                <div className="relative w-full h-full bg-white rounded-full flex items-center justify-center shadow-xl">
-                  <MapPin className="h-16 w-16 text-primary-600" />
-                </div>
-              </div>
-              <h3 className="text-3xl font-extrabold text-gray-900 mb-4">
-                🚀 Site en Production
-              </h3>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Nous préparons une sélection exceptionnelle d'hébergements au Mali.<br/>
-                <span className="font-semibold text-primary-600">Les premiers hôtes rejoignent notre plateforme très prochainement.</span>
+              
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+                Réservez votre
+                <span className="block text-yellow-300">séjour au Mali</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed max-w-lg">
+                Découvrez des hébergements uniques dans tout le Mali. 
+                Des hôtels de luxe aux maisons traditionnelles, 
+                trouvez l'endroit parfait pour votre séjour.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link href="/auth/register-new" className="btn-primary inline-flex items-center text-lg px-8 py-4 shadow-lg hover:shadow-xl transition-all">
-                  <Star className="mr-2 h-5 w-5" />
+
+              <div className="flex flex-wrap gap-4 mb-8">
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  <span>Réservation sécurisée</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  <span>Paiement flexible</span>
+                </div>
+                <div className="flex items-center gap-2 text-white/80">
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  <span>Support 24/7</span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-4">
+                <Link href="/search" className="inline-flex items-center gap-2 bg-white text-primary-700 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all">
+                  Explorer les hébergements
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+                <Link href="/host" className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold text-lg border-2 border-white/30 hover:bg-white/20 transition-all">
+                  <Play className="h-5 w-5" />
                   Devenir hôte
                 </Link>
-                <Link href="/help" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold text-lg">
-                  En savoir plus
-                  <Heart className="ml-2 h-5 w-5" />
+              </div>
+            </div>
+
+            {/* Formulaire de recherche */}
+            <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Trouvez votre hébergement</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <select 
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-900"
+                      value={searchLocation} 
+                      onChange={(e) => setSearchLocation(e.target.value)}
+                    >
+                      <option value="">Où allez-vous ?</option>
+                      {cities.map((city) => (<option key={city} value={city}>{city}</option>))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Arrivée</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input 
+                        type="date" 
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        value={checkIn} 
+                        onChange={(e) => setCheckIn(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Départ</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input 
+                        type="date" 
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        value={checkOut} 
+                        onChange={(e) => setCheckOut(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Voyageurs</label>
+                  <div className="relative">
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <select 
+                      className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-900"
+                      value={guests} 
+                      onChange={(e) => setGuests(Number(e.target.value))}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                        <option key={num} value={num}>{num} {num === 1 ? "voyageur" : "voyageurs"}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <Link 
+                  href="/search" 
+                  className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                >
+                  <Search className="h-5 w-5" />
+                  Rechercher
                 </Link>
               </div>
-              <p className="text-sm text-gray-500 mt-6 italic">
-                ✨ Soyez parmi les premiers à proposer votre hébergement et bénéficiez d'avantages exclusifs
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {sampleProperties.map((property) => (
-            <div key={property.id} className="card overflow-hidden">
-              <div className="relative">
-                <Link href={`/property/${property.id}`}>
-                  <Image src={property.image} alt={property.title} width={600} height={400} className="w-full h-48 object-cover hover:scale-105 transition-transform duration-200" />
-                </Link>
-                <button onClick={() => toggleFavorite(property.id)} className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-                  <Heart className={`h-4 w-4 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
-                </button>
-                <div className="absolute top-3 left-3"><span className="bg-primary-500 text-white px-2 py-1 rounded-full text-xs font-medium capitalize">{property.type}</span></div>
-              </div>
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Link href={`/property/${property.id}`}><h4 className="font-semibold text-gray-900 hover:text-primary-600 truncate">{property.title}</h4></Link>
-                  <div className="flex items-center"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /><span className="ml-1 text-sm text-gray-600">{property.rating}</span></div>
-                </div>
-                <p className="text-gray-600 text-sm mb-2 flex items-center"><MapPin className="h-4 w-4 mr-1" />{property.location}</p>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {property.amenities.slice(0, 2).map((amenity, index) => (<span key={index} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">{amenity}</span>))}
-                  {property.amenities.length > 2 && (<span className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">+{property.amenities.length - 2}</span>)}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div><span className="text-lg font-bold text-gray-900">{formatPrice(property.price)}</span><span className="text-gray-600 text-sm">/nuit</span></div>
-                  <span className="text-sm text-gray-500">{property.reviews} avis</span>
-                </div>
-              </div>
-            </div>
-          ))}
-          </div>
-        )}
-      </section>
-
-      <section className="bg-gradient-to-br from-white via-primary-50 to-secondary-50 py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-4 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold">
-              🏆 Nos avantages
-            </div>
-            <h3 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
-              Pourquoi choisir Ikasso ?
-            </h3>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Votre plateforme de confiance pour l'hébergement au Mali
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="group text-center transform hover:scale-105 transition-all duration-300">
-              <div className="relative mb-6 inline-block">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-primary-500 to-primary-700 w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl">
-                  <MapPin className="h-10 w-10 text-white" />
-                </div>
-              </div>
-              <h4 className="text-2xl font-bold mb-4 text-gray-900">Partout au Mali</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Des hébergements dans toutes les régions du Mali, des grandes villes aux villages authentiques.
-              </p>
-            </div>
-            <div className="group text-center transform hover:scale-105 transition-all duration-300">
-              <div className="relative mb-6 inline-block">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-yellow-500 to-orange-600 w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Star className="h-10 w-10 text-white" />
-                </div>
-              </div>
-              <h4 className="text-2xl font-bold mb-4 text-gray-900">Qualité garantie</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Tous nos hébergements sont vérifiés et notés par notre communauté de voyageurs.
-              </p>
-            </div>
-            <div className="group text-center transform hover:scale-105 transition-all duration-300">
-              <div className="relative mb-6 inline-block">
-                <div className="absolute inset-0 bg-gradient-to-br from-red-400 to-pink-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-red-500 to-pink-600 w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl">
-                  <Heart className="h-10 w-10 text-white" />
-                </div>
-              </div>
-              <h4 className="text-2xl font-bold mb-4 text-gray-900">Accueil chaleureux</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Découvrez l'hospitalité malienne avec des hôtes passionnés par leur région.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-16">
+      {/* Types d'hébergements */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Explorez par type d'hébergement
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Que vous cherchiez le confort d'un hôtel ou l'authenticité d'une maison traditionnelle
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {propertyTypes.map((type, index) => (
+              <Link 
+                key={type.name}
+                href="/search"
+                className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${type.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                <div className="relative p-8">
+                  <div className={`w-16 h-16 bg-gradient-to-br ${type.color} rounded-2xl flex items-center justify-center mb-6 group-hover:bg-white/20 transition-colors`}>
+                    <type.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 group-hover:text-white mb-2 transition-colors">{type.name}</h3>
+                  <p className="text-gray-600 group-hover:text-white/80 transition-colors">{type.count} hébergements disponibles</p>
+                  <div className="mt-6 flex items-center text-primary-600 group-hover:text-white font-semibold transition-colors">
+                    Découvrir <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-2 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Destinations populaires */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
             <div>
-              <div className="flex items-center mb-4">
-                <Logo size="md" />
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Destinations populaires
+              </h2>
+              <p className="text-lg text-gray-600">
+                Découvrez les plus belles villes du Mali
+              </p>
+            </div>
+            <Link href="/search" className="mt-4 md:mt-0 text-primary-600 font-semibold flex items-center hover:text-primary-700 transition-colors">
+              Voir toutes les destinations <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {destinations.map((destination, index) => (
+              <Link 
+                key={destination.name}
+                href="/search"
+                className="group relative rounded-2xl overflow-hidden aspect-[4/5] shadow-lg hover:shadow-2xl transition-all duration-300"
+              >
+                <Image 
+                  src={destination.image} 
+                  alt={destination.name}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <p className="text-white/80 text-sm mb-1">{destination.description}</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">{destination.name}</h3>
+                  <p className="text-white/80 text-sm">{destination.properties} hébergements</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pourquoi Ikasso */}
+      <section className="py-20 bg-gradient-to-br from-primary-50 to-secondary-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Pourquoi choisir Ikasso ?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              La plateforme de confiance pour vos séjours au Mali
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Shield className="h-8 w-8 text-white" />
               </div>
-              <p className="text-gray-300 mb-4 leading-relaxed">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Réservation sécurisée</h3>
+              <p className="text-gray-600">Vos paiements sont protégés et vos données personnelles sécurisées</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Clock className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Support 24/7</h3>
+              <p className="text-gray-600">Notre équipe est disponible à tout moment pour vous assister</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <CreditCard className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Paiement flexible</h3>
+              <p className="text-gray-600">Orange Money, carte bancaire ou espèces à l'arrivée</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Qualité vérifiée</h3>
+              <p className="text-gray-600">Tous nos hébergements sont inspectés et validés</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Témoignages */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Ce que disent nos utilisateurs
+            </h2>
+            <p className="text-lg text-gray-600">
+              Découvrez les expériences de notre communauté
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow">
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-6 leading-relaxed">"{testimonial.text}"</p>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                    <p className="text-sm text-gray-500">{testimonial.location}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Devenir hôte */}
+      <section className="py-20 bg-gradient-to-br from-secondary-600 to-secondary-700 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+            Vous avez un hébergement à proposer ?
+          </h2>
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Rejoignez notre communauté d'hôtes et commencez à gagner de l'argent 
+            en accueillant des voyageurs du monde entier.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link href="/host" className="inline-flex items-center gap-2 bg-white text-secondary-700 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all">
+              Devenir hôte
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link href="/help" className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-full font-bold text-lg border-2 border-white/30 hover:bg-white/20 transition-all">
+              En savoir plus
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div className="col-span-2 md:col-span-1">
+              <Logo size="md" />
+              <p className="text-gray-400 mt-4 leading-relaxed">
                 Votre plateforme de réservation d'hébergements au Mali.
               </p>
-              <p className="text-gray-400 italic">
+              <p className="text-gray-500 mt-2 text-sm italic">
                 "Chez toi" en bambara 🇲🇱
               </p>
             </div>
+            
             <div>
-              <h6 className="font-bold text-lg mb-4 text-primary-300">Destinations</h6>
-              <ul className="space-y-3 text-gray-300">
-                <li><Link href="/search" className="hover:text-primary-400 transition-colors flex items-center">→ Bamako</Link></li>
-                <li><Link href="/search" className="hover:text-primary-400 transition-colors flex items-center">→ Sikasso</Link></li>
-                <li><Link href="/search" className="hover:text-primary-400 transition-colors flex items-center">→ Ségou</Link></li>
-                <li><Link href="/search" className="hover:text-primary-400 transition-colors flex items-center">→ Mopti</Link></li>
+              <h4 className="font-bold text-lg mb-4">Destinations</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/search" className="hover:text-white transition-colors">Bamako</Link></li>
+                <li><Link href="/search" className="hover:text-white transition-colors">Sikasso</Link></li>
+                <li><Link href="/search" className="hover:text-white transition-colors">Ségou</Link></li>
+                <li><Link href="/search" className="hover:text-white transition-colors">Mopti</Link></li>
               </ul>
             </div>
+            
             <div>
-              <h6 className="font-bold text-lg mb-4 text-primary-300">Support</h6>
-              <ul className="space-y-3 text-gray-300">
-                <li><Link href="/help" className="hover:text-primary-400 transition-colors flex items-center">→ Centre d'aide</Link></li>
-                <li><Link href="/help" className="hover:text-primary-400 transition-colors flex items-center">→ Nous contacter</Link></li>
-                <li><a href="#" className="hover:text-primary-400 transition-colors flex items-center">→ Conditions</a></li>
-                <li><a href="#" className="hover:text-primary-400 transition-colors flex items-center">→ Confidentialité</a></li>
+              <h4 className="font-bold text-lg mb-4">Support</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/help" className="hover:text-white transition-colors">Centre d'aide</Link></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Nous contacter</Link></li>
+                <li><a href="#" className="hover:text-white transition-colors">Conditions</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Confidentialité</a></li>
               </ul>
             </div>
+            
             <div>
-              <h6 className="font-bold text-lg mb-4 text-primary-300">Hôtes</h6>
-              <ul className="space-y-3 text-gray-300">
-                <li><Link href="/host" className="hover:text-primary-400 transition-colors flex items-center">→ Devenir hôte</Link></li>
-                <li><Link href="/help" className="hover:text-primary-400 transition-colors flex items-center">→ Guide de l'hôte</Link></li>
-                <li><Link href="/help" className="hover:text-primary-400 transition-colors flex items-center">→ Ressources</Link></li>
-                <li><Link href="/help" className="hover:text-primary-400 transition-colors flex items-center">→ Communauté</Link></li>
+              <h4 className="font-bold text-lg mb-4">Hôtes</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><Link href="/host" className="hover:text-white transition-colors">Devenir hôte</Link></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Guide de l'hôte</Link></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Ressources</Link></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Communauté</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-700 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-gray-400 text-center md:text-left">
-                &copy; {new Date().getFullYear()} <span className="font-semibold text-primary-300">Ikasso</span>. Tous droits réservés.
-              </p>
-              <p className="text-gray-400 text-center md:text-right">
-                Plateforme malienne d'hébergement 🇲🇱
-              </p>
-            </div>
+          
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-400 text-sm">
+              © {new Date().getFullYear()} Ikasso. Tous droits réservés.
+            </p>
+            <p className="text-gray-400 text-sm">
+              Plateforme malienne d'hébergement 🇲🇱
+            </p>
           </div>
         </div>
       </footer>

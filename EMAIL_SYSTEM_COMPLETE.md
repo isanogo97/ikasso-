@@ -300,3 +300,5 @@ const handleBooking = async (bookingData) => {
 *Dernière mise à jour : 23 novembre 2025*
 *Créé par : L'équipe Ikasso*
 
+
+

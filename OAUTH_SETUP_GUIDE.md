@@ -233,3 +233,5 @@ Pour toute question sur la configuration OAuth :
 
 *Note : Pour l'instant, les boutons affichent un message informatif. L'activation complète nécessite la configuration ci-dessus.*
 
+
+
