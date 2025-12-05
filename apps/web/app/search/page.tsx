@@ -3,15 +3,30 @@
 import React, { useState, Suspense } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Search, MapPin, Calendar, Users, Star, SlidersHorizontal, Grid, List, Home, Building2, Hotel, Filter, X, ArrowRight } from "lucide-react"
+import { 
+  Search, MapPin, Calendar, Users, Star, Home, Building2, Hotel, 
+  Filter, X, ArrowRight, Globe, Menu, Compass, SlidersHorizontal,
+  ChevronLeft, ChevronRight, Heart, Sparkles
+} from "lucide-react"
 import Logo from "../components/Logo"
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 const allAmenities = ["WiFi", "Climatisation", "Piscine", "Parking", "Restaurant", "Spa", "Cuisine équipée", "Terrasse", "Vue panoramique"]
 
+// Catégories style Airbnb
+const categories = [
+  { id: "all", name: "Tout", icon: Home },
+  { id: "hotel", name: "Hôtels", icon: Hotel },
+  { id: "maison", name: "Maisons", icon: Home },
+  { id: "appartement", name: "Appartements", icon: Building2 },
+  { id: "villa", name: "Villas", icon: Sparkles },
+]
+
 function SearchContent() {
   const searchParams = useSearchParams()
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState("all")
 
   const [searchLocation, setSearchLocation] = useState(searchParams?.get("location") || "")
   const [checkIn, setCheckIn] = useState(searchParams?.get("checkin") || "")
@@ -38,312 +53,330 @@ function SearchContent() {
   const activeFiltersCount = propertyTypes.length + selectedAmenities.length + (minRating > 0 ? 1 : 0) + (priceMax < 150000 ? 1 : 0)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/"><Logo size="md" /></Link>
+    <div className="min-h-screen bg-white">
+      {/* Header Style Airbnb */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-[1760px] mx-auto px-6 md:px-10 lg:px-20">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0">
+              <Logo size="md" />
+            </Link>
+
+            {/* Barre de recherche compacte - Centre */}
+            <div className="hidden md:flex items-center">
+              <div className="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all">
+                <button className="px-4 py-2 text-sm font-medium text-gray-900 border-r border-gray-200">
+                  {searchLocation || "Destination"}
+                </button>
+                <button className="px-4 py-2 text-sm text-gray-600 border-r border-gray-200">
+                  {checkIn || "Arrivée"}
+                </button>
+                <button className="px-4 py-2 text-sm text-gray-600 border-r border-gray-200">
+                  {checkOut || "Départ"}
+                </button>
+                <button className="px-4 py-2 text-sm text-gray-600">
+                  {guests} voyageur{guests > 1 ? 's' : ''}
+                </button>
+                <button className="bg-primary-500 text-white p-2 m-1 rounded-full">
+                  <Search className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-primary-600 transition-colors">Accueil</Link>
-              <Link href="/search" className="text-primary-600 font-semibold border-b-2 border-primary-600 pb-1">Hébergements</Link>
-              <Link href="/experiences" className="text-gray-700 hover:text-primary-600 transition-colors">Expériences</Link>
-              <Link href="/host" className="text-gray-700 hover:text-primary-600 transition-colors">Devenir Hôte</Link>
-              <Link href="/help" className="text-gray-700 hover:text-primary-600 transition-colors">Aide</Link>
-            </nav>
-            <div className="hidden md:flex items-center space-x-4">
-              <Link href="/auth/login" className="text-gray-700 hover:text-primary-600 font-medium">Connexion</Link>
-              <Link href="/auth/register-new" className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-5 py-2.5 rounded-full font-medium hover:shadow-lg transition-all">Inscription</Link>
+
+            {/* Actions droite */}
+            <div className="flex items-center gap-1">
+              <Link 
+                href="/host"
+                className="hidden md:block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+              >
+                Devenir hôte
+              </Link>
+              
+              <button className="p-3 hover:bg-gray-100 rounded-full transition-all">
+                <Globe className="h-5 w-5 text-gray-700" />
+              </button>
+
+              {/* Menu utilisateur */}
+              <div className="relative ml-2">
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-3 p-2 pl-3 border border-gray-200 rounded-full hover:shadow-md transition-all"
+                >
+                  <Menu className="h-4 w-4 text-gray-700" />
+                  <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">?</span>
+                  </div>
+                </button>
+
+                {isMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}></div>
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                      <Link href="/auth/register-new" className="block px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50">
+                        Inscription
+                      </Link>
+                      <Link href="/auth/login" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                        Connexion
+                      </Link>
+                      <div className="border-t border-gray-100 my-2"></div>
+                      <Link href="/host" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                        Devenir hôte
+                      </Link>
+                      <Link href="/help" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">
+                        Centre d'aide
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Barre de catégories avec navigation */}
+        <div className="border-t border-gray-100">
+          <div className="max-w-[1760px] mx-auto px-6 md:px-10 lg:px-20">
+            <div className="flex items-center gap-4 py-4">
+              {/* Flèche gauche */}
+              <button className="hidden md:flex items-center justify-center w-8 h-8 border border-gray-200 rounded-full hover:shadow-md transition-all">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              {/* Catégories */}
+              <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide flex-1">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex flex-col items-center gap-2 min-w-fit pb-2 border-b-2 transition-all ${
+                      selectedCategory === cat.id
+                        ? 'border-gray-900 text-gray-900'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <cat.icon className="h-6 w-6" />
+                    <span className="text-xs font-medium whitespace-nowrap">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Flèche droite */}
+              <button className="hidden md:flex items-center justify-center w-8 h-8 border border-gray-200 rounded-full hover:shadow-md transition-all">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+
+              {/* Bouton Filtres */}
+              <button 
+                onClick={() => setShowMobileFilters(true)}
+                className="flex items-center gap-2 px-4 py-3 border border-gray-200 rounded-xl hover:shadow-md transition-all"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="text-sm font-medium">Filtres</span>
+                {activeFiltersCount > 0 && (
+                  <span className="bg-gray-900 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero compact */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Trouvez votre hébergement idéal</h1>
-          <p className="text-white/80">Explorez les hébergements disponibles au Mali</p>
-        </div>
-      </div>
-
-      {/* Barre de recherche */}
-      <div className="bg-white shadow-md -mt-4 relative z-10 mx-4 sm:mx-6 lg:mx-auto max-w-7xl rounded-2xl">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <select className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent" value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}>
-                  <option value="">Toutes les villes</option>
-                  {cities.map((city) => (<option key={city} value={city}>{city}</option>))}
-                </select>
-              </div>
+      {/* Contenu principal */}
+      <main className="max-w-[1760px] mx-auto px-6 md:px-10 lg:px-20 py-8">
+        {/* Message "Aucun logement" */}
+        <div className="text-center py-20">
+          <div className="max-w-2xl mx-auto">
+            <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-8">
+              <MapPin className="h-16 w-16 text-gray-400" />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Arrivée</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input type="date" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Départ</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input type="date" className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Voyageurs</label>
-              <div className="relative">
-                <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <select className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent" value={guests} onChange={(e) => setGuests(Number(e.target.value))}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (<option key={num} value={num}>{num} {num === 1 ? "voyageur" : "voyageurs"}</option>))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-end">
-              <button className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                <Search className="h-5 w-5" />
-                Rechercher
-              </button>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Aucun logement pour l'instant
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Nous lançons bientôt notre plateforme au Mali. 
+              Soyez parmi les premiers hôtes à nous rejoindre !
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link 
+                href="/host"
+                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-all"
+              >
+                Devenir hôte
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link 
+                href="/"
+                className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-all"
+              >
+                Retour à l'accueil
+              </Link>
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filtres Desktop */}
-          <div className="hidden lg:block lg:w-80 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Filtres</h3>
-                {activeFiltersCount > 0 && (
-                  <button onClick={clearFilters} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                    Effacer ({activeFiltersCount})
-                  </button>
-                )}
+      {/* Modal Filtres */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileFilters(false)}></div>
+          <div className="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center">
+            <div className="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl w-full md:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <button 
+                  onClick={() => setShowMobileFilters(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <h2 className="font-semibold text-gray-900">Filtres</h2>
+                <button 
+                  onClick={clearFilters}
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900 underline"
+                >
+                  Tout effacer
+                </button>
               </div>
 
-              {/* Prix */}
-              <div className="mb-8">
-                <h4 className="font-semibold text-gray-900 mb-4">Prix par nuit</h4>
-                <div className="space-y-3">
-                  <input 
-                    type="range" 
-                    min={0} 
-                    max={150000} 
-                    step={5000} 
-                    value={priceMax} 
-                    onChange={(e) => setPriceMax(Number(e.target.value))}
-                    className="w-full accent-primary-600"
-                  />
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">0 FCFA</span>
-                    <span className="font-semibold text-primary-600">{formatPrice(priceMax)}</span>
+              {/* Contenu */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                {/* Type de logement */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Type de logement</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { key: "hotel", label: "Hôtel", icon: Hotel },
+                      { key: "maison", label: "Maison", icon: Home },
+                      { key: "appartement", label: "Appartement", icon: Building2 },
+                    ].map(({ key, label, icon: Icon }) => (
+                      <button
+                        key={key}
+                        onClick={() => togglePropertyType(key)}
+                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                          propertyTypes.includes(key) 
+                            ? 'border-gray-900 bg-gray-50' 
+                            : 'border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        <Icon className={`h-6 w-6 ${propertyTypes.includes(key) ? 'text-gray-900' : 'text-gray-400'}`} />
+                        <span className={`text-sm font-medium ${propertyTypes.includes(key) ? 'text-gray-900' : 'text-gray-600'}`}>
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fourchette de prix */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Fourchette de prix</h3>
+                  <p className="text-sm text-gray-500 mb-4">Prix par nuit</p>
+                  <div className="px-2">
+                    <input 
+                      type="range" 
+                      min={0} 
+                      max={150000} 
+                      step={5000} 
+                      value={priceMax} 
+                      onChange={(e) => setPriceMax(Number(e.target.value))}
+                      className="w-full accent-gray-900"
+                    />
+                    <div className="flex justify-between mt-2">
+                      <div className="px-4 py-2 border border-gray-200 rounded-lg text-sm">
+                        <span className="text-gray-500">Min</span>
+                        <div className="font-medium">0 FCFA</div>
+                      </div>
+                      <div className="px-4 py-2 border border-gray-200 rounded-lg text-sm">
+                        <span className="text-gray-500">Max</span>
+                        <div className="font-medium">{formatPrice(priceMax)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Équipements */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Équipements</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {allAmenities.map((amenity) => (
+                      <button 
+                        key={amenity}
+                        onClick={() => toggleAmenity(amenity)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                          selectedAmenities.includes(amenity) 
+                            ? 'bg-gray-900 text-white border-gray-900' 
+                            : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                        }`}
+                      >
+                        {amenity}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Note */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Note minimale</h3>
+                  <div className="flex gap-2">
+                    {[0, 3, 4, 4.5].map((r) => (
+                      <button 
+                        key={r} 
+                        onClick={() => setMinRating(r)} 
+                        className={`flex-1 py-3 rounded-lg font-medium border transition-all ${
+                          minRating === r 
+                            ? 'bg-gray-900 text-white border-gray-900' 
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        {r === 0 ? 'Tous' : (
+                          <span className="flex items-center justify-center gap-1">
+                            {r}+ <Star className="h-4 w-4" />
+                          </span>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Type d'hébergement */}
-              <div className="mb-8">
-                <h4 className="font-semibold text-gray-900 mb-4">Type d'hébergement</h4>
-                <div className="space-y-3">
-                  {[
-                    { key: "hotel", label: "Hôtel", icon: Hotel },
-                    { key: "maison", label: "Maison", icon: Home },
-                    { key: "appartement", label: "Appartement", icon: Building2 },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <label key={key} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${propertyTypes.includes(key) ? 'bg-primary-50 border-2 border-primary-500' : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'}`}>
-                      <input type="checkbox" className="sr-only" checked={propertyTypes.includes(key)} onChange={() => togglePropertyType(key)} />
-                      <Icon className={`h-5 w-5 ${propertyTypes.includes(key) ? 'text-primary-600' : 'text-gray-400'}`} />
-                      <span className={`font-medium ${propertyTypes.includes(key) ? 'text-primary-700' : 'text-gray-700'}`}>{label}</span>
-                    </label>
-                  ))}
-                </div>
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-200 flex gap-3">
+                <button 
+                  onClick={() => setShowMobileFilters(false)}
+                  className="flex-1 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-all"
+                >
+                  Afficher les résultats
+                </button>
               </div>
-
-              {/* Équipements */}
-              <div className="mb-8">
-                <h4 className="font-semibold text-gray-900 mb-4">Équipements</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {allAmenities.map((amenity) => (
-                    <label key={amenity} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer text-sm transition-all ${selectedAmenities.includes(amenity) ? 'bg-primary-50 text-primary-700' : 'hover:bg-gray-50 text-gray-600'}`}>
-                      <input type="checkbox" className="sr-only" checked={selectedAmenities.includes(amenity)} onChange={() => toggleAmenity(amenity)} />
-                      <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${selectedAmenities.includes(amenity) ? 'bg-primary-600 border-primary-600' : 'border-gray-300'}`}>
-                        {selectedAmenities.includes(amenity) && <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>}
-                      </div>
-                      <span>{amenity}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Note minimale */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Note minimale</h4>
-                <div className="flex gap-2">
-                  {[0, 3, 4, 4.5].map((r) => (
-                    <button 
-                      key={r} 
-                      onClick={() => setMinRating(r)} 
-                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${minRating === r ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                    >
-                      {r === 0 ? 'Tous' : `${r}+`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Résultats */}
-          <div className="flex-1">
-            {/* Barre d'outils mobile */}
-            <div className="flex items-center justify-between mb-6">
-              <button 
-                className="lg:hidden inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-all" 
-                onClick={() => setShowMobileFilters(true)}
-              >
-                <Filter className="h-4 w-4" />
-                Filtres
-                {activeFiltersCount > 0 && (
-                  <span className="bg-primary-600 text-white text-xs px-2 py-0.5 rounded-full">{activeFiltersCount}</span>
-                )}
-              </button>
-            </div>
-
-            {/* Message "Aucun hébergement" */}
-            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-8">
-                <MapPin className="h-12 w-12 text-primary-600" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Aucun hébergement pour l'instant
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 max-w-lg mx-auto leading-relaxed">
-                Nous lançons bientôt notre plateforme ! Les premiers hébergements 
-                seront disponibles très prochainement.
-              </p>
-              <div className="flex flex-wrap gap-4 justify-center">
-                <Link href="/host" className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:scale-105 transition-all">
-                  <Star className="h-5 w-5" />
-                  Devenir hôte
-                </Link>
-                <Link href="/" className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-200 transition-all">
-                  Retour à l'accueil
-                </Link>
-              </div>
-              <p className="text-sm text-gray-500 mt-8">
-                Soyez parmi les premiers à proposer votre hébergement et bénéficiez d'avantages exclusifs !
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal Filtres Mobile */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileFilters(false)}></div>
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between">
-              <h3 className="text-lg font-bold">Filtres</h3>
-              <button onClick={() => setShowMobileFilters(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-8">
-              {/* Prix */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Prix par nuit</h4>
-                <input 
-                  type="range" 
-                  min={0} 
-                  max={150000} 
-                  step={5000} 
-                  value={priceMax} 
-                  onChange={(e) => setPriceMax(Number(e.target.value))}
-                  className="w-full accent-primary-600"
-                />
-                <div className="flex justify-between text-sm mt-2">
-                  <span className="text-gray-500">0 FCFA</span>
-                  <span className="font-semibold text-primary-600">{formatPrice(priceMax)}</span>
-                </div>
-              </div>
-
-              {/* Type */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Type d'hébergement</h4>
-                <div className="space-y-3">
-                  {[
-                    { key: "hotel", label: "Hôtel", icon: Hotel },
-                    { key: "maison", label: "Maison", icon: Home },
-                    { key: "appartement", label: "Appartement", icon: Building2 },
-                  ].map(({ key, label, icon: Icon }) => (
-                    <label key={key} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${propertyTypes.includes(key) ? 'bg-primary-50 border-2 border-primary-500' : 'bg-gray-50 border-2 border-transparent'}`}>
-                      <input type="checkbox" className="sr-only" checked={propertyTypes.includes(key)} onChange={() => togglePropertyType(key)} />
-                      <Icon className={`h-5 w-5 ${propertyTypes.includes(key) ? 'text-primary-600' : 'text-gray-400'}`} />
-                      <span className={`font-medium ${propertyTypes.includes(key) ? 'text-primary-700' : 'text-gray-700'}`}>{label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Équipements */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Équipements</h4>
-                <div className="flex flex-wrap gap-2">
-                  {allAmenities.map((amenity) => (
-                    <button 
-                      key={amenity}
-                      onClick={() => toggleAmenity(amenity)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedAmenities.includes(amenity) ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-                    >
-                      {amenity}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Note */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Note minimale</h4>
-                <div className="flex gap-2">
-                  {[0, 3, 4, 4.5].map((r) => (
-                    <button 
-                      key={r} 
-                      onClick={() => setMinRating(r)} 
-                      className={`flex-1 py-3 rounded-xl font-medium transition-all ${minRating === r ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600'}`}
-                    >
-                      {r === 0 ? 'Tous' : `${r}+`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 p-4 flex gap-3">
-              <button onClick={clearFilters} className="flex-1 py-3 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50">
-                Effacer
-              </button>
-              <button onClick={() => setShowMobileFilters(false)} className="flex-1 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700">
-                Appliquer
-              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Footer simplifié */}
+      <footer className="bg-gray-100 border-t border-gray-200 mt-auto">
+        <div className="max-w-[1760px] mx-auto px-6 md:px-10 lg:px-20 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span>© {new Date().getFullYear()} Ikasso</span>
+              <span>·</span>
+              <a href="#" className="hover:underline">Confidentialité</a>
+              <span>·</span>
+              <a href="#" className="hover:underline">Conditions</a>
+            </div>
+            <div className="flex items-center gap-4">
+              <button className="flex items-center gap-2 text-sm font-medium text-gray-900 hover:underline">
+                <Globe className="h-4 w-4" />
+                Français (FR)
+              </button>
+              <span className="text-sm font-medium text-gray-900">FCFA</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
@@ -351,8 +384,8 @@ function SearchContent() {
 export default function SearchPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-900 border-t-transparent"></div>
       </div>
     }>
       <SearchContent />
