@@ -309,12 +309,18 @@ export default function AdminPage() {
                 <strong>URL d'accès :</strong> ikasso-pwxa.vercel.app/admin
               </p>
               {currentAdmin?.role === 'super_admin' && (
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap gap-4">
                   <Link 
                     href="/admin/test-email" 
                     className="inline-flex items-center text-xs text-blue-700 hover:text-blue-900 font-medium"
                   >
                     📧 Tester l'envoi d'emails →
+                  </Link>
+                  <Link 
+                    href="/admin/test-sms" 
+                    className="inline-flex items-center text-xs text-blue-700 hover:text-blue-900 font-medium"
+                  >
+                    📱 Tester l'envoi de SMS →
                   </Link>
                 </div>
               )}
