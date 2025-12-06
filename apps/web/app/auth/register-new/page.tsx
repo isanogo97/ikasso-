@@ -4,24 +4,30 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
-  Phone, Mail, User, MapPin, Calendar, ArrowLeft, ArrowRight,
-  CheckCircle, Loader, Home, Building 
+  Phone, Mail, User, MapPin, ArrowLeft, ArrowRight,
+  CheckCircle, Loader, Home, Building, Eye, EyeOff, Calendar, Globe
 } from 'lucide-react'
 import Logo from '../../components/Logo'
 
 type UserType = 'client' | 'hote' | null
-type Step = 1 | 2
+type Step = 1 | 2 | 3
 
 export default function RegisterNewPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [userType, setUserType] = useState<UserType>(null)
   
-  // Informations personnelles (incluant téléphone)
+  // Étape 1 : Téléphone + SMS
+  const [phone, setPhone] = useState('')
+  const [phoneCode, setPhoneCode] = useState('')
+  const [sentPhoneCode, setSentPhoneCode] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [sendingPhone, setSendingPhone] = useState(false)
+  
+  // Étape 2 : Informations personnelles
   const [personalData, setPersonalData] = useState({
     firstName: '',
     lastName: '',
-    phone: '',
     dateOfBirth: '',
     address: '',
     postalCode: '',
@@ -31,8 +37,9 @@ export default function RegisterNewPage() {
     password: '',
     confirmPassword: ''
   })
+  const [showPassword, setShowPassword] = useState(false)
   
-  // Validation email
+  // Étape 3 : Validation email
   const [emailCode, setEmailCode] = useState('')
   const [sentEmailCode, setSentEmailCode] = useState('')
   const [emailVerified, setEmailVerified] = useState(false)
@@ -40,39 +47,83 @@ export default function RegisterNewPage() {
   
   const [isLoading, setIsLoading] = useState(false)
 
-  // ========== ÉTAPE 1 : INFORMATIONS PERSONNELLES ==========
-  const canGoToStep2 = () => {
-    return (
-      userType !== null &&
-      personalData.firstName.trim() !== '' &&
-      personalData.lastName.trim() !== '' &&
-      personalData.phone.trim() !== '' &&
-      personalData.phone.length >= 8 &&
-      personalData.dateOfBirth !== '' &&
-      personalData.address.trim() !== '' &&
-      personalData.postalCode.trim() !== '' &&
-      personalData.city.trim() !== '' &&
-      personalData.country.trim() !== '' &&
-      personalData.email.trim() !== '' &&
-      personalData.email.includes('@') &&
-      personalData.password.length >= 8 &&
-      personalData.password === personalData.confirmPassword
-    )
-  }
-
-  // ========== ÉTAPE 2 : VALIDATION EMAIL ==========
-  const sendEmailVerification = async () => {
-    if (!personalData.email) {
-      alert('❌ Veuillez entrer votre adresse email')
+  // ========== ÉTAPE 1 : VALIDATION TÉLÉPHONE ==========
+  const sendPhoneVerification = async () => {
+    if (!phone || phone.length < 8) {
+      alert('Veuillez entrer un numéro de téléphone valide')
       return
     }
+
+    setSendingPhone(true)
+    const code = Math.floor(1000 + Math.random() * 9000).toString()
+    
+    try {
+      const response = await fetch('/api/send-sms-orange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setSentPhoneCode(data.code || code)
+        localStorage.setItem(`phone_verification_${phone}`, data.code || code)
+        
+        if (data.demo) {
+          alert(`📱 Mode démo - Code de vérification : ${data.code || code}\n\n(En production, ce code sera envoyé par SMS)`)
+        } else {
+          alert(`📱 Un SMS a été envoyé au ${phone}\n\nEntrez le code à 4 chiffres reçu.`)
+        }
+      } else {
+        setSentPhoneCode(code)
+        localStorage.setItem(`phone_verification_${phone}`, code)
+        alert(`📱 Code de vérification : ${code}\n\n(L'API SMS est en cours de validation)`)
+      }
+    } catch (error) {
+      console.error('Erreur:', error)
+      setSentPhoneCode(code)
+      localStorage.setItem(`phone_verification_${phone}`, code)
+      alert(`📱 Code de vérification : ${code}`)
+    } finally {
+      setSendingPhone(false)
+    }
+  }
+
+  const verifyPhoneCode = () => {
+    const savedCode = localStorage.getItem(`phone_verification_${phone}`)
+    if (phoneCode === savedCode || phoneCode === sentPhoneCode) {
+      setPhoneVerified(true)
+    } else {
+      alert('Code incorrect. Veuillez réessayer.')
+    }
+  }
+
+  const canGoToStep2 = phoneVerified && userType !== null
+
+  // ========== ÉTAPE 2 : INFORMATIONS PERSONNELLES ==========
+  const canGoToStep3 = 
+    personalData.firstName.trim() !== '' &&
+    personalData.lastName.trim() !== '' &&
+    personalData.dateOfBirth !== '' &&
+    personalData.address.trim() !== '' &&
+    personalData.city.trim() !== '' &&
+    personalData.country.trim() !== '' &&
+    personalData.email.trim() !== '' &&
+    personalData.email.includes('@') &&
+    personalData.password.length >= 8 &&
+    personalData.password === personalData.confirmPassword
+
+  // ========== ÉTAPE 3 : VALIDATION EMAIL ==========
+  const sendEmailVerification = async () => {
+    if (!personalData.email) return
 
     // Vérifier si l'email existe déjà
     const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
     const emailExists = existingUsers.some((user: any) => user.email === personalData.email)
     
     if (emailExists) {
-      alert('❌ Un compte existe déjà avec cet email.\n\nVeuillez vous connecter ou utiliser un autre email.')
+      alert('Un compte existe déjà avec cet email.')
       return
     }
 
@@ -95,17 +146,16 @@ export default function RegisterNewPage() {
       if (data.success) {
         setSentEmailCode(code)
         localStorage.setItem(`email_verification_${personalData.email}`, code)
-        alert(`✅ Email envoyé à ${personalData.email}\n\nVérifiez votre boîte de réception et entrez le code à 6 chiffres.`)
+        alert(`✉️ Email envoyé à ${personalData.email}`)
       } else {
-        alert(`❌ Erreur lors de l'envoi: ${data.message}\n\nCode temporaire (démo): ${code}`)
         setSentEmailCode(code)
         localStorage.setItem(`email_verification_${personalData.email}`, code)
+        alert(`Code de vérification : ${code}`)
       }
     } catch (error) {
-      console.error('Erreur:', error)
-      alert(`⚠️ Impossible d'envoyer l'email.\n\nCode temporaire (démo): ${code}`)
       setSentEmailCode(code)
       localStorage.setItem(`email_verification_${personalData.email}`, code)
+      alert(`Code de vérification : ${code}`)
     } finally {
       setSendingEmail(false)
     }
@@ -115,50 +165,34 @@ export default function RegisterNewPage() {
     const savedCode = localStorage.getItem(`email_verification_${personalData.email}`)
     if (emailCode === savedCode || emailCode === sentEmailCode) {
       setEmailVerified(true)
-      alert('✅ Email vérifié avec succès !')
     } else {
-      alert('❌ Code incorrect. Veuillez réessayer.')
+      alert('Code incorrect.')
     }
   }
 
   // ========== FINALISER L'INSCRIPTION ==========
   const handleFinalSubmit = async () => {
-    if (!emailVerified) {
-      alert('❌ Veuillez vérifier votre email avant de continuer')
-      return
-    }
+    if (!emailVerified) return
 
     setIsLoading(true)
 
     const userData = {
-      userType: userType,
-      phone: personalData.phone,
-      firstName: personalData.firstName,
-      lastName: personalData.lastName,
-      dateOfBirth: personalData.dateOfBirth,
-      address: personalData.address,
-      postalCode: personalData.postalCode,
-      city: personalData.city,
-      country: personalData.country,
-      email: personalData.email,
-      password: personalData.password,
+      userType,
+      phone,
+      ...personalData,
       emailVerified: true,
+      phoneVerified: true,
       memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-      avatar: null,
-      totalBookings: 0,
-      totalSpent: 0,
       status: 'active',
       createdAt: new Date().toISOString()
     }
 
-    // Sauvegarder l'utilisateur
     localStorage.setItem('ikasso_user', JSON.stringify(userData))
     
     const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
     allUsers.push(userData)
     localStorage.setItem('ikasso_all_users', JSON.stringify(allUsers))
 
-    // Envoyer l'email de bienvenue
     try {
       await fetch('/api/send-welcome-email', {
         method: 'POST',
@@ -166,400 +200,505 @@ export default function RegisterNewPage() {
         body: JSON.stringify({ 
           email: personalData.email,
           name: `${personalData.firstName} ${personalData.lastName}`,
-          userType: userType
+          userType
         })
       })
-      console.log('✅ Email de bienvenue envoyé')
     } catch (error) {
-      console.error('⚠️ Erreur envoi email de bienvenue:', error)
+      console.error('Erreur envoi email:', error)
     }
 
     setIsLoading(false)
-    
-    // Redirection selon le type
-    if (userType === 'hote') {
-      alert('✅ Inscription réussie !\n\nVous pouvez maintenant créer vos annonces.\n\nUn email de bienvenue vous a été envoyé.')
-      router.push('/dashboard/host')
-    } else {
-      alert('✅ Inscription réussie !\n\nBienvenue sur Ikasso !\n\nUn email de bienvenue vous a été envoyé.')
-      router.push('/dashboard')
-    }
+    router.push(userType === 'hote' ? '/dashboard/host' : '/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/">
-            <Logo size="lg" />
-          </Link>
-          <h1 className="mt-6 text-3xl font-bold text-gray-900">
-            Créer votre compte
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Rejoignez Ikasso en quelques étapes
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`flex items-center ${currentStep >= 1 ? 'text-primary-600' : 'text-gray-400'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}>
-                {currentStep > 1 ? <CheckCircle className="h-6 w-6" /> : '1'}
-              </div>
-              <span className="ml-2 font-medium hidden sm:block">Informations</span>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/">
+              <Logo size="md" />
+            </Link>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">Déjà inscrit ?</span>
+              <Link href="/auth/login" className="text-sm font-semibold text-primary-600 hover:text-primary-700">
+                Se connecter
+              </Link>
             </div>
-            <div className={`flex-1 h-1 mx-4 ${currentStep >= 2 ? 'bg-primary-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center ${currentStep >= 2 ? 'text-primary-600' : 'text-gray-400'}`}>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}>
-                {emailVerified ? <CheckCircle className="h-6 w-6" /> : '2'}
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-xl mx-auto px-4 py-12">
+        {/* Progress Steps */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between relative">
+            {/* Ligne de progression */}
+            <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200">
+              <div 
+                className="h-full bg-primary-500 transition-all duration-500"
+                style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%' }}
+              />
+            </div>
+            
+            {/* Étape 1 */}
+            <div className="relative flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all ${
+                currentStep >= 1 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'
+              } ${phoneVerified ? 'bg-green-500' : ''}`}>
+                {phoneVerified ? <CheckCircle className="h-5 w-5" /> : <Phone className="h-5 w-5" />}
               </div>
-              <span className="ml-2 font-medium hidden sm:block">Vérification email</span>
+              <span className={`mt-2 text-xs font-medium ${currentStep >= 1 ? 'text-gray-900' : 'text-gray-500'}`}>
+                Téléphone
+              </span>
+            </div>
+
+            {/* Étape 2 */}
+            <div className="relative flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all ${
+                currentStep >= 2 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'
+              } ${currentStep > 2 ? 'bg-green-500' : ''}`}>
+                {currentStep > 2 ? <CheckCircle className="h-5 w-5" /> : <User className="h-5 w-5" />}
+              </div>
+              <span className={`mt-2 text-xs font-medium ${currentStep >= 2 ? 'text-gray-900' : 'text-gray-500'}`}>
+                Profil
+              </span>
+            </div>
+
+            {/* Étape 3 */}
+            <div className="relative flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all ${
+                currentStep >= 3 ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'
+              } ${emailVerified ? 'bg-green-500' : ''}`}>
+                {emailVerified ? <CheckCircle className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
+              </div>
+              <span className={`mt-2 text-xs font-medium ${currentStep >= 3 ? 'text-gray-900' : 'text-gray-500'}`}>
+                Email
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Main Form */}
-        <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
-          {/* ÉTAPE 1 : INFORMATIONS PERSONNELLES */}
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Vos informations
-                </h2>
-                <p className="text-gray-600">
-                  Remplissez tous les champs pour continuer
-                </p>
-              </div>
+        {/* ÉTAPE 1 : TÉLÉPHONE */}
+        {currentStep === 1 && (
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Bienvenue sur Ikasso
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Commençons par vérifier votre numéro de téléphone
+              </p>
+            </div>
 
-              {/* Choix du type de compte */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Je souhaite <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setUserType('client')}
-                    className={`p-6 border-2 rounded-lg transition-all ${
-                      userType === 'client'
-                        ? 'border-primary-600 bg-primary-50'
-                        : 'border-gray-300 hover:border-primary-300'
-                    }`}
-                  >
-                    <Home className={`h-8 w-8 mx-auto mb-2 ${userType === 'client' ? 'text-primary-600' : 'text-gray-400'}`} />
-                    <div className="font-medium text-gray-900">Client</div>
-                    <div className="text-xs text-gray-500 mt-1">Réserver des hébergements</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUserType('hote')}
-                    className={`p-6 border-2 rounded-lg transition-all ${
-                      userType === 'hote'
-                        ? 'border-primary-600 bg-primary-50'
-                        : 'border-gray-300 hover:border-primary-300'
-                    }`}
-                  >
-                    <Building className={`h-8 w-8 mx-auto mb-2 ${userType === 'hote' ? 'text-primary-600' : 'text-gray-400'}`} />
-                    <div className="font-medium text-gray-900">Hôte</div>
-                    <div className="text-xs text-gray-500 mt-1">Proposer des logements</div>
-                  </button>
+            {/* Choix du type */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-3">
+                Je souhaite
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setUserType('client')}
+                  className={`relative p-6 rounded-2xl border-2 transition-all ${
+                    userType === 'client'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  {userType === 'client' && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary-500" />
+                    </div>
+                  )}
+                  <div className="text-4xl mb-3">🏠</div>
+                  <div className="font-semibold text-gray-900">Voyager</div>
+                  <div className="text-sm text-gray-500 mt-1">Réserver des logements</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('hote')}
+                  className={`relative p-6 rounded-2xl border-2 transition-all ${
+                    userType === 'hote'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  {userType === 'hote' && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary-500" />
+                    </div>
+                  )}
+                  <div className="text-4xl mb-3">🏡</div>
+                  <div className="font-semibold text-gray-900">Héberger</div>
+                  <div className="text-sm text-gray-500 mt-1">Proposer mon logement</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Téléphone */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Numéro de téléphone
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <span className="text-lg">🇲🇱</span>
+                  <span className="text-gray-500">+223</span>
                 </div>
+                <input
+                  type="tel"
+                  placeholder="XX XX XX XX"
+                  className={`w-full pl-24 pr-4 py-4 text-lg border-2 rounded-xl focus:ring-0 focus:border-primary-500 transition-all ${
+                    phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                  }`}
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value)
+                    setPhoneVerified(false)
+                    setSentPhoneCode('')
+                  }}
+                  disabled={phoneVerified}
+                />
+                {phoneVerified && (
+                  <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-6 w-6 text-green-500" />
+                )}
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Bouton envoi code */}
+            {!phoneVerified && phone.length >= 8 && !sentPhoneCode && (
+              <button
+                onClick={sendPhoneVerification}
+                disabled={sendingPhone}
+                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all"
+              >
+                {sendingPhone ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader className="h-5 w-5 animate-spin" />
+                    Envoi en cours...
+                  </span>
+                ) : (
+                  'Recevoir le code par SMS'
+                )}
+              </button>
+            )}
+
+            {/* Saisie du code */}
+            {!phoneVerified && sentPhoneCode && (
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prénom <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Code de vérification
                   </label>
                   <input
                     type="text"
-                    className="input-field"
-                    value={personalData.firstName}
-                    onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
+                    placeholder="• • • •"
+                    className="w-full text-center text-3xl font-mono tracking-[1em] py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                    maxLength={4}
+                    value={phoneCode}
+                    onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ''))}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={personalData.lastName}
-                    onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
-                  />
-                </div>
+                <button
+                  onClick={verifyPhoneCode}
+                  disabled={phoneCode.length !== 4}
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all"
+                >
+                  Vérifier
+                </button>
+                <button
+                  onClick={sendPhoneVerification}
+                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
+                >
+                  Renvoyer le code
+                </button>
               </div>
+            )}
 
-              {/* Numéro de téléphone (sans validation) */}
+            {/* Bouton continuer */}
+            {phoneVerified && (
+              <button
+                onClick={() => canGoToStep2 && setCurrentStep(2)}
+                disabled={!canGoToStep2}
+                className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+              >
+                Continuer
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ÉTAPE 2 : INFORMATIONS */}
+        {currentStep === 2 && (
+          <div className="space-y-6">
+            <div>
+              <button 
+                onClick={() => setCurrentStep(1)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Retour
+              </button>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Complétez votre profil
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Ces informations nous aident à sécuriser votre compte
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Numéro de téléphone <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <input
-                    type="tel"
-                    placeholder="+223 XX XX XX XX"
-                    className="input-field pl-10"
-                    value={personalData.phone}
-                    onChange={(e) => setPersonalData({...personalData, phone: e.target.value})}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Nous vous contacterons uniquement si nécessaire</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  value={personalData.firstName}
+                  onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
+                />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date de naissance <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  value={personalData.lastName}
+                  onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="date"
-                  className="input-field"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
                   value={personalData.dateOfBirth}
                   onChange={(e) => setPersonalData({...personalData, dateOfBirth: e.target.value})}
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Adresse <span className="text-red-500">*</span>
-                </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  className="input-field"
                   placeholder="Rue, quartier..."
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
                   value={personalData.address}
                   onChange={(e) => setPersonalData({...personalData, address: e.target.value})}
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code postal <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    value={personalData.postalCode}
-                    onChange={(e) => setPersonalData({...personalData, postalCode: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ville <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="Bamako"
-                    value={personalData.city}
-                    onChange={(e) => setPersonalData({...personalData, city: e.target.value})}
-                  />
-                </div>
-              </div>
-
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pays <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ville</label>
                 <input
                   type="text"
-                  className="input-field"
-                  value={personalData.country}
-                  onChange={(e) => setPersonalData({...personalData, country: e.target.value})}
+                  placeholder="Bamako"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  value={personalData.city}
+                  onChange={(e) => setPersonalData({...personalData, city: e.target.value})}
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Adresse email <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pays</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
-                    type="email"
-                    placeholder="votre@email.com"
-                    className="input-field pl-10"
-                    value={personalData.email}
-                    onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
+                    type="text"
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                    value={personalData.country}
+                    onChange={(e) => setPersonalData({...personalData, country: e.target.value})}
                   />
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mot de passe <span className="text-red-500">*</span>
-                </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  type="password"
+                  type="email"
+                  placeholder="vous@exemple.com"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  value={personalData.email}
+                  onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Minimum 8 caractères"
-                  className="input-field"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
                   value={personalData.password}
                   onChange={(e) => setPersonalData({...personalData, password: e.target.value})}
-                  minLength={8}
                 />
-                <p className="mt-1 text-xs text-gray-500">Au moins 8 caractères</p>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirmer le mot de passe <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  placeholder="Confirmez votre mot de passe"
-                  className="input-field"
-                  value={personalData.confirmPassword}
-                  onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
-                  minLength={8}
-                />
-                {personalData.password && personalData.confirmPassword && personalData.password !== personalData.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-500">⚠️ Les mots de passe ne correspondent pas</p>
-                )}
-              </div>
-
-              <button
-                onClick={() => {
-                  if (canGoToStep2()) {
-                    setCurrentStep(2)
-                  } else {
-                    alert('❌ Veuillez remplir tous les champs obligatoires')
-                  }
-                }}
-                disabled={!canGoToStep2()}
-                className="w-full btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                Continuer
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
             </div>
-          )}
 
-          {/* ÉTAPE 2 : VALIDATION EMAIL */}
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Vérifiez votre email
-                </h2>
-                <p className="text-gray-600">
-                  Dernière étape : confirmez votre adresse email
-                </p>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
+              <input
+                type="password"
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-0 focus:border-primary-500 ${
+                  personalData.confirmPassword && personalData.password !== personalData.confirmPassword
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-200'
+                }`}
+                value={personalData.confirmPassword}
+                onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
+              />
+              {personalData.confirmPassword && personalData.password !== personalData.confirmPassword && (
+                <p className="mt-1 text-sm text-red-500">Les mots de passe ne correspondent pas</p>
+              )}
+            </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start">
-                  <Mail className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-blue-900 font-medium">{personalData.email}</p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Un code de vérification sera envoyé à cette adresse
-                    </p>
-                  </div>
+            <button
+              onClick={() => canGoToStep3 && setCurrentStep(3)}
+              disabled={!canGoToStep3}
+              className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              Continuer
+              <ArrowRight className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+
+        {/* ÉTAPE 3 : EMAIL */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <div>
+              <button 
+                onClick={() => setCurrentStep(2)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Retour
+              </button>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Vérifiez votre email
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Dernière étape avant de commencer !
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                  <Mail className="h-6 w-6 text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{personalData.email}</p>
+                  <p className="text-sm text-gray-500">Un code sera envoyé à cette adresse</p>
                 </div>
               </div>
+            </div>
 
-              {!emailVerified && !sentEmailCode && (
+            {!emailVerified && !sentEmailCode && (
+              <button
+                onClick={sendEmailVerification}
+                disabled={sendingEmail}
+                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all"
+              >
+                {sendingEmail ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader className="h-5 w-5 animate-spin" />
+                    Envoi en cours...
+                  </span>
+                ) : (
+                  'Envoyer le code de vérification'
+                )}
+              </button>
+            )}
+
+            {!emailVerified && sentEmailCode && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    Code de vérification
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="• • • • • •"
+                    className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                    maxLength={6}
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
+                  />
+                </div>
+                <button
+                  onClick={verifyEmailCode}
+                  disabled={emailCode.length !== 6}
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all"
+                >
+                  Vérifier
+                </button>
                 <button
                   onClick={sendEmailVerification}
-                  disabled={sendingEmail}
-                  className="w-full btn-primary py-3 disabled:opacity-50"
+                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                 >
-                  {sendingEmail ? (
-                    <span className="flex items-center justify-center">
-                      <Loader className="animate-spin h-5 w-5 mr-2" />
-                      Envoi en cours...
-                    </span>
-                  ) : (
-                    '📧 Envoyer le code de vérification'
-                  )}
+                  Renvoyer le code
                 </button>
-              )}
+              </div>
+            )}
 
-              {!emailVerified && sentEmailCode && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Code de vérification
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Entrez le code à 6 chiffres"
-                      className="input-field text-center text-2xl font-mono tracking-widest"
-                      maxLength={6}
-                      value={emailCode}
-                      onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
-                    />
-                  </div>
-                  <button
-                    onClick={verifyEmailCode}
-                    className="w-full btn-primary py-3"
-                  >
-                    Vérifier le code
-                  </button>
-                  <button
-                    onClick={sendEmailVerification}
-                    disabled={sendingEmail}
-                    className="w-full text-primary-600 hover:text-primary-700 text-sm font-medium"
-                  >
-                    Renvoyer le code
-                  </button>
-                </div>
-              )}
-
-              {emailVerified && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center">
-                    <CheckCircle className="h-5 w-5 text-green-600 mr-3" />
-                    <p className="text-sm text-green-900 font-medium">
-                      Email vérifié avec succès !
-                    </p>
+            {emailVerified && (
+              <div className="space-y-6">
+                <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                    <p className="font-medium text-green-800">Email vérifié avec succès !</p>
                   </div>
                 </div>
-              )}
 
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 flex items-center justify-center"
-                >
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                  Retour
-                </button>
                 <button
                   onClick={handleFinalSubmit}
-                  disabled={!emailVerified || isLoading}
-                  className="flex-1 btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  disabled={isLoading}
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-4 rounded-xl font-semibold transition-all"
                 >
                   {isLoading ? (
-                    <span className="flex items-center">
-                      <Loader className="animate-spin h-5 w-5 mr-2" />
-                      Finalisation...
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader className="h-5 w-5 animate-spin" />
+                      Création du compte...
                     </span>
                   ) : (
                     'Créer mon compte'
                   )}
                 </button>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-gray-600">
-            Vous avez déjà un compte ?{' '}
-            <Link href="/auth/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Se connecter
-            </Link>
-          </p>
-        </div>
+        <p className="mt-8 text-center text-xs text-gray-500">
+          En vous inscrivant, vous acceptez nos{' '}
+          <a href="#" className="underline">Conditions d'utilisation</a>
+          {' '}et notre{' '}
+          <a href="#" className="underline">Politique de confidentialité</a>
+        </p>
       </div>
     </div>
   )
