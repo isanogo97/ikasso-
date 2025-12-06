@@ -2,13 +2,19 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Search, Book, MessageCircle, Phone, Mail, ChevronDown, ChevronRight, ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield } from 'lucide-react'
+import { 
+  Search, MessageCircle, Phone, Mail, ChevronDown, ChevronRight, 
+  ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield, Book,
+  Globe, Menu, X
+} from 'lucide-react'
 import Logo from '../components/Logo'
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false)
 
   const categories = [
     { id: 'all', name: 'Toutes les catégories', icon: Book },
@@ -42,7 +48,7 @@ export default function HelpPage() {
       id: 4,
       category: 'account',
       question: 'Comment créer un compte sur Ikasso ?',
-      answer: 'Créer un compte est simple : 1) Cliquez sur "S\'inscrire" en haut de la page. 2) Choisissez si vous voulez voyager ou devenir hôte. 3) Remplissez vos informations (nom, email, téléphone malien). 4) Créez un mot de passe sécurisé. 5) Acceptez nos conditions. Vous pouvez aussi vous inscrire avec Google ou Apple.'
+      answer: 'Créer un compte est simple : 1) Cliquez sur "S\'inscrire" en haut de la page. 2) Choisissez si vous voulez voyager ou devenir hôte. 3) Remplissez vos informations (nom, email, téléphone). 4) Créez un mot de passe sécurisé. 5) Acceptez nos conditions. Vous pouvez aussi vous inscrire avec Google ou Apple.'
     },
     {
       id: 5,
@@ -54,7 +60,7 @@ export default function HelpPage() {
       id: 6,
       category: 'payment',
       question: 'Comment fonctionne Orange Money sur Ikasso ?',
-      answer: 'Orange Money est intégré de manière sécurisée : 1) Sélectionnez Orange Money au moment du paiement. 2) Entrez votre numéro Orange Money (+223 XX XX XX XX). 3) Vous recevrez un SMS avec un code de confirmation. 4) Entrez le code pour valider le paiement. 5) Votre réservation est confirmée instantanément.'
+      answer: 'Orange Money est intégré de manière sécurisée : 1) Sélectionnez Orange Money au moment du paiement. 2) Entrez votre numéro Orange Money. 3) Vous recevrez un SMS avec un code de confirmation. 4) Entrez le code pour valider le paiement. 5) Votre réservation est confirmée instantanément.'
     },
     {
       id: 7,
@@ -96,105 +102,149 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-primary-100">
+      {/* Header - Responsive */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <Link href="/" className="flex items-center">
               <Logo size="md" />
             </Link>
-            <div className="flex items-center space-x-4">
-              <Link href="/help" className="text-gray-600 hover:text-primary-600">Contact</Link>
+            
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link href="/help" className="text-primary-600 font-medium">Centre d'aide</Link>
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register-new" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">Inscription</Link>
+              <Link href="/auth/register-new" className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 text-sm font-medium">
+                Inscription
+              </Link>
             </div>
+
+            {/* Mobile menu button */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-100 py-4 space-y-2">
+              <Link href="/auth/login" className="block px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+                Connexion
+              </Link>
+              <Link href="/auth/register-new" className="block px-4 py-3 bg-primary-500 text-white rounded-lg text-center font-medium">
+                Inscription
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-block mb-4 px-6 py-3 bg-primary-100 text-primary-700 rounded-full text-sm font-bold">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        {/* Header Section - Responsive */}
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+          <div className="inline-block mb-3 sm:mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-primary-100 text-primary-700 rounded-full text-xs sm:text-sm font-bold">
             💬 Support 24/7
           </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 sm:mb-6 leading-tight">
             Centre d'aide <span className="text-primary-600">Ikasso</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
             Trouvez rapidement des réponses à vos questions ou contactez notre équipe support
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-12">
+        {/* Search Bar - Responsive */}
+        <div className="max-w-2xl mx-auto mb-8 sm:mb-12 px-2">
           <div className="relative">
-            <Search className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               placeholder="Rechercher dans l'aide..."
-              className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
+              className="w-full pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base sm:text-lg"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <Link href="/help" className="group bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="flex items-center mb-6">
-              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                <MessageCircle className="h-8 w-8 text-white" />
+        {/* Quick Actions - Responsive Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12 lg:mb-16">
+          <a href="tel:+22320224567" className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
+                <Phone className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Chat en direct</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Nous appeler</h3>
             </div>
-            <p className="text-gray-600 text-lg leading-relaxed">Chattez avec notre équipe support pour une aide immédiate</p>
-          </Link>
+            <p className="text-gray-600 text-base sm:text-lg font-semibold">+223 20 22 45 67</p>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Lun-Ven 8h-18h, Sam 9h-15h</p>
+          </a>
 
-          <Link href="/help" className="group bg-gradient-to-br from-white to-secondary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="flex items-center mb-6">
-              <div className="bg-gradient-to-br from-secondary-500 to-secondary-700 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                <Phone className="h-8 w-8 text-white" />
+          <a href="mailto:support@ikasso.ml" className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="bg-gradient-to-br from-secondary-500 to-secondary-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
+                <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Nous appeler</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Email</h3>
             </div>
-            <p className="text-gray-600 text-lg leading-relaxed font-semibold">+223 20 22 45 67</p>
-            <p className="text-gray-500 text-sm mt-2">Lun-Ven 8h-18h, Sam 9h-15h</p>
-          </Link>
+            <p className="text-gray-600 text-base sm:text-lg font-semibold break-all">support@ikasso.ml</p>
+            <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Réponse sous 24h</p>
+          </a>
 
-          <Link href="/help" className="group bg-gradient-to-br from-white to-primary-50 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="flex items-center mb-6">
-              <div className="bg-gradient-to-br from-primary-500 to-secondary-500 p-4 rounded-xl mr-4 shadow-lg group-hover:shadow-xl transition-shadow">
-                <Mail className="h-8 w-8 text-white" />
+          <button 
+            onClick={() => alert('💬 Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider ?')}
+            className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all text-left sm:col-span-2 lg:col-span-1"
+          >
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-green-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
+                <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Envoyer un email</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Chat en direct</h3>
             </div>
-            <p className="text-gray-600 text-lg leading-relaxed font-semibold">support@ikasso.ml</p>
-            <p className="text-gray-500 text-sm mt-2">Réponse sous 24h</p>
-          </Link>
+            <p className="text-gray-600 text-base sm:text-lg">Aide immédiate</p>
+            <p className="text-green-600 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">● En ligne maintenant</p>
+          </button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Categories Sidebar */}
+        {/* Main Content - Responsive Layout */}
+        <div className="grid lg:grid-cols-4 gap-6 sm:gap-8">
+          {/* Categories Sidebar - Mobile Collapsible */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Catégories</h2>
-              <div className="space-y-2">
+            {/* Mobile Categories Toggle */}
+            <button
+              onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+              className="lg:hidden w-full flex items-center justify-between bg-white rounded-xl shadow-lg p-4 mb-4"
+            >
+              <span className="font-semibold text-gray-900">Catégories</span>
+              <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${mobileCategoriesOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Categories List */}
+            <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:sticky lg:top-24 ${
+              mobileCategoriesOpen ? 'block' : 'hidden lg:block'
+            }`}>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 hidden lg:block">Catégories</h2>
+              <div className="space-y-1 sm:space-y-2">
                 {categories.map((category) => {
                   const Icon = category.icon
                   return (
                     <button
                       key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+                      onClick={() => {
+                        setSelectedCategory(category.id)
+                        setMobileCategoriesOpen(false)
+                      }}
+                      className={`w-full flex items-center px-3 py-2.5 sm:py-2 rounded-lg text-left transition-colors text-sm sm:text-base ${
                         selectedCategory === category.id
                           ? 'bg-primary-100 text-primary-700'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
-                      <Icon className="h-4 w-4 mr-3" />
-                      {category.name}
+                      <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                      <span className="truncate">{category.name}</span>
                     </button>
                   )
                 })}
@@ -204,31 +254,31 @@ export default function HelpPage() {
 
           {/* FAQ Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
                 Questions fréquentes
                 {selectedCategory !== 'all' && (
-                  <span className="text-lg font-normal text-gray-600 ml-2">
+                  <span className="block sm:inline text-base sm:text-lg font-normal text-gray-600 sm:ml-2 mt-1 sm:mt-0">
                     - {categories.find(c => c.id === selectedCategory)?.name}
                   </span>
                 )}
               </h2>
 
               {filteredFaqs.length === 0 ? (
-                <div className="text-center py-12">
-                  <HelpCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun résultat trouvé</h3>
-                  <p className="text-gray-600">Essayez de modifier votre recherche ou contactez notre support.</p>
+                <div className="text-center py-8 sm:py-12">
+                  <HelpCircle className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Aucun résultat trouvé</h3>
+                  <p className="text-sm sm:text-base text-gray-600">Essayez de modifier votre recherche ou contactez notre support.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {filteredFaqs.map((faq) => (
-                    <div key={faq.id} className="border border-gray-200 rounded-lg">
+                    <div key={faq.id} className="border border-gray-200 rounded-lg overflow-hidden">
                       <button
                         onClick={() => toggleFaq(faq.id)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-gray-50 transition-colors"
                       >
-                        <h3 className="font-medium text-gray-900 pr-4">{faq.question}</h3>
+                        <h3 className="font-medium text-gray-900 pr-4 text-sm sm:text-base">{faq.question}</h3>
                         {expandedFaq === faq.id ? (
                           <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
                         ) : (
@@ -236,9 +286,9 @@ export default function HelpPage() {
                         )}
                       </button>
                       {expandedFaq === faq.id && (
-                        <div className="px-4 pb-4">
+                        <div className="px-3 sm:px-4 pb-3 sm:pb-4">
                           <div className="pt-2 border-t border-gray-100">
-                            <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                            <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{faq.answer}</p>
                           </div>
                         </div>
                       )}
@@ -248,26 +298,27 @@ export default function HelpPage() {
               )}
             </div>
 
-            {/* Still need help */}
-            <div className="mt-8 bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 rounded-2xl p-12 text-center shadow-xl">
-              <div className="inline-block mb-4 px-6 py-3 bg-white text-primary-700 rounded-full text-sm font-bold shadow-md">
+            {/* Still need help - Responsive */}
+            <div className="mt-6 sm:mt-8 bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 rounded-xl sm:rounded-2xl p-6 sm:p-8 lg:p-12 text-center shadow-xl">
+              <div className="inline-block mb-3 sm:mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-white text-primary-700 rounded-full text-xs sm:text-sm font-bold shadow-md">
                 🆘 Besoin d'aide supplémentaire ?
               </div>
-              <h3 className="text-3xl font-extrabold text-primary-900 mb-6">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-primary-900 mb-4 sm:mb-6">
                 Vous n'avez pas trouvé votre réponse ?
               </h3>
-              <p className="text-xl text-primary-700 mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg lg:text-xl text-primary-700 mb-6 sm:mb-8 max-w-2xl mx-auto">
                 Notre équipe support est là pour vous aider <span className="font-bold">24h/7j</span>
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/help"
-                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition-all transform hover:scale-105"
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                <a
+                  href="mailto:support@ikasso.ml"
+                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl transition-all"
                 >
                   Contacter le support
-                </Link>
+                </a>
                 <button
                   onClick={() => alert('💬 Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider aujourd\'hui ?')}
-                  className="border-2 border-primary-600 text-primary-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary-600 hover:text-white transition-all transform hover:scale-105"
+                  className="border-2 border-primary-600 text-primary-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-primary-600 hover:text-white transition-all"
                 >
                   Chat en direct
                 </button>
@@ -276,9 +327,9 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* Back to home */}
-        <div className="mt-12 text-center">
-          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
+        {/* Back to home - Responsive */}
+        <div className="mt-8 sm:mt-12 text-center">
+          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-sm sm:text-base">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour à l'accueil
           </Link>
@@ -287,5 +338,3 @@ export default function HelpPage() {
     </div>
   )
 }
-
-
