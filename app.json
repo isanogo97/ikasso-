@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "57d8d69a-c0f7-4df8-85d2-6e1f9363bbc9"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "ml.ikasso.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

@@ -21,26 +21,55 @@ export default function LoginPage() {
     setError('')
     
     setTimeout(() => {
-      const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-      let user = existingUsers.find((u: any) => u.email === email)
+      // Compte de test Apple Review
+      const testAccounts = [
+        {
+          email: 'test@ikasso.ml',
+          password: 'Test1234',
+          firstName: 'Test',
+          lastName: 'Apple',
+          userType: 'client',
+          phone: '+33600000000',
+          verified: true
+        },
+        {
+          email: 'host@ikasso.ml',
+          password: 'Host1234',
+          firstName: 'Host',
+          lastName: 'Test',
+          userType: 'hote',
+          phone: '+33600000001',
+          verified: true
+        }
+      ]
+      
+      // Vérifier d'abord les comptes de test
+      let user = testAccounts.find((u: any) => u.email === email && u.password === password)
       
       if (!user) {
-        const currentUser = localStorage.getItem('ikasso_user')
-        if (currentUser) {
-          const userData = JSON.parse(currentUser)
-          if (userData.email === email) {
-            user = userData
+        const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
+        user = existingUsers.find((u: any) => u.email === email)
+        
+        if (!user) {
+          const currentUser = localStorage.getItem('ikasso_user')
+          if (currentUser) {
+            const userData = JSON.parse(currentUser)
+            if (userData.email === email) {
+              user = userData
+            }
+          }
+        }
+        
+        if (user) {
+          if (user.password && user.password !== password) {
+            setError('Email ou mot de passe incorrect')
+            setIsLoading(false)
+            return
           }
         }
       }
       
       if (user) {
-        if (user.password && user.password !== password) {
-          setError('Email ou mot de passe incorrect')
-          setIsLoading(false)
-          return
-        }
-        
         localStorage.setItem('ikasso_user', JSON.stringify(user))
         
         if (user.userType === 'hote' || user.userType === 'host') {
