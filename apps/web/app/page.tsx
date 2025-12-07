@@ -9,16 +9,17 @@ import {
   Building2, Hotel, Sparkles
 } from "lucide-react"
 import Logo from "./components/Logo"
+import { useLanguage, availableLanguages, Language } from "./contexts/LanguageContext"
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 
 // Catégories d'hébergements style Airbnb
 const categories = [
-  { id: "all", name: "Tout", icon: Home },
-  { id: "hotel", name: "Hôtels", icon: Hotel },
-  { id: "maison", name: "Maisons", icon: Home },
-  { id: "appartement", name: "Appartements", icon: Building2 },
-  { id: "villa", name: "Villas", icon: Sparkles },
+  { id: "all", nameKey: "cat.all", icon: Home },
+  { id: "hotel", nameKey: "cat.hotels", icon: Hotel },
+  { id: "maison", nameKey: "cat.houses", icon: Home },
+  { id: "appartement", nameKey: "cat.apartments", icon: Building2 },
+  { id: "villa", nameKey: "cat.villas", icon: Sparkles },
 ]
 
 // Types de services pour les hôtes
@@ -43,17 +44,8 @@ const hostServices = [
   },
 ]
 
-const languages = [
-  { lang: "Français", region: "Mali", code: "fr" },
-  { lang: "Français", region: "France", code: "fr" },
-  { lang: "English", region: "United States", code: "en" },
-  { lang: "العربية", region: "العالم العربي", code: "ar" },
-  { lang: "Español", region: "España", code: "es" },
-  { lang: "Deutsch", region: "Deutschland", code: "de" },
-  { lang: "中文", region: "中国", code: "zh" },
-]
-
 export default function HomePage() {
+  const { t, language, setLanguage } = useLanguage()
   const [searchLocation, setSearchLocation] = useState("")
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
@@ -65,19 +57,24 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
+  const currentLang = availableLanguages.find(l => l.code === language) || availableLanguages[0]
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Style Airbnb - Responsive */}
+      {/* Header - Mobile First */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0">
-              <Logo size="md" />
-            </Link>
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between h-14 lg:h-20">
+            {/* Logo - Centré sur mobile */}
+            <div className="flex-1 lg:flex-none flex justify-start lg:justify-start">
+              <Link href="/" className="flex-shrink-0">
+                <Logo size="md" />
+              </Link>
+            </div>
 
-            {/* Navigation centrale - Desktop */}
-            <nav className="hidden lg:flex items-center space-x-1">
+            {/* Navigation centrale - Desktop only */}
+            <nav className="hidden lg:flex items-center space-x-1 flex-1 justify-center">
               <button
                 onClick={() => setActiveTab("logements")}
                 className={`px-4 py-2.5 rounded-full text-[15px] font-medium transition-all ${
@@ -88,7 +85,7 @@ export default function HomePage() {
               >
                 <span className="flex items-center gap-2">
                   <Home className="h-4 w-4" />
-                  Logements
+                  {t('nav.accommodations')}
                 </span>
               </button>
               <button
@@ -101,52 +98,52 @@ export default function HomePage() {
               >
                 <span className="flex items-center gap-2">
                   <Compass className="h-4 w-4" />
-                  Expériences
+                  {t('nav.experiences')}
                 </span>
                 <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
-                  NOUVEAU
+                  {t('general.new')}
                 </span>
               </button>
             </nav>
 
             {/* Actions droite - Desktop */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2 flex-1 justify-end">
               <button 
                 onClick={() => setShowHostModal(true)}
-                className="px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
               >
-                Devenir hôte
+                {t('nav.become_host')}
               </button>
               
               <Link 
                 href="/auth/login"
-                className="px-3 lg:px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
               >
-                Connexion
+                {t('nav.login')}
               </Link>
               
               <Link 
                 href="/auth/register-new"
-                className="px-4 lg:px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all"
               >
-                Inscription
+                {t('nav.signup')}
               </Link>
               
               <button 
                 onClick={() => setShowLanguageModal(true)}
-                className="p-3 hover:bg-gray-100 rounded-full transition-all"
+                className="p-3 hover:bg-gray-100 rounded-full transition-all flex items-center gap-1"
               >
                 <Globe className="h-5 w-5 text-gray-700" />
               </button>
             </div>
 
-            {/* Menu mobile */}
-            <div className="flex md:hidden items-center gap-2">
+            {/* Mobile: Langue + Menu */}
+            <div className="flex lg:hidden items-center gap-1">
               <button 
                 onClick={() => setShowLanguageModal(true)}
                 className="p-2 hover:bg-gray-100 rounded-full"
               >
-                <Globe className="h-5 w-5 text-gray-700" />
+                <span className="text-lg">{currentLang.flag}</span>
               </button>
               <button 
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -159,66 +156,64 @@ export default function HomePage() {
 
           {/* Mobile Menu Dropdown */}
           {isMenuOpen && (
-            <div className="md:hidden border-t border-gray-100 py-4 space-y-2 animate-fadeIn">
-              <div className="flex gap-2 mb-4">
+            <div className="lg:hidden border-t border-gray-100 py-3 space-y-1 animate-fadeIn">
+              <div className="flex gap-2 mb-3 px-1">
                 <button
                   onClick={() => setActiveTab("logements")}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg ${
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-lg ${
                     activeTab === "logements" ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  Logements
+                  {t('nav.accommodations')}
                 </button>
                 <button
                   onClick={() => setActiveTab("experiences")}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg ${
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-lg ${
                     activeTab === "experiences" ? "bg-primary-100 text-primary-700" : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  Expériences
+                  {t('nav.experiences')}
                 </button>
               </div>
-              <Link href="/auth/register-new" className="block px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50 rounded-lg">
-                Inscription
+              <Link href="/auth/register-new" className="block px-4 py-3 text-sm font-semibold text-white bg-primary-500 rounded-lg mx-1">
+                {t('nav.signup')}
               </Link>
               <Link href="/auth/login" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
-                Connexion
+                {t('nav.login')}
               </Link>
               <div className="border-t border-gray-100 my-2"></div>
               <button 
                 onClick={() => { setShowHostModal(true); setIsMenuOpen(false); }}
                 className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
               >
-                Devenir hôte
+                {t('nav.become_host')}
               </button>
               <Link href="/help" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
-                Centre d'aide
+                {t('nav.help')}
               </Link>
             </div>
           )}
         </div>
 
         {/* Barre de recherche - Desktop */}
-        <div className="hidden sm:block pb-4 px-4 sm:px-6 lg:px-20">
-          <div className="max-w-[850px] mx-auto">
+        <div className="hidden lg:block pb-4 px-4 lg:px-8">
+          <div className="max-w-3xl mx-auto">
             <div className="flex items-center bg-white border rounded-full shadow-sm hover:shadow-md transition-all border-gray-200">
-              {/* Destination */}
-              <div className="flex-1 px-4 lg:px-6 py-3 cursor-pointer hover:bg-gray-50 rounded-l-full">
-                <div className="text-xs font-semibold text-gray-900">Destination</div>
+              <div className="flex-1 px-6 py-3 cursor-pointer hover:bg-gray-50 rounded-l-full">
+                <div className="text-xs font-semibold text-gray-900">{t('search.destination')}</div>
                 <input
                   type="text"
-                  placeholder="Rechercher une destination"
+                  placeholder={t('search.search_destination')}
                   className="w-full text-sm text-gray-500 bg-transparent border-none outline-none placeholder-gray-400"
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
                 />
               </div>
 
-              <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+              <div className="w-px h-8 bg-gray-200"></div>
 
-              {/* Arrivée */}
-              <div className="hidden md:block px-4 py-3 cursor-pointer hover:bg-gray-50">
-                <div className="text-xs font-semibold text-gray-900">Arrivée</div>
+              <div className="px-4 py-3 cursor-pointer hover:bg-gray-50">
+                <div className="text-xs font-semibold text-gray-900">{t('search.arrival')}</div>
                 <input
                   type="date"
                   className="text-sm text-gray-500 bg-transparent border-none outline-none"
@@ -227,11 +222,10 @@ export default function HomePage() {
                 />
               </div>
 
-              <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+              <div className="w-px h-8 bg-gray-200"></div>
 
-              {/* Départ */}
-              <div className="hidden md:block px-4 py-3 cursor-pointer hover:bg-gray-50">
-                <div className="text-xs font-semibold text-gray-900">Départ</div>
+              <div className="px-4 py-3 cursor-pointer hover:bg-gray-50">
+                <div className="text-xs font-semibold text-gray-900">{t('search.departure')}</div>
                 <input
                   type="date"
                   className="text-sm text-gray-500 bg-transparent border-none outline-none"
@@ -240,13 +234,12 @@ export default function HomePage() {
                 />
               </div>
 
-              <div className="hidden lg:block w-px h-8 bg-gray-200"></div>
+              <div className="w-px h-8 bg-gray-200"></div>
 
-              {/* Voyageurs + Bouton recherche */}
-              <div className="flex items-center pl-2 lg:pl-4 pr-2 py-2">
-                <div className="hidden lg:block pr-4">
-                  <div className="text-xs font-semibold text-gray-900">Voyageurs</div>
-                  <div className="text-sm text-gray-500">{guests} voyageur{guests > 1 ? 's' : ''}</div>
+              <div className="flex items-center pl-4 pr-2 py-2">
+                <div className="pr-4">
+                  <div className="text-xs font-semibold text-gray-900">{t('search.travelers')}</div>
+                  <div className="text-sm text-gray-500">{guests} {guests > 1 ? t('search.travelers_plural') : t('search.traveler')}</div>
                 </div>
                 <Link 
                   href="/search"
@@ -260,35 +253,35 @@ export default function HomePage() {
         </div>
 
         {/* Barre de recherche - Mobile */}
-        <div className="sm:hidden px-4 pb-4">
+        <div className="lg:hidden px-4 pb-3">
           <button
             onClick={() => setShowMobileSearch(true)}
-            className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-full px-4 py-3 shadow-sm hover:shadow-md transition-all"
+            className="w-full flex items-center gap-3 bg-white border border-gray-200 rounded-full px-4 py-3 shadow-sm active:shadow-md transition-all"
           >
-            <Search className="h-5 w-5 text-gray-500" />
+            <Search className="h-5 w-5 text-primary-500" />
             <div className="flex-1 text-left">
-              <div className="text-sm font-medium text-gray-900">Où allez-vous ?</div>
-              <div className="text-xs text-gray-500">Destination · Dates · Voyageurs</div>
+              <div className="text-sm font-medium text-gray-900">{t('search.search_destination')}</div>
+              <div className="text-xs text-gray-500">{t('search.arrival')} · {t('search.travelers')}</div>
             </div>
           </button>
         </div>
 
-        {/* Barre de catégories - Responsive */}
+        {/* Barre de catégories */}
         <div className="border-t border-gray-100 bg-white">
           <div className="max-w-4xl mx-auto px-4">
-            <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-8 lg:gap-12 py-4 sm:py-6 overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="flex items-center gap-6 lg:gap-10 py-3 lg:py-5 overflow-x-auto scrollbar-hide">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex flex-col items-center gap-2 sm:gap-3 min-w-fit pb-2 sm:pb-3 border-b-[3px] transition-all ${
+                  className={`flex flex-col items-center gap-1.5 lg:gap-2 min-w-fit pb-2 border-b-2 transition-all ${
                     selectedCategory === cat.id
                       ? 'border-primary-500 text-primary-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <cat.icon className={`h-5 w-5 sm:h-7 sm:w-7 ${selectedCategory === cat.id ? 'text-primary-500' : ''}`} />
-                  <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">{cat.name}</span>
+                  <cat.icon className={`h-5 w-5 lg:h-6 lg:w-6 ${selectedCategory === cat.id ? 'text-primary-500' : ''}`} />
+                  <span className="text-[11px] lg:text-sm font-medium whitespace-nowrap">{t(cat.nameKey)}</span>
                 </button>
               ))}
             </div>
@@ -298,104 +291,86 @@ export default function HomePage() {
 
       {/* Contenu principal */}
       <main>
-        {/* Section hébergements - Responsive */}
-        <section className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20 py-6 sm:py-8">
-          {/* Message "Aucun hébergement" */}
-          <div className="text-center py-12 sm:py-16 lg:py-20">
-            <div className="max-w-2xl mx-auto px-4">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8">
-                <MapPin className="h-12 w-12 sm:h-16 sm:w-16 text-primary-600" />
+        {/* Section hébergements */}
+        <section className="max-w-7xl mx-auto px-4 lg:px-8 py-8 lg:py-12">
+          <div className="text-center py-12 lg:py-16">
+            <div className="max-w-lg mx-auto">
+              <div className="w-20 h-20 lg:w-28 lg:h-28 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MapPin className="h-10 w-10 lg:h-14 lg:w-14 text-primary-600" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                Aucun logement pour l'instant
+              <h2 className="text-xl lg:text-3xl font-bold text-gray-900 mb-3">
+                {t('home.no_listings')}
               </h2>
-              <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8 leading-relaxed">
-                Nous lançons bientôt notre plateforme au Mali ! 
-                Soyez parmi les premiers hôtes à rejoindre Ikasso.
-              </p>
-              <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
-                <button 
-                  onClick={() => setShowHostModal(true)}
-                  className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all hover:scale-105"
-                >
-                  Devenir hôte
-                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section "Pourquoi Ikasso" - Responsive */}
-        <section className="bg-gray-50 py-10 sm:py-12 lg:py-16">
-          <div className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
-              Pourquoi choisir Ikasso ?
-            </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              <div className="bg-white rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Réservation sécurisée</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Paiements protégés et données sécurisées</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Support 24/7</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Une équipe disponible à tout moment</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Paiement flexible</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Orange Money, carte ou espèces</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-3 sm:mb-4">
-                  <Star className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">Qualité vérifiée</h3>
-                <p className="text-xs sm:text-sm text-gray-600">Hébergements inspectés et validés</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section CTA Devenir hôte - Responsive */}
-        <section className="py-10 sm:py-12 lg:py-16">
-          <div className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20">
-            <div className="bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl sm:rounded-2xl p-6 sm:p-8 lg:p-12 text-center text-white">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4">
-                Vous avez un hébergement à proposer ?
-              </h2>
-              <p className="text-sm sm:text-base lg:text-lg text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto">
-                Rejoignez Ikasso et commencez à gagner de l'argent en accueillant des voyageurs
+              <p className="text-sm lg:text-base text-gray-600 mb-6 leading-relaxed px-4">
+                {t('home.launching_soon')}
               </p>
               <button 
                 onClick={() => setShowHostModal(true)}
-                className="bg-white text-primary-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:shadow-xl transition-all hover:scale-105"
+                className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold text-sm lg:text-base transition-all"
               >
-                Commencer
+                {t('nav.become_host')}
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>
         </section>
 
-        {/* Section destinations - Responsive */}
-        <section className="py-10 sm:py-12 lg:py-16 bg-gray-50">
-          <div className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">
-              Des idées pour vos prochaines escapades
+        {/* Section "Pourquoi Ikasso" */}
+        <section className="bg-gray-50 py-10 lg:py-14">
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            <h2 className="text-lg lg:text-2xl font-bold text-gray-900 mb-6">
+              {t('home.why_ikasso')}
             </h2>
-            <div className="flex gap-2 sm:gap-4 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-              {["Populaire", "Bamako", "Ségou", "Mopti", "Tombouctou"].map((tab, i) => (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
+              {[
+                { icon: Shield, color: 'green', titleKey: 'home.secure_booking', descKey: 'home.secure_booking_desc' },
+                { icon: Clock, color: 'blue', titleKey: 'home.support_24_7', descKey: 'home.support_24_7_desc' },
+                { icon: CreditCard, color: 'purple', titleKey: 'home.flexible_payment', descKey: 'home.flexible_payment_desc' },
+                { icon: Star, color: 'orange', titleKey: 'home.verified_quality', descKey: 'home.verified_quality_desc' },
+              ].map((item, i) => (
+                <div key={i} className="bg-white rounded-xl p-4 lg:p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div className={`w-10 h-10 lg:w-11 lg:h-11 bg-${item.color}-100 rounded-lg flex items-center justify-center mb-3`}>
+                    <item.icon className={`h-5 w-5 lg:h-6 lg:w-6 text-${item.color}-600`} />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1 text-sm lg:text-base">{t(item.titleKey)}</h3>
+                  <p className="text-xs lg:text-sm text-gray-600">{t(item.descKey)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Section CTA Devenir hôte */}
+        <section className="py-10 lg:py-14">
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            <div className="bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl p-6 lg:p-10 text-center text-white">
+              <h2 className="text-lg lg:text-2xl font-bold mb-3">
+                {t('home.have_property')}
+              </h2>
+              <p className="text-sm lg:text-base text-white/90 mb-5 max-w-xl mx-auto">
+                {t('home.join_ikasso')}
+              </p>
+              <button 
+                onClick={() => setShowHostModal(true)}
+                className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold text-sm lg:text-base hover:shadow-lg transition-all"
+              >
+                {t('home.get_started')}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Section destinations */}
+        <section className="py-10 lg:py-14 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            <h2 className="text-lg lg:text-2xl font-bold text-gray-900 mb-5">
+              {t('home.destination_ideas')}
+            </h2>
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+              {[t('home.popular'), "Bamako", "Ségou", "Mopti", "Tombouctou"].map((tab, i) => (
                 <button
                   key={tab}
-                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-full text-xs lg:text-sm font-medium whitespace-nowrap transition-all ${
                     i === 0 
                       ? 'bg-gray-900 text-white' 
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -405,15 +380,15 @@ export default function HomePage() {
                 </button>
               ))}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-              {cities.map((city) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+              {cities.slice(0, 8).map((city) => (
                 <Link 
                   key={city}
                   href="/search"
-                  className="group p-3 sm:p-0"
+                  className="group p-3 bg-white rounded-lg hover:shadow-md transition-all"
                 >
-                  <div className="text-sm font-medium text-gray-900 group-hover:underline">{city}</div>
-                  <div className="text-xs sm:text-sm text-gray-500">Hébergements</div>
+                  <div className="text-sm font-medium text-gray-900 group-hover:text-primary-600">{city}</div>
+                  <div className="text-xs text-gray-500">{t('home.accommodations')}</div>
                 </Link>
               ))}
             </div>
@@ -421,53 +396,51 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Footer style Airbnb - Responsive */}
+      {/* Footer */}
       <footer className="bg-gray-100 border-t border-gray-200">
-        <div className="max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-20 py-8 sm:py-12">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 lg:py-10">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Assistance</h3>
-              <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600">
-                <li><Link href="/help" className="hover:underline">Centre d'aide</Link></li>
-                <li><a href="#" className="hover:underline">Assistance sécurité</a></li>
-                <li><a href="#" className="hover:underline">Options d'annulation</a></li>
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">{t('footer.support')}</h3>
+              <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
+                <li><Link href="/help" className="hover:underline">{t('footer.help_center')}</Link></li>
+                <li><a href="#" className="hover:underline">{t('footer.safety_support')}</a></li>
+                <li><a href="#" className="hover:underline">{t('footer.cancellation_options')}</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Accueil de voyageurs</h3>
-              <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600">
-                <li><button onClick={() => setShowHostModal(true)} className="hover:underline">Mettez votre logement sur Ikasso</button></li>
-                <li><a href="#" className="hover:underline">Ressources pour les hôtes</a></li>
-                <li><a href="#" className="hover:underline">Forum de la communauté</a></li>
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">{t('footer.hosting')}</h3>
+              <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
+                <li><button onClick={() => setShowHostModal(true)} className="hover:underline">{t('footer.list_property')}</button></li>
+                <li><a href="#" className="hover:underline">{t('footer.host_resources')}</a></li>
               </ul>
             </div>
-            <div className="col-span-2 md:col-span-1">
-              <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Ikasso</h3>
-              <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-600">
-                <li><a href="#" className="hover:underline">Newsroom</a></li>
-                <li><a href="#" className="hover:underline">Carrières</a></li>
-                <li><a href="#" className="hover:underline">Investisseurs</a></li>
+            <div className="col-span-2 lg:col-span-1">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm">Ikasso</h3>
+              <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
+                <li><a href="#" className="hover:underline">{t('footer.newsroom')}</a></li>
+                <li><a href="#" className="hover:underline">{t('footer.careers')}</a></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t border-gray-200 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+          <div className="border-t border-gray-200 pt-5 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-600">
               <span>© {new Date().getFullYear()} Ikasso</span>
-              <span className="hidden sm:inline">·</span>
-              <a href="#" className="hover:underline">Confidentialité</a>
-              <span className="hidden sm:inline">·</span>
-              <a href="#" className="hover:underline">Conditions générales</a>
+              <span>·</span>
+              <a href="#" className="hover:underline">{t('footer.privacy')}</a>
+              <span>·</span>
+              <a href="#" className="hover:underline">{t('footer.terms')}</a>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setShowLanguageModal(true)}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-900 hover:underline"
+                className="flex items-center gap-2 text-xs font-medium text-gray-900 hover:underline"
               >
-                <Globe className="h-4 w-4" />
-                Français (FR)
+                <span>{currentLang.flag}</span>
+                {currentLang.name}
               </button>
-              <span className="text-xs sm:text-sm font-medium text-gray-900">FCFA</span>
+              <span className="text-xs font-medium text-gray-900">FCFA</span>
             </div>
           </div>
         </div>
@@ -475,9 +448,8 @@ export default function HomePage() {
 
       {/* Modal Recherche Mobile */}
       {showMobileSearch && (
-        <div className="fixed inset-0 z-50 bg-white sm:hidden">
+        <div className="fixed inset-0 z-50 bg-white lg:hidden">
           <div className="flex flex-col h-full">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <button 
                 onClick={() => setShowMobileSearch(false)}
@@ -485,32 +457,29 @@ export default function HomePage() {
               >
                 <X className="h-5 w-5" />
               </button>
-              <span className="font-semibold">Rechercher</span>
+              <span className="font-semibold">{t('search.search')}</span>
               <div className="w-9"></div>
             </div>
 
-            {/* Contenu */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              {/* Destination */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Destination</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('search.destination')}</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Où allez-vous ?"
+                    placeholder={t('search.search_destination')}
                     className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl text-base"
                     value={searchLocation}
                     onChange={(e) => setSearchLocation(e.target.value)}
                   />
                 </div>
-                {/* Suggestions */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {cities.slice(0, 4).map(city => (
                     <button
                       key={city}
                       onClick={() => setSearchLocation(city)}
-                      className="px-3 py-2 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200"
+                      className="px-3 py-2 bg-gray-100 rounded-full text-sm text-gray-700 active:bg-gray-200"
                     >
                       {city}
                     </button>
@@ -518,27 +487,26 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Dates */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Arrivée</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('search.arrival')}</label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="date"
-                      className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl text-base"
+                      className="w-full pl-10 pr-3 py-4 border border-gray-300 rounded-xl text-sm"
                       value={checkIn}
                       onChange={(e) => setCheckIn(e.target.value)}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Départ</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">{t('search.departure')}</label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <input
                       type="date"
-                      className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl text-base"
+                      className="w-full pl-10 pr-3 py-4 border border-gray-300 rounded-xl text-sm"
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
                     />
@@ -546,25 +514,24 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Voyageurs */}
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">Voyageurs</label>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">{t('search.travelers')}</label>
                 <div className="flex items-center justify-between p-4 border border-gray-300 rounded-xl">
                   <div className="flex items-center gap-3">
                     <Users className="h-5 w-5 text-gray-400" />
-                    <span className="text-base">{guests} voyageur{guests > 1 ? 's' : ''}</span>
+                    <span>{guests} {guests > 1 ? t('search.travelers_plural') : t('search.traveler')}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setGuests(Math.max(1, guests - 1))}
-                      className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:border-gray-400"
+                      className="w-9 h-9 flex items-center justify-center border border-gray-300 rounded-full text-lg"
                     >
                       -
                     </button>
-                    <span className="w-8 text-center font-medium">{guests}</span>
+                    <span className="w-6 text-center font-medium">{guests}</span>
                     <button
                       onClick={() => setGuests(guests + 1)}
-                      className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:border-gray-400"
+                      className="w-9 h-9 flex items-center justify-center border border-gray-300 rounded-full text-lg"
                     >
                       +
                     </button>
@@ -573,117 +540,98 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="p-4 border-t border-gray-200">
               <Link
                 href="/search"
                 onClick={() => setShowMobileSearch(false)}
-                className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white py-4 rounded-xl font-semibold text-base"
+                className="w-full flex items-center justify-center gap-2 bg-primary-500 text-white py-4 rounded-xl font-semibold"
               >
                 <Search className="h-5 w-5" />
-                Rechercher
+                {t('search.search')}
               </Link>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Devenir Hôte - Responsive */}
+      {/* Modal Devenir Hôte */}
       {showHostModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowHostModal(false)}></div>
-          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl sm:mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-2xl lg:rounded-2xl shadow-2xl w-full lg:max-w-lg lg:mx-4 max-h-[85vh] overflow-y-auto">
             <button 
               onClick={() => setShowHostModal(false)}
-              className="absolute top-4 left-4 p-2 hover:bg-gray-100 rounded-full transition-all"
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
             >
               <X className="h-5 w-5" />
             </button>
             
-            <div className="p-6 sm:p-8 pt-14 sm:pt-16">
-              <h2 className="text-xl sm:text-2xl font-semibold text-center text-gray-900 mb-6 sm:mb-8">
+            <div className="p-6 pt-12">
+              <h2 className="text-xl font-bold text-center text-gray-900 mb-6">
                 Que souhaitez-vous proposer ?
               </h2>
               
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div className="space-y-3">
                 {hostServices.map((service) => (
                   <Link
                     key={service.id}
                     href="/auth/register-new"
                     onClick={() => setShowHostModal(false)}
-                    className="flex flex-row sm:flex-col items-center sm:items-center p-4 sm:p-6 border-2 border-gray-200 rounded-xl hover:border-gray-900 transition-all group"
+                    className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-primary-500 transition-all"
                   >
-                    <span className="text-3xl sm:text-5xl mb-0 sm:mb-4 mr-4 sm:mr-0">{service.icon}</span>
-                    <div className="text-left sm:text-center">
-                      <span className="font-medium text-gray-900 block">{service.name}</span>
-                      <span className="text-xs text-gray-500 sm:hidden">{service.description}</span>
+                    <span className="text-3xl">{service.icon}</span>
+                    <div>
+                      <span className="font-semibold text-gray-900 block">{service.name}</span>
+                      <span className="text-sm text-gray-500">{service.description}</span>
                     </div>
                   </Link>
                 ))}
               </div>
-              
-              <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8">
-                Vous pourrez configurer les détails après votre inscription
-              </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Langue/Région - Responsive */}
+      {/* Modal Langue */}
       {showLanguageModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowLanguageModal(false)}></div>
-          <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-3xl sm:mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-t-2xl lg:rounded-2xl shadow-2xl w-full lg:max-w-md lg:mx-4 max-h-[85vh] overflow-y-auto">
             <button 
               onClick={() => setShowLanguageModal(false)}
-              className="absolute top-4 left-4 p-2 hover:bg-gray-100 rounded-full transition-all"
+              className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
             >
               <X className="h-5 w-5" />
             </button>
             
-            <div className="p-6 sm:p-8 pt-14 sm:pt-16">
-              {/* Tabs */}
-              <div className="flex gap-4 sm:gap-6 border-b border-gray-200 mb-6 sm:mb-8">
-                <button className="pb-3 sm:pb-4 border-b-2 border-gray-900 font-medium text-gray-900 text-sm sm:text-base">
-                  Langue et région
-                </button>
-                <button className="pb-3 sm:pb-4 text-gray-500 hover:text-gray-700 text-sm sm:text-base">
-                  Devise
-                </button>
-              </div>
-
-              {/* Traduction auto */}
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 sm:mb-8 flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900 flex items-center gap-2 text-sm sm:text-base">
-                    Traduction
-                    <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">Auto</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-500">Traduire automatiquement les descriptions</p>
-                </div>
-                <div className="w-10 sm:w-12 h-6 sm:h-7 bg-gray-900 rounded-full flex items-center justify-end px-1">
-                  <div className="w-4 sm:w-5 h-4 sm:h-5 bg-white rounded-full"></div>
-                </div>
-              </div>
-
-              {/* Langues */}
-              <div>
-                <h3 className="font-medium text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Choisissez une langue et une région</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
-                  {languages.map((item, i) => (
-                    <button
-                      key={i}
-                      className={`p-3 rounded-lg text-left border-2 transition-all ${
-                        i === 0 ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-400'
-                      }`}
-                      onClick={() => setShowLanguageModal(false)}
-                    >
-                      <div className="font-medium text-gray-900 text-sm">{item.lang}</div>
-                      <div className="text-xs text-gray-500">{item.region}</div>
-                    </button>
-                  ))}
-                </div>
+            <div className="p-6 pt-12">
+              <h2 className="text-xl font-bold text-center text-gray-900 mb-6">
+                Choisir la langue
+              </h2>
+              
+              <div className="grid grid-cols-2 gap-2">
+                {availableLanguages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => {
+                      setLanguage(lang.code as Language)
+                      setShowLanguageModal(false)
+                    }}
+                    className={`p-4 rounded-xl text-left border-2 transition-all ${
+                      language === lang.code 
+                        ? 'border-primary-500 bg-primary-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{lang.flag}</span>
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">{lang.name}</div>
+                        <div className="text-xs text-gray-500">{lang.region}</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

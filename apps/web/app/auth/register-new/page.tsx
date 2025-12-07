@@ -8,6 +8,7 @@ import {
   CheckCircle, Loader, Eye, EyeOff, Calendar, Globe, ChevronDown
 } from 'lucide-react'
 import Logo from '../../components/Logo'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 type UserType = 'client' | 'hote' | null
 type Step = 1 | 2 | 3
@@ -33,10 +34,6 @@ const countryCodes = [
   { code: '+228', country: 'Togo', flag: '🇹🇬' },
   { code: '+229', country: 'Bénin', flag: '🇧🇯' },
   { code: '+237', country: 'Cameroun', flag: '🇨🇲' },
-  { code: '+241', country: 'Gabon', flag: '🇬🇦' },
-  { code: '+242', country: 'Congo', flag: '🇨🇬' },
-  { code: '+243', country: 'RD Congo', flag: '🇨🇩' },
-  { code: '+250', country: 'Rwanda', flag: '🇷🇼' },
   { code: '+86', country: 'Chine', flag: '🇨🇳' },
   { code: '+81', country: 'Japon', flag: '🇯🇵' },
   { code: '+971', country: 'Émirats', flag: '🇦🇪' },
@@ -44,6 +41,7 @@ const countryCodes = [
 
 export default function RegisterNewPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [userType, setUserType] = useState<UserType>(null)
   
@@ -239,29 +237,39 @@ export default function RegisterNewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header - Responsive */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 sm:h-16">
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Header Mobile */}
+      <header className="border-b border-gray-100 lg:hidden">
+        <div className="flex items-center h-14 px-4">
+          <Link href="/" className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Link>
+          <span className="flex-1 text-center font-semibold text-gray-900 pr-7">{t('nav.signup')}</span>
+        </div>
+      </header>
+
+      {/* Header Desktop */}
+      <header className="hidden lg:block border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="flex items-center justify-between h-16">
             <Link href="/">
               <Logo size="md" />
             </Link>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <span className="hidden sm:inline text-sm text-gray-600">Déjà inscrit ?</span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">{t('register.already_registered')}</span>
               <Link href="/auth/login" className="text-sm font-semibold text-primary-600 hover:text-primary-700">
-                Se connecter
+                {t('nav.login')}
               </Link>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-xl mx-auto px-4 py-6 sm:py-12">
-        {/* Progress Steps - Responsive */}
-        <div className="mb-8 sm:mb-12">
+      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6 lg:py-10">
+        {/* Progress Steps */}
+        <div className="mb-8">
           <div className="flex items-center justify-between relative">
-            <div className="absolute top-4 sm:top-5 left-0 right-0 h-0.5 bg-gray-200">
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200">
               <div 
                 className="h-full bg-primary-500 transition-all duration-500"
                 style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%' }}
@@ -269,17 +277,17 @@ export default function RegisterNewPage() {
             </div>
             
             {[
-              { step: 1, icon: Phone, label: 'Téléphone', done: phoneVerified },
+              { step: 1, icon: Phone, label: t('register.phone_number'), done: phoneVerified },
               { step: 2, icon: User, label: 'Profil', done: currentStep > 2 },
-              { step: 3, icon: Mail, label: 'Email', done: emailVerified },
+              { step: 3, icon: Mail, label: t('register.email'), done: emailVerified },
             ].map(({ step, icon: Icon, label, done }) => (
               <div key={step} className="relative flex flex-col items-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center z-10 transition-all ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all ${
                   currentStep >= step ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'
                 } ${done ? 'bg-green-500' : ''}`}>
-                  {done ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" /> : <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </div>
-                <span className={`mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium ${currentStep >= step ? 'text-gray-900' : 'text-gray-500'}`}>
+                <span className={`mt-1.5 text-[10px] font-medium ${currentStep >= step ? 'text-gray-900' : 'text-gray-500'}`}>
                   {label}
                 </span>
               </div>
@@ -289,53 +297,53 @@ export default function RegisterNewPage() {
 
         {/* ÉTAPE 1 */}
         {currentStep === 1 && (
-          <div className="space-y-6 sm:space-y-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Bienvenue sur Ikasso
+          <div className="space-y-6">
+            <div className="text-center lg:text-left">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {t('register.welcome')}
               </h1>
-              <p className="mt-2 text-sm sm:text-base text-gray-600">
-                Commençons par vérifier votre numéro
+              <p className="mt-1 text-sm text-gray-600">
+                {t('register.verify_phone')}
               </p>
             </div>
 
-            {/* Choix du type - Responsive */}
+            {/* Choix du type */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-3">
-                Je souhaite
+                {t('register.i_want_to')}
               </label>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {[
-                  { type: 'client', emoji: '🏠', title: 'Voyager', desc: 'Réserver des logements' },
-                  { type: 'hote', emoji: '🏡', title: 'Héberger', desc: 'Proposer mon logement' },
+                  { type: 'client', emoji: '🏠', title: t('register.travel'), desc: t('register.book_accommodations') },
+                  { type: 'hote', emoji: '🏡', title: t('register.host'), desc: t('register.offer_accommodation') },
                 ].map(({ type, emoji, title, desc }) => (
                   <button
                     key={type}
                     type="button"
                     onClick={() => setUserType(type as UserType)}
-                    className={`relative p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 transition-all text-left ${
+                    className={`relative p-4 rounded-xl border-2 transition-all text-left ${
                       userType === type
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     {userType === type && (
-                      <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary-500" />
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle className="h-4 w-4 text-primary-500" />
                       </div>
                     )}
-                    <div className="text-2xl sm:text-4xl mb-2 sm:mb-3">{emoji}</div>
-                    <div className="font-semibold text-gray-900 text-sm sm:text-base">{title}</div>
-                    <div className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">{desc}</div>
+                    <div className="text-2xl mb-2">{emoji}</div>
+                    <div className="font-semibold text-gray-900 text-sm">{title}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{desc}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Téléphone avec indicatif - Responsive */}
+            {/* Téléphone avec indicatif */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Numéro de téléphone
+                {t('register.phone_number')}
               </label>
               <div className="flex gap-2">
                 {/* Sélecteur indicatif */}
@@ -344,19 +352,19 @@ export default function RegisterNewPage() {
                     type="button"
                     onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                     disabled={phoneVerified}
-                    className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-3 sm:py-4 border-2 rounded-xl transition-all min-w-[80px] sm:min-w-[100px] ${
-                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                    className={`flex items-center gap-1.5 px-3 py-3.5 border rounded-xl transition-all min-w-[90px] ${
+                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
-                    <span className="text-lg sm:text-xl">{selectedCountry.flag}</span>
-                    <span className="text-xs sm:text-sm font-medium text-gray-700">{countryCode}</span>
-                    <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                    <span className="text-lg">{selectedCountry.flag}</span>
+                    <span className="text-sm font-medium text-gray-700">{countryCode}</span>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
                   </button>
                   
                   {showCountryDropdown && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowCountryDropdown(false)} />
-                      <div className="absolute top-full left-0 mt-1 w-56 sm:w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto">
                         {countryCodes.map((c) => (
                           <button
                             key={c.code}
@@ -365,13 +373,13 @@ export default function RegisterNewPage() {
                               setCountryCode(c.code)
                               setShowCountryDropdown(false)
                             }}
-                            className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 text-left ${
+                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-left ${
                               countryCode === c.code ? 'bg-primary-50' : ''
                             }`}
                           >
-                            <span className="text-lg sm:text-xl">{c.flag}</span>
-                            <span className="flex-1 text-xs sm:text-sm text-gray-900">{c.country}</span>
-                            <span className="text-xs sm:text-sm text-gray-500">{c.code}</span>
+                            <span className="text-lg">{c.flag}</span>
+                            <span className="flex-1 text-sm text-gray-900">{c.country}</span>
+                            <span className="text-sm text-gray-500">{c.code}</span>
                           </button>
                         ))}
                       </div>
@@ -384,8 +392,8 @@ export default function RegisterNewPage() {
                   <input
                     type="tel"
                     placeholder="XX XX XX XX"
-                    className={`w-full px-3 sm:px-4 py-3 sm:py-4 text-base sm:text-lg border-2 rounded-xl focus:ring-0 focus:border-primary-500 transition-all ${
-                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-200'
+                    className={`w-full px-4 py-3.5 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all ${
+                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-300'
                     }`}
                     value={phone}
                     onChange={(e) => {
@@ -396,40 +404,40 @@ export default function RegisterNewPage() {
                     disabled={phoneVerified}
                   />
                   {phoneVerified && (
-                    <CheckCircle className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+                    <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Boutons - Responsive */}
+            {/* Boutons */}
             {!phoneVerified && phone.length >= 6 && !sentPhoneCode && (
               <button
                 onClick={sendPhoneVerification}
                 disabled={sendingPhone}
-                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all text-sm sm:text-base"
+                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
               >
                 {sendingPhone ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    Envoi...
+                    <Loader className="h-5 w-5 animate-spin" />
+                    {t('general.loading')}
                   </span>
                 ) : (
-                  'Recevoir le code par SMS'
+                  t('register.receive_code')
                 )}
               </button>
             )}
 
             {!phoneVerified && sentPhoneCode && (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Code de vérification
+                    {t('register.verification_code')}
                   </label>
                   <input
                     type="text"
                     placeholder="• • • •"
-                    className="w-full text-center text-2xl sm:text-3xl font-mono tracking-[0.5em] sm:tracking-[1em] py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                    className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     maxLength={4}
                     value={phoneCode}
                     onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ''))}
@@ -438,15 +446,15 @@ export default function RegisterNewPage() {
                 <button
                   onClick={verifyPhoneCode}
                   disabled={phoneCode.length !== 4}
-                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all text-sm sm:text-base"
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
                 >
-                  Vérifier
+                  {t('register.verify')}
                 </button>
                 <button
                   onClick={sendPhoneVerification}
-                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-xs sm:text-sm font-medium"
+                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                 >
-                  Renvoyer le code
+                  {t('register.resend_code')}
                 </button>
               </div>
             )}
@@ -455,46 +463,46 @@ export default function RegisterNewPage() {
               <button
                 onClick={() => canGoToStep2 && setCurrentStep(2)}
                 disabled={!canGoToStep2}
-                className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
               >
-                Continuer
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                {t('register.continue')}
+                <ArrowRight className="h-5 w-5" />
               </button>
             )}
           </div>
         )}
 
-        {/* ÉTAPE 2 - Responsive */}
+        {/* ÉTAPE 2 */}
         {currentStep === 2 && (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-5">
             <div>
               <button 
                 onClick={() => setCurrentStep(1)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 text-sm"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Retour
+                {t('register.back')}
               </button>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Complétez votre profil
+              <h1 className="text-2xl font-bold text-gray-900">
+                {t('register.complete_profile')}
               </h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.first_name')} *</label>
                 <input
                   type="text"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.firstName}
                   onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.last_name')} *</label>
                 <input
                   type="text"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.lastName}
                   onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
                 />
@@ -502,12 +510,12 @@ export default function RegisterNewPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.date_of_birth')}</label>
               <div className="relative">
-                <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="date"
-                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.dateOfBirth}
                   onChange={(e) => setPersonalData({...personalData, dateOfBirth: e.target.value})}
                 />
@@ -515,37 +523,37 @@ export default function RegisterNewPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Adresse</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.address')}</label>
               <div className="relative">
-                <MapPin className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Rue, quartier..."
-                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.address}
                   onChange={(e) => setPersonalData({...personalData, address: e.target.value})}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Ville</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.city')}</label>
                 <input
                   type="text"
                   placeholder="Bamako"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.city}
                   onChange={(e) => setPersonalData({...personalData, city: e.target.value})}
                 />
               </div>
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Pays</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.country')}</label>
                 <div className="relative">
-                  <Globe className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
-                    className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                    className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     value={personalData.country}
                     onChange={(e) => setPersonalData({...personalData, country: e.target.value})}
                   />
@@ -554,13 +562,13 @@ export default function RegisterNewPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.email')} *</label>
               <div className="relative">
-                <Mail className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="email"
                   placeholder="vous@exemple.com"
-                  className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.email}
                   onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
                 />
@@ -568,33 +576,33 @@ export default function RegisterNewPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.password')} *</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Minimum 8 caractères"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  placeholder={t('register.min_8_chars')}
+                  className="w-full px-3 py-3 pr-12 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   value={personalData.password}
                   onChange={(e) => setPersonalData({...personalData, password: e.target.value})}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Confirmer *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.confirm_password')} *</label>
               <input
                 type="password"
-                className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 rounded-xl focus:ring-0 focus:border-primary-500 ${
+                className={`w-full px-3 py-3 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
                   personalData.confirmPassword && personalData.password !== personalData.confirmPassword
                     ? 'border-red-300 bg-red-50'
-                    : 'border-gray-200'
+                    : 'border-gray-300'
                 }`}
                 value={personalData.confirmPassword}
                 onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
@@ -604,38 +612,38 @@ export default function RegisterNewPage() {
             <button
               onClick={() => canGoToStep3 && setCurrentStep(3)}
               disabled={!canGoToStep3}
-              className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
             >
-              Continuer
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              {t('register.continue')}
+              <ArrowRight className="h-5 w-5" />
             </button>
           </div>
         )}
 
-        {/* ÉTAPE 3 - Responsive */}
+        {/* ÉTAPE 3 */}
         {currentStep === 3 && (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-5">
             <div>
               <button 
                 onClick={() => setCurrentStep(2)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 sm:mb-4 text-sm"
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Retour
+                {t('register.back')}
               </button>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Vérifiez votre email
+              <h1 className="text-2xl font-bold text-gray-900">
+                {t('register.verify_email')}
               </h1>
             </div>
 
-            <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                  <Mail className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-primary-100 rounded-full flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-primary-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{personalData.email}</p>
-                  <p className="text-xs sm:text-sm text-gray-500">Un code sera envoyé</p>
+                  <p className="font-medium text-gray-900 text-sm truncate">{personalData.email}</p>
+                  <p className="text-xs text-gray-500">{t('register.code_will_be_sent')}</p>
                 </div>
               </div>
             </div>
@@ -644,25 +652,25 @@ export default function RegisterNewPage() {
               <button
                 onClick={sendEmailVerification}
                 disabled={sendingEmail}
-                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all text-sm sm:text-base"
+                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
               >
                 {sendingEmail ? (
                   <span className="flex items-center justify-center gap-2">
-                    <Loader className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    Envoi...
+                    <Loader className="h-5 w-5 animate-spin" />
+                    {t('general.loading')}
                   </span>
                 ) : (
-                  'Envoyer le code'
+                  t('register.send_code')
                 )}
               </button>
             )}
 
             {!emailVerified && sentEmailCode && (
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-4">
                 <input
                   type="text"
                   placeholder="• • • • • •"
-                  className="w-full text-center text-xl sm:text-2xl font-mono tracking-[0.3em] sm:tracking-[0.5em] py-3 sm:py-4 border-2 border-gray-200 rounded-xl focus:ring-0 focus:border-primary-500"
+                  className="w-full text-center text-xl font-mono tracking-[0.3em] py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   maxLength={6}
                   value={emailCode}
                   onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ''))}
@@ -670,40 +678,40 @@ export default function RegisterNewPage() {
                 <button
                   onClick={verifyEmailCode}
                   disabled={emailCode.length !== 6}
-                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all text-sm sm:text-base"
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
                 >
-                  Vérifier
+                  {t('register.verify')}
                 </button>
                 <button
                   onClick={sendEmailVerification}
-                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-xs sm:text-sm font-medium"
+                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                 >
-                  Renvoyer
+                  {t('register.resend_code')}
                 </button>
               </div>
             )}
 
             {emailVerified && (
-              <div className="space-y-4 sm:space-y-6">
-                <div className="bg-green-50 border border-green-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <div className="space-y-5">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
-                    <p className="font-medium text-green-800 text-sm sm:text-base">Email vérifié !</p>
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <p className="font-medium text-green-800 text-sm">{t('register.email_verified')}</p>
                   </div>
                 </div>
 
                 <button
                   onClick={handleFinalSubmit}
                   disabled={isLoading}
-                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3 sm:py-4 rounded-xl font-semibold transition-all text-sm sm:text-base"
+                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <Loader className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                      Création...
+                      <Loader className="h-5 w-5 animate-spin" />
+                      {t('general.loading')}
                     </span>
                   ) : (
-                    'Créer mon compte'
+                    t('register.create_account')
                   )}
                 </button>
               </div>
@@ -711,12 +719,20 @@ export default function RegisterNewPage() {
           </div>
         )}
 
-        <p className="mt-6 sm:mt-8 text-center text-[10px] sm:text-xs text-gray-500">
-          En vous inscrivant, vous acceptez nos{' '}
-          <a href="#" className="underline">Conditions</a>
-          {' '}et notre{' '}
-          <a href="#" className="underline">Politique de confidentialité</a>
+        <p className="mt-6 text-center text-[10px] text-gray-500">
+          {t('register.terms_accept')}{' '}
+          <a href="#" className="underline">{t('register.terms')}</a>
+          {' '}{t('register.and')}{' '}
+          <a href="#" className="underline">{t('register.privacy')}</a>
         </p>
+
+        {/* Footer mobile */}
+        <div className="mt-4 lg:hidden text-center">
+          <span className="text-sm text-gray-600">{t('register.already_registered')} </span>
+          <Link href="/auth/login" className="text-sm font-semibold text-primary-600">
+            {t('nav.login')}
+          </Link>
+        </div>
       </div>
     </div>
   )
