@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Fond blanc -->
+  <rect width="512" height="512" rx="102" fill="#FFFFFF"/>
+  
+  <!-- Maison principale -->
+  <g transform="translate(56, 80) scale(4)">
+    <!-- Structure principale -->
+    <path
+      d="M20 75 L20 45 L35 30 L50 45 L65 30 L80 45 L80 75 L20 75 Z"
+      stroke="#E85D04"
+      stroke-width="3.5"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Toit principal -->
+    <path
+      d="M15 45 L35 25 L50 40 L65 25 L85 45"
+      stroke="#E85D04"
+      stroke-width="3.5"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Petite extension toit -->
+    <path
+      d="M50 45 L50 35 L60 25 L70 35 L70 45"
+      stroke="#E85D04"
+      stroke-width="3.5"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    
+    <!-- Porte -->
+    <rect
+      x="40"
+      y="55"
+      width="20"
+      height="20"
+      stroke="#E85D04"
+      stroke-width="3"
+      fill="none"
+      rx="2"
+    />
+    
+    <!-- Fenêtre gauche -->
+    <rect
+      x="25"
+      y="50"
+      width="10"
+      height="8"
+      stroke="#E85D04"
+      stroke-width="2.5"
+      fill="none"
+      rx="1"
+    />
+    
+    <!-- Fenêtre droite -->
+    <rect
+      x="65"
+      y="50"
+      width="10"
+      height="8"
+      stroke="#E85D04"
+      stroke-width="2.5"
+      fill="none"
+      rx="1"
+    />
+    
+    <!-- Fenêtre dans la porte -->
+    <rect
+      x="45"
+      y="60"
+      width="10"
+      height="6"
+      stroke="#E85D04"
+      stroke-width="2"
+      fill="none"
+      rx="1"
+    />
+    
+    <!-- Lignes de division fenêtre porte -->
+    <line x1="47.5" y1="60" x2="47.5" y2="66" stroke="#E85D04" stroke-width="1.5"/>
+    <line x1="52.5" y1="60" x2="52.5" y2="66" stroke="#E85D04" stroke-width="1.5"/>
+    
+    <!-- Cercle décoratif haut droit -->
+    <circle
+      cx="75"
+      cy="20"
+      r="5"
+      stroke="#E85D04"
+      stroke-width="2.5"
+      fill="none"
+    />
+    
+    <!-- Cercle décoratif gauche -->
+    <circle
+      cx="25"
+      cy="35"
+      r="4"
+      stroke="#E85D04"
+      stroke-width="2.5"
+      fill="none"
+    />
+  </g>
+</svg>
+
