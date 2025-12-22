@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, Eye, EyeOff, CheckCircle } from 'lucide-react'
-import Logo from '../components/Logo'
+import Logo from '../../components/Logo'
 
 export default function SetAdminPasswordPage() {
   const router = useRouter()

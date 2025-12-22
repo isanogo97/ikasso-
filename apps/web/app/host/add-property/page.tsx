@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, X, MapPin, Home, Users, Bed, Bath, Wifi, Car, Utensils, Tv, AirVent, Waves } from 'lucide-react'
-import Logo from '../components/Logo'
+import Logo from '../../components/Logo'
 
 interface PropertyForm {
   title: string

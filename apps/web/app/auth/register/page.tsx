@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Phone, User, Mail, MapPin, Calendar, ArrowRight, ArrowLeft, CheckCircle, Loader } from 'lucide-react'
-import Logo from '../components/Logo'
+import Logo from '../../components/Logo'
 
 type UserType = 'traveler' | 'host'
 type Step = 1 | 2 | 3

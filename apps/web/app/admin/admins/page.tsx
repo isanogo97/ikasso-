@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Shield, User, Mail, Plus, Edit, Trash2, CheckCircle, XCircle, Link as LinkIcon, Copy } from 'lucide-react'
-import Logo from '../components/Logo'
+import Logo from '../../components/Logo'
 
 interface AdminUser {
   id: string
