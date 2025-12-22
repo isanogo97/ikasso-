@@ -7,7 +7,7 @@ import {
   ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield, Book,
   Globe, Menu, X
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from './components/LogoFinal'
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')

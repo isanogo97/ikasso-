@@ -9,7 +9,7 @@ import {
   Clock, CheckCircle, XCircle, AlertCircle, Home, Plus,
   TrendingUp, Eye, Edit, Trash2, Users
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../components/LogoFinal'
 
 // Types
 interface Property {

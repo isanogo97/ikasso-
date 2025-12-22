@@ -8,7 +8,7 @@ import {
   CreditCard, BookOpen, MessageCircle, LogOut, Menu, X,
   Clock, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from './components/LogoFinal'
 import PhotoCapture from '../components/PhotoCapture'
 import AvatarRestorer from '../components/AvatarRestorer'
 import { saveUserAvatar, restoreUserAvatar } from '../lib/avatarPersistence'

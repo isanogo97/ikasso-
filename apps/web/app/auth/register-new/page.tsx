@@ -7,7 +7,7 @@ import {
   Phone, Mail, User, MapPin, ArrowLeft, ArrowRight,
   CheckCircle, Loader, Eye, EyeOff, Calendar, Globe, ChevronDown
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../components/LogoFinal'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 type UserType = 'client' | 'hote' | null

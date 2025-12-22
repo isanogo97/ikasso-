@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../components/LogoFinal'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { restoreUserAvatar } from '../../lib/avatarPersistence'
 

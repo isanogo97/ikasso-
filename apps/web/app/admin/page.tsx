@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Shield, Users, Settings, BarChart3, LogOut } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from './components/LogoFinal'
 
 interface AdminUser {
   id: string

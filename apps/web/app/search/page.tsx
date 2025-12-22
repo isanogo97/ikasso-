@@ -7,7 +7,7 @@ import {
   Search, MapPin, Calendar, Users, Star, Home, Building2, Hotel, 
   X, ArrowRight, Globe, Menu, SlidersHorizontal, Sparkles, ArrowLeft
 } from "lucide-react"
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from './components/LogoFinal'
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 const allAmenities = ["WiFi", "Climatisation", "Piscine", "Parking", "Restaurant", "Spa", "Cuisine équipée", "Terrasse", "Vue panoramique"]
