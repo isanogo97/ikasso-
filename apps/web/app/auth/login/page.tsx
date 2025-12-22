@@ -269,7 +269,17 @@ export default function LoginPage() {
         {/* Partie droite - Desktop only */}
         <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary-500 to-secondary-500 items-center justify-center p-12 max-w-xl">
           <div className="max-w-md text-white text-center">
-            <div className="text-6xl mb-6">🏡</div>
+            <div className="mb-6 flex justify-center">
+              <img 
+                src="/images/logos/ikasso-logo-400.png" 
+                alt="Ikasso Logo" 
+                className="w-24 h-24 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = '/images/logos/ikasso-logo.svg'
+                }}
+              />
+            </div>
             <h2 className="text-2xl font-bold mb-4">
               Bienvenue sur Ikasso
             </h2>

@@ -5,16 +5,17 @@ import React from 'react'
 interface LogoProps {
   className?: string
   showText?: boolean
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   mobileCompact?: boolean
 }
 
 export default function Logo({ className = '', showText = false, size = 'md', mobileCompact = false }: LogoProps) {
   
   const sizeClasses = {
-    sm: 'h-10 w-10',
-    md: 'h-12 w-12',
-    lg: 'h-16 w-16'
+    sm: 'h-12 w-12',
+    md: 'h-16 w-16',
+    lg: 'h-20 w-20',
+    xl: 'h-24 w-24'
   }
 
   const textSizeClasses = {
