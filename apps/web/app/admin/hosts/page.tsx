@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Eye, User, Building, Phone, Mail, MapPin, Calendar, ArrowLeft } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../components/LogoFinal'
 
 interface PendingHost {
   id: string

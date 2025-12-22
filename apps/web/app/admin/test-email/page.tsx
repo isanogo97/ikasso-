@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Send, CheckCircle, XCircle } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../components/LogoFinal'
 
 export default function TestEmailPage() {
   const [email, setEmail] = useState('')

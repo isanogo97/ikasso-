@@ -8,7 +8,7 @@ import {
   Ban, CheckCircle, XCircle, DollarSign, Plus, Edit, Trash2,
   Home, Clock, AlertTriangle
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import LogoFinal from '../../../components/LogoFinal'
 
 interface UserAccount {
   id: string
