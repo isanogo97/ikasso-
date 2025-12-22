@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Home, DollarSign, Shield, Users, Star, TrendingUp, Calendar, MessageCircle, Award, ArrowRight } from 'lucide-react'
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 
 export default function HostPage() {
   return (

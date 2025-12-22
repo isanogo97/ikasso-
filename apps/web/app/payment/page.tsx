@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { CreditCard, Smartphone, DollarSign, CheckCircle, ArrowLeft, Loader } from 'lucide-react'
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 
 type PaymentMethod = 'orange-money' | 'paypal' | 'card' | null
 

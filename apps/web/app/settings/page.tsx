@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 import PhotoCapture from "../components/PhotoCapture"
 import AvatarRestorer from "../components/AvatarRestorer"
 import { restoreUserAvatar } from "../lib/avatarPersistence"

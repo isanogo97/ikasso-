@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Search, MapPin, Calendar, Users, Star, Heart, Clock, Filter, Menu, X } from 'lucide-react'
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 
 interface Experience {
   id: string

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock, ArrowLeft } from 'lucide-react'
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({

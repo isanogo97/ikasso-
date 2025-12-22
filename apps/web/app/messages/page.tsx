@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Send, Search, MoreVertical, Phone, Video, ArrowLeft, MessageCircle, Clock, Check, CheckCheck } from 'lucide-react'
-import LogoFinal from './components/LogoFinal'
+import LogoFinal from '../components/LogoFinal'
 
 interface Message {
   id: string
