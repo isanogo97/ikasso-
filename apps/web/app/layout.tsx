@@ -31,9 +31,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+        {/* Favicons - Vos logos professionnels */}
+        <link rel="icon" type="image/x-icon" href="/images/logos/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/logos/ikasso-logo-16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/logos/ikasso-logo-32.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/images/logos/ikasso-logo-48.png" />
+        
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/logos/apple-touch-icon.png" />
+        
+        {/* Android/PWA Icons */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/images/logos/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/images/logos/android-chrome-512x512.png" />
+        
+        {/* Fallback vers les anciens icons si les nouveaux n'existent pas encore */}
+        <link rel="alternate icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+        <link rel="alternate icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+        
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>

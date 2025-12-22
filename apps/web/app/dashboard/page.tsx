@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
@@ -8,7 +8,11 @@ import {
   CreditCard, BookOpen, MessageCircle, LogOut, Menu, X,
   Clock, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react'
-import Logo from '../components/Logo'
+import LogoIkasso from '../components/LogoIkasso'
+import PhotoCapture from '../components/PhotoCapture'
+import AvatarRestorer from '../components/AvatarRestorer'
+import { saveUserAvatar, restoreUserAvatar } from '../lib/avatarPersistence'
+import { debugAvatarState, forceAvatarSync } from '../lib/avatarDebug'
 
 // Types
 interface Booking {
@@ -38,6 +42,7 @@ export default function TravelerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [showAddCardModal, setShowAddCardModal] = useState(false)
+  const [user, setUser] = useState<any>(null)
   // Récupérer les cartes sauvegardées depuis localStorage
   const [savedCards, setSavedCards] = useState<any[]>(() => {
     if (typeof window !== 'undefined') {
@@ -96,7 +101,45 @@ export default function TravelerDashboard() {
     }
   }
 
-  const user = getUserData()
+  // Chargement et restauration de l'utilisateur avec avatar
+  useEffect(() => {
+    let userData = getUserData()
+    if (userData) {
+      // Debug initial
+      console.log('Chargement utilisateur:', userData.email, 'Avatar présent:', !!userData.avatar)
+      debugAvatarState()
+      
+      // Restaurer l'avatar sauvegardé s'il existe
+      userData = restoreUserAvatar(userData)
+      
+      // Force sync si pas d'avatar
+      if (!userData.avatar) {
+        console.log('Pas d\'avatar, tentative de synchronisation forcée')
+        const synced = forceAvatarSync()
+        if (synced) {
+          userData = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+        }
+      }
+      
+      // Mettre à jour localStorage avec l'avatar restauré
+      localStorage.setItem('ikasso_user', JSON.stringify(userData))
+      setUser(userData)
+      
+      console.log('Utilisateur final:', userData.email, 'Avatar présent:', !!userData.avatar)
+    }
+  }, [])
+
+  // Si l'utilisateur n'est pas encore chargé, afficher un loading
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Fonction pour ajouter une carte
   const handleAddCard = (e: React.FormEvent) => {
@@ -190,13 +233,16 @@ export default function TravelerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Composant de restauration d'avatar */}
+      <AvatarRestorer user={user} setUser={setUser} />
+      
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/">
-                <Logo size="md" />
+                <LogoIkasso size="md" />
               </Link>
             </div>
             
@@ -288,9 +334,16 @@ export default function TravelerDashboard() {
               <div className="mt-6 pt-6 border-t">
                 <button 
                   onClick={() => {
+                    // Sauvegarder l'avatar avant déconnexion
+                    const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+                    if (currentUser.avatar && currentUser.email) {
+                      saveUserAvatar(currentUser.email, currentUser.avatar)
+                    }
+                    
                     // Supprimer les données utilisateur
                     localStorage.removeItem('ikasso_user')
                     localStorage.removeItem('ikasso_cards')
+                    
                     // Rediriger vers la page de connexion
                     window.location.href = '/auth/login'
                   }}
@@ -842,48 +895,28 @@ export default function TravelerDashboard() {
                         </div>
                       )}
                       <div>
-                        <div>
-                          <input
-                            type="file"
-                            id="avatar-upload"
-                            className="hidden"
-                            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) {
-                // Simuler l'upload de la photo
-                const reader = new FileReader()
-                reader.onload = (event) => {
-                  const imageUrl = event.target?.result as string
-                  // Sauvegarder dans localStorage
-                  const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
-                  currentUser.avatar = imageUrl
-                  localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
-                  
-                  // Mettre à jour dans la liste globale
-                  const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-                  const updatedUsers = allUsers.map((u: any) => 
-                    u.email === currentUser.email ? currentUser : u
-                  )
-                  localStorage.setItem('ikasso_all_users', JSON.stringify(updatedUsers))
-                  
-                  alert(`Photo "${file.name}" mise à jour avec succès !`)
-                  window.location.reload() // Recharger pour voir la photo
-                }
-                reader.readAsDataURL(file)
-              }
-            }}
-                          />
-                          <label 
-                            htmlFor="avatar-upload"
-                            className="btn-primary text-sm cursor-pointer inline-block"
-                          >
-                            {user.avatar ? 'Changer la photo' : 'Ajouter une photo'}
-                          </label>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          JPG, GIF ou PNG. 1MB max.
-                        </p>
+                        <PhotoCapture
+                          onPhotoCapture={(imageUrl) => {
+                            try {
+                              // La sauvegarde persistante est déjà gérée dans PhotoCapture
+                              // Mettre à jour l'utilisateur actuel et l'état
+                              const updatedUser = { ...user, avatar: imageUrl }
+                              localStorage.setItem('ikasso_user', JSON.stringify(updatedUser))
+                              setUser(updatedUser)
+                              
+                              // Pas besoin de recharger, l'état se met à jour automatiquement
+                            } catch (error) {
+                              console.error('Erreur lors de la sauvegarde:', error)
+                              alert('Erreur lors de la sauvegarde de la photo')
+                            }
+                          }}
+                          onError={(error) => {
+                            console.error('Erreur photo:', error)
+                          }}
+                          maxSizeMB={5}
+                          acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
+                          className="mt-2"
+                        />
                       </div>
                     </div>
 

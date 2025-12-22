@@ -8,6 +8,7 @@ import {
   Clock, CreditCard, ArrowRight,
   Building2, Hotel, Sparkles
 } from "lucide-react"
+import LogoIkasso from "./components/LogoIkasso"
 import Logo from "./components/Logo"
 import { useLanguage, availableLanguages, Language } from "./contexts/LanguageContext"
 

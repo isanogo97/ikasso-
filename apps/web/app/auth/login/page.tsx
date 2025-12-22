@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft } from 'lucide-react'
 import Logo from '../../components/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { restoreUserAvatar } from '../../lib/avatarPersistence'
 
 export default function LoginPage() {
   const { t } = useLanguage()
@@ -70,9 +71,12 @@ export default function LoginPage() {
       }
       
       if (user) {
+        // Restaurer l'avatar sauvegardé s'il existe
+        user = restoreUserAvatar(user)
+        
         localStorage.setItem('ikasso_user', JSON.stringify(user))
         
-        if (user.userType === 'hote' || user.userType === 'host') {
+        if (user?.userType === 'hote' || user?.userType === 'host') {
           window.location.href = '/dashboard/host'
         } else {
           window.location.href = '/dashboard'

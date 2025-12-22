@@ -5,6 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
 import Logo from "../components/Logo"
+import PhotoCapture from "../components/PhotoCapture"
+import AvatarRestorer from "../components/AvatarRestorer"
+import { restoreUserAvatar } from "../lib/avatarPersistence"
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("profile")
@@ -12,6 +15,7 @@ export default function SettingsPage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   const [profileData, setProfileData] = useState({
     firstName: "Amadou",
@@ -51,6 +55,7 @@ export default function SettingsPage() {
   const [ninaMessage, setNinaMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    // Charger les données NINA
     import("../lib/ninaStorage").then((mod) => {
       const info = mod.getNinaLocal?.()
       if (info) {
@@ -60,6 +65,16 @@ export default function SettingsPage() {
         setNinaMessage(info.message || null)
       }
     }).catch(() => {})
+
+    // Restaurer l'avatar utilisateur
+    const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+    if (currentUser.email) {
+      const restoredUser = restoreUserAvatar(currentUser)
+      setUser(restoredUser)
+      if (restoredUser.avatar !== currentUser.avatar) {
+        localStorage.setItem('ikasso_user', JSON.stringify(restoredUser))
+      }
+    }
   }, [])
 
   const isValidNinaFormat = (n: string) => /^\d{14}$/.test((n || "").replace(/\s+/g, ""))
@@ -132,6 +147,9 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Composant de restauration d'avatar */}
+      <AvatarRestorer user={user} setUser={setUser} />
+      
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -203,7 +221,30 @@ export default function SettingsPage() {
                 <div className="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
                   <User className="h-10 w-10 text-gray-400" />
                 </div>
-                <button className="px-3 py-2 border rounded hover:bg-gray-50 inline-flex items-center"><Camera className="h-4 w-4 mr-2" />Changer</button>
+                <PhotoCapture
+                  onPhotoCapture={(imageUrl) => {
+                    try {
+                      // La sauvegarde persistante est déjà gérée dans PhotoCapture
+                      // Il suffit de mettre à jour l'utilisateur actuel
+                      const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+                      currentUser.avatar = imageUrl
+                      localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
+                      
+                      // Recharger pour voir la photo
+                      setTimeout(() => {
+                        window.location.reload()
+                      }, 1000)
+                    } catch (error) {
+                      console.error('Erreur lors de la sauvegarde:', error)
+                      alert('Erreur lors de la sauvegarde de la photo')
+                    }
+                  }}
+                  onError={(error) => {
+                    console.error('Erreur photo:', error)
+                  }}
+                  maxSizeMB={5}
+                  acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
+                />
               </div>
             </div>
           )}

@@ -200,3 +200,7 @@ function LogoVariant({ variant, size }: { variant: number; size: number }) {
   }
 }
 
+
+
+
+

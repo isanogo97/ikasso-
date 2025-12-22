@@ -142,3 +142,7 @@ apps/web/public/icons/
 - [ ] Prendre 5 captures d'écran iPhone
 - [ ] Vérifier que les PNG n'ont pas de transparence (iOS)
 
+
+
+
+

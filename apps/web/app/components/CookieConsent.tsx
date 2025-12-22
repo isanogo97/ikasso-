@@ -250,3 +250,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
   )
 }
 
+
+
+
+
