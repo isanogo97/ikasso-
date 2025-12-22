@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
           .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
             color: white; 
             padding: 40px 30px; 
             text-align: center; 
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
           }
           .booking-box {
             background: #f8f9fa;
-            border: 2px solid #667eea;
+            border: 2px solid #E85D04;
             border-radius: 10px;
             padding: 25px;
             margin: 25px 0;
@@ -80,14 +80,14 @@ export async function POST(request: NextRequest) {
             border-bottom: none;
             font-weight: bold;
             font-size: 18px;
-            color: #667eea;
+            color: #E85D04;
             margin-top: 10px;
             padding-top: 15px;
-            border-top: 2px solid #667eea;
+            border-top: 2px solid #E85D04;
           }
           .button { 
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%);
             color: white;
             padding: 15px 40px;
             text-decoration: none;
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
             <p style="font-size: 16px;">Votre réservation a été confirmée avec succès ! 🎉</p>
             
             <div class="booking-box">
-              <h2 style="margin-top: 0; color: #667eea;">📋 Détails de votre réservation</h2>
+              <h2 style="margin-top: 0; color: #E85D04;">📋 Détails de votre réservation</h2>
               
               <div class="booking-detail">
                 <span><strong>Numéro de réservation</strong></span>
@@ -184,8 +184,8 @@ export async function POST(request: NextRequest) {
             <p style="margin-top: 30px;">
               <strong>Besoin d'aide ?</strong><br>
               Notre équipe est disponible 24/7 :<br>
-              📧 <a href="mailto:support@ikasso.ml" style="color: #667eea;">support@ikasso.ml</a><br>
-              💬 <a href="mailto:contact@ikasso.ml" style="color: #667eea;">contact@ikasso.ml</a>
+              📧 <a href="mailto:support@ikasso.ml" style="color: #E85D04;">support@ikasso.ml</a><br>
+              💬 <a href="mailto:contact@ikasso.ml" style="color: #E85D04;">contact@ikasso.ml</a>
             </p>
             
             <p style="margin-top: 30px; color: #666;">

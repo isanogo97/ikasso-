@@ -70,7 +70,7 @@ export default function HomePage() {
             {/* Logo - Centré sur mobile */}
             <div className="flex-1 lg:flex-none flex justify-start lg:justify-start">
               <Link href="/" className="flex-shrink-0">
-                <Logo size="md" />
+                <LogoFinal size="lg" variant="default" priority={true} />
               </Link>
             </div>
 

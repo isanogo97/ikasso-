@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, User, Mail, Phone, Calendar, Eye, Trash2, UserPlus, Filter, Download, ArrowLeft, X } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 interface UserAccount {
   id: string
@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <Logo size="md" />
+                <LogoFinal size="md" />
               </Link>
               <span className="text-lg font-semibold text-gray-900">Administration</span>
             </div>

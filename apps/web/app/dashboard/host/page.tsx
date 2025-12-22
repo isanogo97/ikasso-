@@ -9,7 +9,7 @@ import {
   Clock, CheckCircle, XCircle, AlertCircle, Home, Plus,
   TrendingUp, Eye, Edit, Trash2, Users
 } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 // Types
 interface Property {
@@ -159,7 +159,7 @@ export default function HostDashboard() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <a href="/">
-                <Logo size="md" />
+                <LogoFinal size="md" />
               </a>
               <span className="ml-4 px-3 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded-full">
                 Tableau de bord Hôte

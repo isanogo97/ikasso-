@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
-import Logo from "../components/Logo"
+import LogoFinal from '../components/LogoFinal'
 import PhotoCapture from "../components/PhotoCapture"
 import AvatarRestorer from "../components/AvatarRestorer"
 import { restoreUserAvatar } from "../lib/avatarPersistence"
@@ -154,7 +154,7 @@ export default function SettingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <h1 className="text-lg font-semibold text-gray-900">Paramètres du compte</h1>
           </div>

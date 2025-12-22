@@ -40,13 +40,13 @@ export default function LogoFinal({
     switch (variant) {
       case 'white':
         return {
-          svg: `${basePath}ikasso-logo-white.svg`,
-          png: `${basePath}ikasso-logo-white.png`
+          svg: `${basePath}ikasso-logo.svg`,
+          png: `${basePath}ikasso-logo.png`
         }
       case 'horizontal':
         return {
-          svg: `${basePath}ikasso-horizontal.svg`,
-          png: `${basePath}ikasso-horizontal.png`
+          svg: `${basePath}ikasso-logo-main.svg`,
+          png: `${basePath}ikasso-logo-400.png`
         }
       default:
         return {

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Send, Search, MoreVertical, Phone, Video, ArrowLeft, MessageCircle, Clock, Check, CheckCheck } from 'lucide-react'
-import Logo from '../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 interface Message {
   id: string
@@ -188,7 +188,7 @@ export default function MessagesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <div className="flex items-center space-x-4">
               <Link href="/dashboard" className="text-gray-600 hover:text-primary-600">Tableau de bord</Link>

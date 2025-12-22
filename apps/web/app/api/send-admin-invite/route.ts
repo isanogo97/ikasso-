@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
           .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
             color: white; 
             padding: 40px 30px; 
             text-align: center; 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
           }
           .button { 
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%);
             color: white;
             padding: 15px 40px;
             text-decoration: none;
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <img src="https://em-content.zobj.net/source/apple/391/shield_1f6e1-fe0f.png" alt="Admin" style="width: 60px; height: 60px; margin: 0 auto 10px;">
+            <img src="https://ikasso-pwxa-pak2i44w3-ibrahima-ousmane-sanogos-projects.vercel.app/images/logos/ikasso-logo.png" alt="Admin" style="width: 60px; height: 60px; margin: 0 auto 10px;">
             <h1>Invitation Administrateur Ikasso</h1>
           </div>
           <div class="content">
@@ -129,12 +129,12 @@ export async function POST(request: NextRequest) {
             
             <p style="margin-top: 30px;">
               Une fois votre mot de passe créé, vous pourrez accéder au panneau d'administration :<br>
-              <strong>URL :</strong> <a href="https://ikasso-pwxa.vercel.app/admin" style="color: #667eea;">https://ikasso-pwxa.vercel.app/admin</a>
+              <strong>URL :</strong> <a href="https://ikasso-pwxa.vercel.app/admin" style="color: #E85D04;">https://ikasso-pwxa.vercel.app/admin</a>
             </p>
             
             <p style="margin-top: 30px;">
               Besoin d'aide ? Contactez le super administrateur :<br>
-              📧 <a href="mailto:admin@ikasso.ml" style="color: #667eea;">admin@ikasso.ml</a>
+              📧 <a href="mailto:admin@ikasso.ml" style="color: #E85D04;">admin@ikasso.ml</a>
             </p>
             
             <p style="margin-top: 30px; color: #666;">

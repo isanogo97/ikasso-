@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
           .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
             color: white; 
             padding: 40px 30px; 
             text-align: center; 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
           }
           .code-box { 
             background: #f8f9fa; 
-            border: 3px dashed #667eea; 
+            border: 3px dashed #E85D04; 
             padding: 25px; 
             text-align: center; 
             margin: 30px 0;
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
             font-size: 36px; 
             font-weight: bold; 
             letter-spacing: 8px; 
-            color: #667eea;
+            color: #E85D04;
             font-family: 'Courier New', monospace;
           }
           .footer { 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <img src="https://em-content.zobj.net/source/apple/391/house_1f3e0.png" alt="Ikasso" style="width: 60px; height: 60px; margin: 0 auto 10px;">
+            <img src="https://ikasso-pwxa-pak2i44w3-ibrahima-ousmane-sanogos-projects.vercel.app/images/logos/ikasso-logo.png" alt="Ikasso" style="width: 60px; height: 60px; margin: 0 auto 10px;">
             <h1>Bienvenue sur Ikasso !</h1>
           </div>
           <div class="content">
@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
             
             <p style="margin-top: 30px;">
               Besoin d'aide ? Contactez notre équipe :<br>
-              📧 <a href="mailto:support@ikasso.ml" style="color: #667eea;">support@ikasso.ml</a><br>
-              💬 <a href="mailto:contact@ikasso.ml" style="color: #667eea;">contact@ikasso.ml</a>
+              📧 <a href="mailto:support@ikasso.ml" style="color: #E85D04;">support@ikasso.ml</a><br>
+              💬 <a href="mailto:contact@ikasso.ml" style="color: #E85D04;">contact@ikasso.ml</a>
             </p>
             
             <p style="margin-top: 30px; color: #666;">

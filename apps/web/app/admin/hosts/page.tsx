@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle, XCircle, Eye, User, Building, Phone, Mail, MapPin, Calendar, ArrowLeft } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 interface PendingHost {
   id: string
@@ -100,7 +100,7 @@ export default function AdminHostsPage() {
               <Link href="/" className="mr-4">
                 <ArrowLeft className="h-6 w-6 text-gray-600 hover:text-gray-800" />
               </Link>
-              <Logo size="md" />
+              <LogoFinal size="md" />
               <span className="ml-4 text-sm text-gray-500">Administration</span>
             </div>
             <div className="text-sm text-gray-600">

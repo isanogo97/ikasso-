@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { CreditCard, Smartphone, DollarSign, CheckCircle, ArrowLeft, Loader } from 'lucide-react'
-import Logo from '../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 type PaymentMethod = 'orange-money' | 'paypal' | 'card' | null
 
@@ -126,7 +126,7 @@ export default function PaymentPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 flex items-center">
               <ArrowLeft className="h-4 w-4 mr-2" />

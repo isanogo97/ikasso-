@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Home, DollarSign, Shield, Users, Star, TrendingUp, Calendar, MessageCircle, Award, ArrowRight } from 'lucide-react'
-import Logo from '../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 export default function HostPage() {
   return (
@@ -13,7 +13,7 @@ export default function HostPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <div className="flex items-center space-x-4">
               <Link href="/help" className="text-gray-600 hover:text-primary-600">Aide</Link>
@@ -195,7 +195,7 @@ export default function HostPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Logo size="md" />
+          <LogoFinal size="md" />
           <p className="mt-4 text-gray-400">
             © {new Date().getFullYear()} Ikasso Mali. Tous droits réservés.
           </p>

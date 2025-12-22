@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Send, CheckCircle, XCircle } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 export default function TestEmailPage() {
   const [email, setEmail] = useState('')
@@ -55,7 +55,7 @@ export default function TestEmailPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <Logo size="md" />
+                <LogoFinal size="md" />
               </Link>
               <span className="text-lg font-semibold text-gray-900">Test Email Admin</span>
             </div>

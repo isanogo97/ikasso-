@@ -8,7 +8,7 @@ import {
   CreditCard, BookOpen, MessageCircle, LogOut, Menu, X,
   Clock, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react'
-import LogoIkasso from '../components/LogoIkasso'
+import LogoFinal from '../components/LogoFinal'
 import PhotoCapture from '../components/PhotoCapture'
 import AvatarRestorer from '../components/AvatarRestorer'
 import { saveUserAvatar, restoreUserAvatar } from '../lib/avatarPersistence'
@@ -242,7 +242,7 @@ export default function TravelerDashboard() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/">
-                <LogoIkasso size="md" />
+                <LogoFinal size="md" />
               </Link>
             </div>
             

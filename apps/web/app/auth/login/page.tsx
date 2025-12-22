@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { restoreUserAvatar } from '../../lib/avatarPersistence'
 
@@ -105,7 +105,7 @@ export default function LoginPage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{t('login.no_account')}</span>
@@ -123,7 +123,7 @@ export default function LoginPage() {
           <div className="w-full max-w-sm lg:max-w-md">
             {/* Logo mobile */}
             <div className="flex justify-center mb-6 lg:hidden">
-              <Logo size="lg" showText={true} />
+              <LogoFinal size="lg" showText={true} />
             </div>
 
             <div className="text-center mb-6 lg:mb-8">

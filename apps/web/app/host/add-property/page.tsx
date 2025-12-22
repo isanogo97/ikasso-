@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, X, MapPin, Home, Users, Bed, Bath, Wifi, Car, Utensils, Tv, AirVent, Waves } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 interface PropertyForm {
   title: string
@@ -138,7 +138,7 @@ export default function AddPropertyPage() {
               <Link href="/dashboard/host" className="mr-4">
                 <ArrowLeft className="h-6 w-6 text-gray-600 hover:text-gray-800" />
               </Link>
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </div>
             <div className="text-sm text-gray-600">
               Étape {currentStep} sur 4

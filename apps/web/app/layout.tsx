@@ -32,10 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" suppressHydrationWarning>
       <head>
         {/* Favicons - Vos logos professionnels */}
-        <link rel="icon" type="image/x-icon" href="/images/logos/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/images/logos/ikasso-logo-16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/images/logos/ikasso-logo-32.png" />
-        <link rel="icon" type="image/png" sizes="48x48" href="/images/logos/ikasso-logo-48.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/logos/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/logos/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/images/logos/ikasso-logo-icon.png" />
         
         {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" sizes="180x180" href="/images/logos/apple-touch-icon.png" />

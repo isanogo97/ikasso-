@@ -7,7 +7,7 @@ import {
   Phone, Mail, User, MapPin, ArrowLeft, ArrowRight,
   CheckCircle, Loader, Eye, EyeOff, Calendar, Globe, ChevronDown
 } from 'lucide-react'
-import Logo from '../../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 type UserType = 'client' | 'hote' | null
@@ -253,7 +253,7 @@ export default function RegisterNewPage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/">
-              <Logo size="md" />
+              <LogoFinal size="md" />
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{t('register.already_registered')}</span>

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
           .header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
             color: white; 
             padding: 40px 30px; 
             text-align: center; 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
           }
           .button { 
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%);
             color: white;
             padding: 15px 40px;
             text-decoration: none;
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
-            <img src="https://em-content.zobj.net/source/apple/391/locked-with-key_1f510.png" alt="Sécurité" style="width: 60px; height: 60px; margin: 0 auto 10px;">
+            <img src="https://ikasso-pwxa-pak2i44w3-ibrahima-ousmane-sanogos-projects.vercel.app/images/logos/ikasso-logo.png" alt="Sécurité" style="width: 60px; height: 60px; margin: 0 auto 10px;">
             <h1>Réinitialisation de mot de passe</h1>
           </div>
           <div class="content">
@@ -123,8 +123,8 @@ export async function POST(request: NextRequest) {
             
             <p style="margin-top: 30px;">
               Besoin d'aide ? Contactez notre équipe :<br>
-              📧 <a href="mailto:support@ikasso.ml" style="color: #667eea;">support@ikasso.ml</a><br>
-              💬 <a href="mailto:contact@ikasso.ml" style="color: #667eea;">contact@ikasso.ml</a>
+              📧 <a href="mailto:support@ikasso.ml" style="color: #E85D04;">support@ikasso.ml</a><br>
+              💬 <a href="mailto:contact@ikasso.ml" style="color: #E85D04;">contact@ikasso.ml</a>
             </p>
             
             <p style="margin-top: 30px; color: #666;">

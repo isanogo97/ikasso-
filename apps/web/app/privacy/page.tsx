@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import Logo from '../components/Logo'
+import LogoFinal from '../components/LogoFinal'
 
 export default function PrivacyPage() {
   return (
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
               <ArrowLeft className="h-5 w-5 text-gray-600" />
-              <Logo size="sm" />
+              <LogoFinal size="sm" />
             </Link>
           </div>
         </div>
