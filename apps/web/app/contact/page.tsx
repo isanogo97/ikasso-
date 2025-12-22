@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock, ArrowLeft } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -49,7 +49,7 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center">
-              <LogoFinal size="md" />
+              <Logo size="md" />
             </Link>
             <div className="flex items-center space-x-4">
               <Link href="/demo-accounts" className="text-primary-600 hover:text-primary-700 font-medium">Démo</Link>

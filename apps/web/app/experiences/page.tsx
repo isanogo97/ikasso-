@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Search, MapPin, Calendar, Users, Star, Heart, Clock, Filter, Menu, X } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 
 interface Experience {
   id: string
@@ -61,7 +61,7 @@ export default function ExperiencesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Link href="/"><LogoFinal size="md" /></Link>
+              <Link href="/"><Logo size="md" /></Link>
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-700 hover:text-primary-600">Accueil</Link>

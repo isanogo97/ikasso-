@@ -8,7 +8,7 @@ import {
   CreditCard, BookOpen, MessageCircle, LogOut, Menu, X,
   Clock, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 import PhotoCapture from '../components/PhotoCapture'
 import AvatarRestorer from '../components/AvatarRestorer'
 import { saveUserAvatar, restoreUserAvatar } from '../lib/avatarPersistence'
@@ -242,7 +242,7 @@ export default function TravelerDashboard() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/">
-                <LogoFinal size="md" />
+                <Logo size="md" />
               </Link>
             </div>
             

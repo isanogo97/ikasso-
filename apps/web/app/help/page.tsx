@@ -7,7 +7,7 @@ import {
   ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield, Book,
   Globe, Menu, X
 } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -107,7 +107,7 @@ export default function HelpPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <Link href="/" className="flex items-center">
-              <LogoFinal size="md" />
+              <Logo size="md" />
             </Link>
             
             {/* Desktop nav */}

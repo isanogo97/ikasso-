@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Shield, Users, Settings, BarChart3, LogOut } from 'lucide-react'
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 
 interface AdminUser {
   id: string
@@ -76,7 +76,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
-            <LogoFinal size="lg" />
+            <Logo size="lg" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Administration Ikasso
@@ -158,7 +158,7 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <LogoFinal size="md" />
+              <Logo size="md" />
               <div>
                 <span className="text-lg font-semibold text-gray-900">Administration</span>
                 <p className="text-xs text-gray-500">{currentAdmin?.name}</p>

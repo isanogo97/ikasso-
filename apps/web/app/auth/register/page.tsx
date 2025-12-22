@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Phone, User, Mail, MapPin, Calendar, ArrowRight, ArrowLeft, CheckCircle, Loader } from 'lucide-react'
-import LogoFinal from '../../components/LogoFinal'
+import Logo from '../components/Logo'
 
 type UserType = 'traveler' | 'host'
 type Step = 1 | 2 | 3
@@ -199,7 +199,7 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/">
-            <LogoFinal size="lg" />
+            <Logo size="lg" />
           </Link>
           <h1 className="mt-6 text-3xl font-bold text-gray-900">
             Créer votre compte

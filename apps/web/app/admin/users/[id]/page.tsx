@@ -8,7 +8,7 @@ import {
   Ban, CheckCircle, XCircle, DollarSign, Plus, Edit, Trash2,
   Home, Clock, AlertTriangle
 } from 'lucide-react'
-import LogoFinal from '../../../components/LogoFinal'
+import Logo from '../components/Logo'
 
 interface UserAccount {
   id: string
@@ -203,7 +203,7 @@ export default function AdminUserDetailPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link href="/admin">
-                <LogoFinal size="md" />
+                <Logo size="md" />
               </Link>
               <span className="text-lg font-semibold text-gray-900">Administration</span>
             </div>

@@ -7,7 +7,7 @@ import {
   Search, MapPin, Calendar, Users, Star, Home, Building2, Hotel, 
   X, ArrowRight, Globe, Menu, SlidersHorizontal, Sparkles, ArrowLeft
 } from "lucide-react"
-import LogoFinal from '../components/LogoFinal'
+import Logo from '../components/Logo'
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 const allAmenities = ["WiFi", "Climatisation", "Piscine", "Parking", "Restaurant", "Spa", "Cuisine équipée", "Terrasse", "Vue panoramique"]
@@ -61,8 +61,8 @@ function SearchContent() {
             {/* Logo */}
             <Link href="/" className="flex-shrink-0 flex items-center gap-2">
               <ArrowLeft className="h-5 w-5 text-gray-600 sm:hidden" />
-              <span className="hidden sm:block"><LogoFinal size="md" /></span>
-              <span className="sm:hidden"><LogoFinal size="sm" /></span>
+              <span className="hidden sm:block"><Logo size="md" /></span>
+              <span className="sm:hidden"><Logo size="sm" /></span>
             </Link>
 
             {/* Barre de recherche compacte - Desktop */}
