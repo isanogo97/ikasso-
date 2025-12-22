@@ -9,12 +9,12 @@ interface LogoProps {
   mobileCompact?: boolean
 }
 
-export default function Logo({ className = '', showText = true, size = 'md', mobileCompact = false }: LogoProps) {
+export default function Logo({ className = '', showText = false, size = 'md', mobileCompact = false }: LogoProps) {
   
   const sizeClasses = {
-    sm: 'h-7 w-7',
-    md: 'h-9 w-9',
-    lg: 'h-11 w-11'
+    sm: 'h-10 w-10',
+    md: 'h-12 w-12',
+    lg: 'h-16 w-16'
   }
 
   const textSizeClasses = {
@@ -24,8 +24,8 @@ export default function Logo({ className = '', showText = true, size = 'md', mob
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      {/* Logo professionnel Ikasso */}
+    <div className={`flex items-center ${className}`}>
+      {/* Logo professionnel Ikasso uniquement */}
       <div className={`${sizeClasses[size]} flex-shrink-0`}>
         <img
           src="/images/logos/ikasso-logo.svg"
@@ -58,23 +58,6 @@ export default function Logo({ className = '', showText = true, size = 'md', mob
         />
       </div>
       
-      {showText && (
-        <div className={`flex flex-col ${mobileCompact ? 'hidden sm:flex' : ''}`}>
-          <span className={`font-bold text-primary-500 ${textSizeClasses[size]} leading-none tracking-tight`}>
-            IKASSO
-          </span>
-          <span className="text-[9px] sm:text-[10px] text-gray-500 font-medium leading-tight hidden sm:block">
-            ENTREZ, VOUS ÊTES CHEZ VOUS
-          </span>
-        </div>
-      )}
-      
-      {/* Texte simplifié sur mobile si mobileCompact */}
-      {showText && mobileCompact && (
-        <span className={`sm:hidden font-bold text-primary-500 ${textSizeClasses[size]} leading-none`}>
-          IKASSO
-        </span>
-      )}
     </div>
   )
 }
