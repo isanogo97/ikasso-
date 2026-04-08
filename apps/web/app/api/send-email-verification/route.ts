@@ -19,117 +19,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // HTML de l'email
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            line-height: 1.6; 
-            color: #333; 
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-          }
-          .container { 
-            max-width: 600px; 
-            margin: 20px auto; 
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          }
-          .header { 
-            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
-            color: white; 
-            padding: 40px 30px; 
-            text-align: center; 
-          }
-          .header h1 {
-            margin: 0;
-            font-size: 28px;
-          }
-          .content { 
-            padding: 40px 30px; 
-          }
-          .code-box { 
-            background: #f8f9fa; 
-            border: 3px dashed #E85D04; 
-            padding: 25px; 
-            text-align: center; 
-            margin: 30px 0;
-            border-radius: 10px;
-          }
-          .code { 
-            font-size: 36px; 
-            font-weight: bold; 
-            letter-spacing: 8px; 
-            color: #E85D04;
-            font-family: 'Courier New', monospace;
-          }
-          .footer { 
-            background: #f8f9fa;
-            text-align: center; 
-            color: #666; 
-            font-size: 13px; 
-            padding: 20px;
-            border-top: 1px solid #eee;
-          }
-          .warning {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://ikasso-pwxa-pak2i44w3-ibrahima-ousmane-sanogos-projects.vercel.app/images/logos/ikasso-logo.png" alt="Ikasso" style="width: 60px; height: 60px; margin: 0 auto 10px;">
-            <h1>Bienvenue sur Ikasso !</h1>
-          </div>
-          <div class="content">
-            <p style="font-size: 16px;">Bonjour <strong>${name || 'Cher utilisateur'}</strong>,</p>
-            
-            <p>Merci de vous être inscrit sur <strong>Ikasso</strong>, votre plateforme de location et d'expériences au Mali.</p>
-            
-            <p>Pour finaliser votre inscription, veuillez utiliser le code de vérification ci-dessous :</p>
-            
-            <div class="code-box">
-              <div style="color: #666; font-size: 14px; margin-bottom: 10px;">Votre code de vérification</div>
-              <div class="code">${code}</div>
-            </div>
-            
-            <div class="warning">
-              <strong>⏱️ Important :</strong> Ce code est valable pendant <strong>15 minutes</strong>.
-            </div>
-            
-            <p style="margin-top: 30px;">Si vous n'avez pas créé de compte sur Ikasso, ignorez simplement cet email.</p>
-            
-            <p style="margin-top: 30px;">
-              Besoin d'aide ? Contactez notre équipe :<br>
-              📧 <a href="mailto:support@ikasso.ml" style="color: #E85D04;">support@ikasso.ml</a><br>
-              💬 <a href="mailto:contact@ikasso.ml" style="color: #E85D04;">contact@ikasso.ml</a>
-            </p>
-            
-            <p style="margin-top: 30px; color: #666;">
-              À bientôt sur Ikasso !<br>
-              <strong>L'équipe Ikasso Mali</strong> 🇲🇱
-            </p>
-          </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} <strong>Ikasso Mali</strong>. Tous droits réservés.</p>
-            <p>Cet email a été envoyé automatiquement.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
+    const logoUrl = 'https://ikasso.ml/images/logos/ikasso-logo-800.png'
+
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <!-- Header with logo -->
+  <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:40px 40px 30px;text-align:center;">
+    <img src="${logoUrl}" alt="Ikasso" width="200" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
+    <p style="color:rgba(255,255,255,0.85);margin:0;font-size:14px;">Plateforme de reservation au Mali</p>
+  </td></tr>
+  <!-- Content -->
+  <tr><td style="padding:40px;">
+    <h1 style="margin:0 0 8px;font-size:22px;color:#1a1a1a;">Code de verification</h1>
+    <p style="margin:0 0 24px;color:#666;font-size:15px;">Bonjour <strong>${name || ''}</strong>, voici votre code pour verifier votre adresse email :</p>
+
+    <div style="background:#FFF7ED;border:2px solid #E85D04;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
+      <div style="font-size:38px;font-weight:bold;letter-spacing:10px;color:#E85D04;font-family:'Courier New',monospace;">${code}</div>
+      <p style="margin:12px 0 0;color:#92400E;font-size:13px;">Valable pendant 15 minutes</p>
+    </div>
+
+    <p style="color:#666;font-size:14px;line-height:1.6;">Si vous n'avez pas demande ce code, ignorez simplement cet email.</p>
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#FAFAFA;padding:24px 40px;border-top:1px solid #f0f0f0;text-align:center;">
+    <img src="${logoUrl}" alt="Ikasso" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
+    <p style="margin:0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali. Tous droits reserves.</p>
+    <p style="margin:4px 0 0;color:#999;font-size:11px;">support@ikasso.ml</p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`
 
     try {
       // Envoyer avec Resend

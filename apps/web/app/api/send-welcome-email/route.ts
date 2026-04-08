@@ -20,145 +20,75 @@ export async function POST(request: NextRequest) {
     }
 
     const isHost = userType === 'host' || userType === 'hote'
+    const logoUrl = 'https://ikasso.ml/images/logos/ikasso-logo-800.png'
+    const dashboardUrl = isHost ? 'https://ikasso.ml/dashboard/host' : 'https://ikasso.ml/search'
 
-    // HTML de l'email
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            line-height: 1.6; 
-            color: #333; 
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-          }
-          .container { 
-            max-width: 600px; 
-            margin: 20px auto; 
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          }
-          .header { 
-            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%); 
-            color: white; 
-            padding: 40px 30px; 
-            text-align: center; 
-          }
-          .header h1 {
-            margin: 0;
-            font-size: 32px;
-          }
-          .content { 
-            padding: 40px 30px; 
-          }
-          .button { 
-            display: inline-block;
-            background: linear-gradient(135deg, #E85D04 0%, #F77F00 100%);
-            color: white;
-            padding: 15px 40px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            margin: 20px 0;
-          }
-          .feature-box {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid #E85D04;
-          }
-          .footer { 
-            background: #f8f9fa;
-            text-align: center; 
-            color: #666; 
-            font-size: 13px; 
-            padding: 20px;
-            border-top: 1px solid #eee;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://ikasso-pwxa-pak2i44w3-ibrahima-ousmane-sanogos-projects.vercel.app/images/logos/ikasso-logo.png" alt="Bienvenue" style="width: 60px; height: 60px; margin: 0 auto 10px;">
-            <h1>Bienvenue sur Ikasso !</h1>
-          </div>
-          <div class="content">
-            <p style="font-size: 18px;">Bonjour <strong>${name}</strong>,</p>
-            
-            <p style="font-size: 16px;">Nous sommes ravis de vous accueillir sur <strong>Ikasso</strong>, votre plateforme de location et d'expériences au Mali ! 🇲🇱</p>
-            
-            ${isHost ? `
-              <p>En tant qu'<strong>hôte</strong>, vous pouvez maintenant :</p>
-              
-              <div class="feature-box">
-                <strong>🏠 Créer vos annonces</strong><br>
-                Partagez vos logements et expériences avec des voyageurs du monde entier.
-              </div>
-              
-              <div class="feature-box">
-                <strong>💰 Gérer vos réservations</strong><br>
-                Suivez vos revenus et gérez vos disponibilités facilement.
-              </div>
-              
-              <div class="feature-box">
-                <strong>📊 Accéder à votre tableau de bord</strong><br>
-                Consultez vos statistiques et optimisez vos annonces.
-              </div>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ikasso-pwxa.vercel.app/dashboard/host" class="button">Accéder à mon espace hôte</a>
-              </div>
-            ` : `
-              <p>En tant que <strong>voyageur</strong>, vous pouvez maintenant :</p>
-              
-              <div class="feature-box">
-                <strong>🔍 Découvrir des logements uniques</strong><br>
-                Trouvez le logement parfait pour votre séjour au Mali.
-              </div>
-              
-              <div class="feature-box">
-                <strong>🎯 Réserver des expériences</strong><br>
-                Vivez des moments inoubliables avec des hôtes locaux.
-              </div>
-              
-              <div class="feature-box">
-                <strong>⭐ Laisser des avis</strong><br>
-                Partagez votre expérience avec la communauté.
-              </div>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="https://ikasso-pwxa.vercel.app" class="button">Commencer à explorer</a>
-              </div>
-            `}
-            
-            <p style="margin-top: 30px;">
-              <strong>Besoin d'aide pour démarrer ?</strong><br>
-              Notre équipe est là pour vous accompagner :<br>
-              📧 <a href="mailto:support@ikasso.ml" style="color: #E85D04;">support@ikasso.ml</a><br>
-              💬 <a href="mailto:contact@ikasso.ml" style="color: #E85D04;">contact@ikasso.ml</a>
-            </p>
-            
-            <p style="margin-top: 30px; color: #666;">
-              Merci de faire confiance à Ikasso !<br>
-              <strong>L'équipe Ikasso Mali</strong> 🇲🇱
-            </p>
-          </div>
-          <div class="footer">
-            <p>© ${new Date().getFullYear()} <strong>Ikasso Mali</strong>. Tous droits réservés.</p>
-            <p>Vous recevez cet email car vous venez de créer un compte sur Ikasso.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:48px 40px 36px;text-align:center;">
+    <img src="${logoUrl}" alt="Ikasso" width="220" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
+    <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Bienvenue, ${name} !</h1>
+    <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">Votre compte a bien ete cree</p>
+  </td></tr>
+  <!-- Content -->
+  <tr><td style="padding:40px;">
+    <p style="margin:0 0 20px;color:#444;font-size:15px;line-height:1.7;">
+      ${isHost
+        ? "Votre espace hote est pret. Vous pouvez des maintenant ajouter vos proprietes et commencer a recevoir des reservations."
+        : "Vous pouvez maintenant parcourir les hebergements disponibles au Mali et effectuer vos premieres reservations."
+      }
+    </p>
+
+    ${isHost ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td style="background:#FFF7ED;border-radius:10px;padding:16px 20px;border-left:4px solid #E85D04;">
+        <strong style="color:#9A3412;">Creer vos annonces</strong><br/>
+        <span style="color:#78350F;font-size:13px;">Ajoutez vos logements avec photos, prix et disponibilites.</span>
+      </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td style="background:#FFF7ED;border-radius:10px;padding:16px 20px;border-left:4px solid #E85D04;">
+        <strong style="color:#9A3412;">Gerer vos reservations</strong><br/>
+        <span style="color:#78350F;font-size:13px;">Suivez vos revenus et gerez vos disponibilites.</span>
+      </td></tr>
+    </table>
+    ` : `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td style="background:#FFF7ED;border-radius:10px;padding:16px 20px;border-left:4px solid #E85D04;">
+        <strong style="color:#9A3412;">Decouvrir des logements</strong><br/>
+        <span style="color:#78350F;font-size:13px;">Hotels, maisons et appartements dans tout le Mali.</span>
+      </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr><td style="background:#FFF7ED;border-radius:10px;padding:16px 20px;border-left:4px solid #E85D04;">
+        <strong style="color:#9A3412;">Reserver en toute securite</strong><br/>
+        <span style="color:#78350F;font-size:13px;">Paiements securises via Orange Money et carte bancaire.</span>
+      </td></tr>
+    </table>
+    `}
+
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${dashboardUrl}" style="display:inline-block;background:linear-gradient(135deg,#E85D04,#F77F00);color:#fff;padding:14px 36px;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;">
+        ${isHost ? "Acceder a mon espace hote" : "Decouvrir les logements"}
+      </a>
+    </div>
+
+    <p style="color:#999;font-size:13px;line-height:1.6;">
+      Besoin d'aide ? Contactez-nous a <a href="mailto:support@ikasso.ml" style="color:#E85D04;">support@ikasso.ml</a>
+    </p>
+  </td></tr>
+  <!-- Footer -->
+  <tr><td style="background:#FAFAFA;padding:24px 40px;border-top:1px solid #f0f0f0;text-align:center;">
+    <img src="${logoUrl}" alt="Ikasso" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
+    <p style="margin:0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali. Tous droits reserves.</p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`
 
     try {
       // Envoyer avec Resend
