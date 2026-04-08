@@ -7,7 +7,7 @@ import {
   Phone, Mail, User, MapPin, ArrowLeft, ArrowRight,
   CheckCircle, Loader, Eye, EyeOff, Calendar, Globe, ChevronDown
 } from 'lucide-react'
-import Logo from '../../components/Logo'
+import Image from 'next/image'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -242,57 +242,88 @@ export default function RegisterNewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Header Mobile */}
-      <header className="border-b border-gray-100 lg:hidden">
-        <div className="flex items-center h-14 px-4">
-          <Link href="/" className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
-            <ArrowLeft className="h-5 w-5 text-gray-700" />
-          </Link>
-          <span className="flex-1 text-center font-semibold text-gray-900 pr-7">{t('nav.signup')}</span>
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* LEFT SIDE — Hero (Desktop only) */}
+      <div className="hidden lg:flex lg:w-[42%] relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&q=80"
+            alt="Hebergement au Mali"
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/70 via-primary-800/50 to-black/60" />
         </div>
-      </header>
-
-      {/* Header Desktop */}
-      <header className="hidden lg:block border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/">
-              <Logo size="md" />
-            </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{t('register.already_registered')}</span>
-              <Link href="/auth/login" className="text-sm font-semibold text-primary-600 hover:text-primary-700">
-                {t('nav.login')}
-              </Link>
-            </div>
+        <div className="relative z-10 flex flex-col justify-between p-10 w-full">
+          <Link href="/">
+            <img src="/images/logos/ikasso-logo-800.png" alt="Ikasso" className="h-14 object-contain brightness-0 invert" />
+          </Link>
+          <div className="max-w-sm">
+            <h1 className="text-4xl font-bold text-white leading-tight mb-3">
+              Rejoignez<br />la communaute Ikasso
+            </h1>
+            <p className="text-base text-white/75 leading-relaxed">
+              Creez votre compte en quelques minutes et decouvrez les meilleurs hebergements du Mali.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-white/50 text-xs">
+            <span>Inscription gratuite</span>
+            <span className="w-1 h-1 rounded-full bg-white/30" />
+            <span>Verification securisee</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="flex-1 max-w-lg mx-auto w-full px-4 py-6 lg:py-10">
+      {/* RIGHT SIDE */}
+      <div className="flex-1 flex flex-col bg-white lg:bg-gray-50/50">
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 text-white">
+          <div className="flex items-center h-14 px-4">
+            <Link href="/" className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <span className="flex-1 text-center font-semibold pr-7">{t('nav.signup')}</span>
+          </div>
+        </header>
+
+        {/* Desktop top bar */}
+        <div className="hidden lg:flex items-center justify-end px-10 pt-8">
+          <span className="text-sm text-gray-500">{t('register.already_registered')}</span>
+          <Link href="/auth/login" className="ml-3 text-sm font-semibold bg-primary-50 text-primary-600 hover:bg-primary-100 px-4 py-2 rounded-lg transition-colors">
+            {t('nav.login')}
+          </Link>
+        </div>
+
+      <div className="flex-1 flex items-start lg:items-center justify-center px-6 py-6 lg:py-0">
+      <div className="w-full max-w-lg">
+        {/* Mobile logo */}
+        <div className="flex justify-center mb-6 lg:hidden">
+          <img src="/images/logos/ikasso-logo-800.png" alt="Ikasso" className="h-16 object-contain" />
+        </div>
+
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-between relative">
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200">
-              <div 
+              <div
                 className="h-full bg-primary-500 transition-all duration-500"
                 style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%' }}
               />
             </div>
-            
+
             {[
               { step: 1, icon: Phone, label: t('register.phone_number'), done: phoneVerified },
               { step: 2, icon: User, label: 'Profil', done: currentStep > 2 },
               { step: 3, icon: Mail, label: t('register.email'), done: emailVerified },
             ].map(({ step, icon: Icon, label, done }) => (
               <div key={step} className="relative flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all ${
-                  currentStep >= step ? 'bg-primary-500 text-white' : 'bg-gray-200 text-gray-500'
-                } ${done ? 'bg-green-500' : ''}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all shadow-sm ${
+                  currentStep >= step ? 'bg-primary-500 text-white' : 'bg-white border-2 border-gray-200 text-gray-400'
+                } ${done ? 'bg-green-500 border-green-500' : ''}`}>
                   {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </div>
-                <span className={`mt-1.5 text-[10px] font-medium ${currentStep >= step ? 'text-gray-900' : 'text-gray-500'}`}>
+                <span className={`mt-1.5 text-[10px] font-medium ${currentStep >= step ? 'text-gray-900' : 'text-gray-400'}`}>
                   {label}
                 </span>
               </div>
@@ -724,20 +755,22 @@ export default function RegisterNewPage() {
           </div>
         )}
 
-        <p className="mt-6 text-center text-[10px] text-gray-500">
+        <p className="mt-6 text-center text-[10px] text-gray-400 leading-relaxed">
           {t('register.terms_accept')}{' '}
-          <a href="#" className="underline">{t('register.terms')}</a>
+          <a href="/terms" className="underline hover:text-gray-600">{t('register.terms')}</a>
           {' '}{t('register.and')}{' '}
-          <a href="#" className="underline">{t('register.privacy')}</a>
+          <a href="/privacy" className="underline hover:text-gray-600">{t('register.privacy')}</a>
         </p>
 
         {/* Footer mobile */}
         <div className="mt-4 lg:hidden text-center">
-          <span className="text-sm text-gray-600">{t('register.already_registered')} </span>
-          <Link href="/auth/login" className="text-sm font-semibold text-primary-600">
+          <span className="text-sm text-gray-500">{t('register.already_registered')} </span>
+          <Link href="/auth/login" className="text-sm font-bold text-primary-600">
             {t('nav.login')}
           </Link>
         </div>
+      </div>
+      </div>
       </div>
     </div>
   )
