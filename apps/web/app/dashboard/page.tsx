@@ -112,8 +112,8 @@ export default function TravelerDashboard() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/search" className="hover:text-primary-500 transition-colors">Explorer</Link>
-            <Link href="/dashboard/bookings" className="hover:text-primary-500 transition-colors">Reservations</Link>
-            <Link href="/dashboard/messages" className="hover:text-primary-500 transition-colors">Messages</Link>
+            <Link href="/dashboard#reservations" className="hover:text-primary-500 transition-colors">Reservations</Link>
+            <Link href="/messages" className="hover:text-primary-500 transition-colors">Messages</Link>
           </nav>
 
           {/* Right side */}
@@ -127,7 +127,7 @@ export default function TravelerDashboard() {
 
             {/* Desktop user menu */}
             <div className="hidden md:flex items-center gap-3">
-              <Link href="/dashboard/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Link href="/settings" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <UserAvatar user={user} size="sm" />
                 <span className="text-sm font-medium text-gray-700">{firstName}</span>
               </Link>
@@ -153,7 +153,7 @@ export default function TravelerDashboard() {
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-3 animate-in slide-in-from-top duration-200">
-            <Link href="/dashboard/profile" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/settings" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
               <UserAvatar user={user} size="sm" />
               <div>
                 <p className="text-sm font-semibold text-gray-800">{user?.firstName} {user?.lastName}</p>
@@ -164,10 +164,10 @@ export default function TravelerDashboard() {
             <Link href="/search" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
               <Search className="h-4 w-4 text-gray-400" /> Explorer
             </Link>
-            <Link href="/dashboard/bookings" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/dashboard#reservations" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
               <Calendar className="h-4 w-4 text-gray-400" /> Mes reservations
             </Link>
-            <Link href="/dashboard/messages" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/messages" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
               <MessageCircle className="h-4 w-4 text-gray-400" /> Messages
             </Link>
             <hr className="border-gray-100" />
@@ -241,7 +241,7 @@ export default function TravelerDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Reservations recentes</h2>
             {bookings.length > 0 && (
-              <Link href="/dashboard/bookings" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
+              <Link href="/dashboard#reservations" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
                 Tout voir <ChevronRight className="h-4 w-4" />
               </Link>
             )}
@@ -349,7 +349,7 @@ export default function TravelerDashboard() {
               </div>
             </div>
             <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-3">
-              <Link href="/dashboard/profile" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
+              <Link href="/settings" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
                 Modifier le profil <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
@@ -365,9 +365,9 @@ export default function TravelerDashboard() {
           {[
             { href: '/dashboard',          icon: Home,           label: 'Accueil',       active: true  },
             { href: '/search',             icon: Search,         label: 'Explorer',      active: false },
-            { href: '/dashboard/bookings', icon: Calendar,       label: 'Reservations',  active: false },
-            { href: '/dashboard/messages', icon: MessageCircle,  label: 'Messages',      active: false },
-            { href: '/dashboard/profile',  icon: User,           label: 'Profil',        active: false },
+            { href: '/dashboard#reservations', icon: Calendar, label: 'Reservations', active: false },
+            { href: '/messages',            icon: MessageCircle,  label: 'Messages',      active: false },
+            { href: '/settings',            icon: User,           label: 'Profil',        active: false },
           ].map(({ href, icon: Icon, label, active }) => (
             <Link
               key={href}
