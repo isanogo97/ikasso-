@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft, MapPin, Shield, Star } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft, MapPin, Shield } from 'lucide-react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -78,33 +78,12 @@ export default function LoginPage() {
           {/* Center content */}
           <div className="max-w-lg">
             <h1 className="text-5xl font-bold text-white leading-tight mb-4">
-              Chez toi,<br />au Mali.
+              Reservez votre<br />logement au Mali
             </h1>
-            <p className="text-lg text-white/80 leading-relaxed mb-8">
-              Decouvrez des hebergements uniques a travers tout le Mali.
-              De Bamako a Tombouctou, trouvez votre chez-vous.
+            <p className="text-lg text-white/80 leading-relaxed">
+              La plateforme malienne de reservation d'hebergements.
+              Hotels, maisons et appartements dans les principales villes du Mali.
             </p>
-
-            {/* Stats */}
-            <div className="flex gap-8">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">500+</div>
-                <div className="text-sm text-white/60 mt-1">Logements</div>
-              </div>
-              <div className="w-px bg-white/20" />
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">8</div>
-                <div className="text-sm text-white/60 mt-1">Villes</div>
-              </div>
-              <div className="w-px bg-white/20" />
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">4.8</div>
-                <div className="text-sm text-white/60 mt-1 flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  Note
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Bottom trust badges */}
@@ -156,7 +135,7 @@ export default function LoginPage() {
                 alt="Ikasso"
                 className="h-16 object-contain mb-3"
               />
-              <p className="text-sm text-gray-500">Entrez, vous etes chez vous</p>
+              <p className="text-sm text-gray-500">Plateforme de reservation au Mali</p>
             </div>
 
             {/* Title */}
