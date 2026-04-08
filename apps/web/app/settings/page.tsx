@@ -6,10 +6,10 @@ import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
 import Logo from '../components/Logo'
 import PhotoCapture from "../components/PhotoCapture"
-import AvatarRestorer from "../components/AvatarRestorer"
-import { restoreUserAvatar } from "../lib/avatarPersistence"
+import { useAuth } from "../contexts/AuthContext"
 
 export default function SettingsPage() {
+  const { user: authUser } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -18,13 +18,13 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
 
   const [profileData, setProfileData] = useState({
-    firstName: "Amadou",
-    lastName: "Diallo",
-    email: "amadou.diallo@email.com",
-    phone: "+223 70 12 34 56",
-    bio: "Voyageur passionné qui aime découvrir de nouveaux endroits au Mali et partager des expériences authentiques.",
-    location: "Bamako, Mali",
-    dateOfBirth: "1990-05-15",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    bio: "",
+    location: "",
+    dateOfBirth: "",
     language: "fr",
   })
 
@@ -65,17 +65,40 @@ export default function SettingsPage() {
         setNinaMessage(info.message || null)
       }
     }).catch(() => {})
+  }, [])
 
-    // Restaurer l'avatar utilisateur
-    const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
-    if (currentUser.email) {
-      const restoredUser = restoreUserAvatar(currentUser)
-      setUser(restoredUser)
-      if (restoredUser.avatar !== currentUser.avatar) {
-        localStorage.setItem('ikasso_user', JSON.stringify(restoredUser))
+  // Charger les vraies donnees utilisateur depuis authUser
+  useEffect(() => {
+    if (authUser) {
+      setUser(authUser)
+      setProfileData(prev => ({
+        ...prev,
+        firstName: authUser.firstName || '',
+        lastName: authUser.lastName || '',
+        email: authUser.email || '',
+        phone: authUser.phone || '',
+        bio: authUser.bio || '',
+        location: authUser.city ? `${authUser.city}, ${authUser.country || 'Mali'}` : '',
+        dateOfBirth: authUser.dateOfBirth || '',
+      }))
+    } else {
+      // Fallback localStorage
+      const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+      if (currentUser.email) {
+        setUser(currentUser)
+        setProfileData(prev => ({
+          ...prev,
+          firstName: currentUser.firstName || '',
+          lastName: currentUser.lastName || '',
+          email: currentUser.email || '',
+          phone: currentUser.phone || '',
+          bio: currentUser.bio || '',
+          location: currentUser.city ? `${currentUser.city}, ${currentUser.country || 'Mali'}` : '',
+          dateOfBirth: currentUser.dateOfBirth || '',
+        }))
       }
     }
-  }, [])
+  }, [authUser])
 
   const isValidNinaFormat = (n: string) => /^\d{14}$/.test((n || "").replace(/\s+/g, ""))
 
@@ -148,7 +171,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Composant de restauration d'avatar */}
-      <AvatarRestorer user={user} setUser={setUser} />
+      {/* Avatar managed by AuthContext */}
       
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

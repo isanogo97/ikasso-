@@ -215,7 +215,7 @@ export default function TravelerDashboard() {
             {[
               { href: '/search',              icon: Search,         label: 'Rechercher un logement', desc: 'Explorer les offres',   color: 'from-orange-400 to-primary-500' },
               { href: '/dashboard#reservations', icon: Calendar, label: 'Mes reservations', desc: `${bookings.length} reservation(s)`, color: 'from-blue-400 to-blue-600' },
-              { href: '/dashboard/messages',  icon: MessageCircle,  label: 'Messages',               desc: 'Vos conversations',    color: 'from-emerald-400 to-emerald-600' },
+              { href: '/messages',             icon: MessageCircle,  label: 'Messages',               desc: 'Vos conversations',    color: 'from-emerald-400 to-emerald-600' },
               { href: '/settings', icon: User, label: 'Mon profil', desc: 'Parametres du compte', color: 'from-violet-400 to-violet-600' },
             ].map(({ href, icon: Icon, label, desc, color }) => (
               <Link
