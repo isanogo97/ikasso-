@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { Eye, EyeOff, Mail, Lock, Loader, ArrowLeft } from 'lucide-react'
 import Logo from '../../components/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { restoreUserAvatar } from '../../lib/avatarPersistence'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function LoginPage() {
   const { t } = useLanguage()
+  const { signIn, signInWithOAuth } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -20,72 +21,34 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError('')
-    
-    setTimeout(() => {
-      // Compte de test Apple Review
-      const testAccounts = [
-        {
-          email: 'test@ikasso.ml',
-          password: 'Test1234',
-          firstName: 'Test',
-          lastName: 'Apple',
-          userType: 'client',
-          phone: '+33600000000',
-          verified: true
-        },
-        {
-          email: 'host@ikasso.ml',
-          password: 'Host1234',
-          firstName: 'Host',
-          lastName: 'Test',
-          userType: 'hote',
-          phone: '+33600000001',
-          verified: true
-        }
-      ]
-      
-      // Vérifier d'abord les comptes de test
-      let user = testAccounts.find((u: any) => u.email === email && u.password === password)
-      
-      if (!user) {
-        const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-        user = existingUsers.find((u: any) => u.email === email)
-        
-        if (!user) {
-          const currentUser = localStorage.getItem('ikasso_user')
-          if (currentUser) {
-            const userData = JSON.parse(currentUser)
-            if (userData.email === email) {
-              user = userData
-            }
-          }
-        }
-        
-        if (user) {
-          if (user.password && user.password !== password) {
-            setError('Email ou mot de passe incorrect')
-            setIsLoading(false)
-            return
-          }
-        }
-      }
-      
-      if (user) {
-        // Restaurer l'avatar sauvegardé s'il existe
-        user = restoreUserAvatar(user)
-        
-        localStorage.setItem('ikasso_user', JSON.stringify(user))
-        
-        if (user?.userType === 'hote' || user?.userType === 'host') {
-          window.location.href = '/dashboard/host'
-        } else {
-          window.location.href = '/dashboard'
-        }
+
+    const { error: signInError } = await signIn(email, password)
+
+    if (signInError) {
+      setError(signInError)
+      setIsLoading(false)
+      return
+    }
+
+    // Get the user from localStorage to determine redirect
+    const userData = localStorage.getItem('ikasso_user')
+    if (userData) {
+      const user = JSON.parse(userData)
+      if (user?.userType === 'hote' || user?.userType === 'host') {
+        window.location.href = '/dashboard/host'
       } else {
-        setError('Aucun compte trouvé avec cet email')
-        setIsLoading(false)
+        window.location.href = '/dashboard'
       }
-    }, 1500)
+    } else {
+      window.location.href = '/dashboard'
+    }
+  }
+
+  const handleOAuth = async (provider: 'google' | 'apple') => {
+    const { error } = await signInWithOAuth(provider)
+    if (error) {
+      alert(error)
+    }
   }
 
   return (
@@ -223,9 +186,9 @@ export default function LoginPage() {
 
             {/* Boutons sociaux */}
             <div className="space-y-3">
-              <button 
+              <button
                 type="button"
-                onClick={() => alert(t('login.google_coming_soon'))}
+                onClick={() => handleOAuth('google')}
                 className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -237,9 +200,9 @@ export default function LoginPage() {
                 <span className="font-medium text-gray-700 text-sm">{t('login.continue_google')}</span>
               </button>
 
-              <button 
+              <button
                 type="button"
-                onClick={() => alert(t('login.apple_coming_soon'))}
+                onClick={() => handleOAuth('apple')}
                 className="w-full flex items-center justify-center gap-3 py-3.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all"
               >
                 <svg className="h-5 w-5" fill="#000000" viewBox="0 0 24 24">

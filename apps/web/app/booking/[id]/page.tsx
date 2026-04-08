@@ -1,50 +1,46 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { 
-  MapPin, Star, Calendar, Users, ArrowLeft, CreditCard, 
+import {
+  MapPin, Star, Calendar, Users, ArrowLeft, CreditCard,
   Shield, CheckCircle, AlertCircle, Clock
 } from 'lucide-react'
 import PaymentModal from '../../components/PaymentModal'
+import { getProperty, createBooking } from '../../lib/dal'
+import type { Property } from '../../lib/dal'
+import { useAuth } from '../../contexts/AuthContext'
 
-// Sample property data (same as property detail page)
-const propertyData = {
-  '1': {
-    id: '1',
-    title: 'Villa Moderne à Bamako',
-    location: 'Quartier du Fleuve, Bamako, Mali',
-    price: 25000,
-    rating: 4.8,
-    reviews: 24,
-    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
-    type: 'maison',
-    guests: 6,
-    bedrooms: 3,
-    bathrooms: 2,
-    amenities: ['WiFi', 'Climatisation', 'Piscine', 'Parking', 'Cuisine équipée', 'Terrasse'],
-    host: {
-      name: 'Aminata Traoré',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-      joinedDate: 'Janvier 2023',
-      reviews: 45,
-      verified: true
-    },
-    rules: [
-      'Arrivée après 15h00',
-      'Départ avant 11h00',
-      'Non fumeur',
-      'Animaux non autorisés',
-      'Pas de fêtes ou événements'
-    ]
-  }
+// Fallback data for when property is loading
+const FALLBACK_PROPERTY = {
+  id: '1',
+  title: 'Villa Moderne a Bamako',
+  location: 'Quartier du Fleuve, Bamako, Mali',
+  price: 25000,
+  rating: 4.8,
+  reviews: 24,
+  images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'],
+  type: 'maison',
+  guests: 6,
+  bedrooms: 3,
+  bathrooms: 2,
+  amenities: ['WiFi', 'Climatisation', 'Piscine', 'Parking', 'Cuisine equipee', 'Terrasse'],
+  host: { name: 'Aminata Traore', avatar: '', joinedDate: 'Janvier 2023', reviews: 45, verified: true },
+  rules: ['Arrivee apres 15h00', 'Depart avant 11h00', 'Non fumeur'],
 }
 
 export default function BookingPage() {
   const params = useParams()
   const propertyId = params.id as string
-  const property = propertyData[propertyId as keyof typeof propertyData]
+  const { user } = useAuth()
+  const [propertyData, setPropertyData] = useState<Property | null>(null)
+
+  useEffect(() => {
+    getProperty(propertyId).then(p => setPropertyData(p))
+  }, [propertyId])
+
+  const property = propertyData || FALLBACK_PROPERTY as any
   
   const [checkIn, setCheckIn] = useState('')
   const [checkOut, setCheckOut] = useState('')
@@ -405,7 +401,7 @@ export default function BookingPage() {
                   <h3 className="text-lg font-medium mb-4">Règlement intérieur</h3>
                   <div className="border rounded-lg p-4">
                     <ul className="space-y-2">
-                      {property.rules.map((rule, index) => (
+                      {property.rules.map((rule: string, index: number) => (
                         <li key={index} className="flex items-center text-gray-700">
                           <div className="w-2 h-2 bg-gray-400 rounded-full mr-3"></div>
                           {rule}

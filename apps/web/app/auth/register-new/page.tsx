@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import Logo from '../../components/Logo'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
 
 type UserType = 'client' | 'hote' | null
 type Step = 1 | 2 | 3
@@ -42,6 +43,7 @@ const countryCodes = [
 export default function RegisterNewPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { signUp } = useAuth()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [userType, setUserType] = useState<UserType>(null)
   
@@ -198,39 +200,42 @@ export default function RegisterNewPage() {
 
   // ========== FINALISER ==========
   const handleFinalSubmit = async () => {
-    if (!emailVerified) return
+    if (!emailVerified || !userType) return
 
     setIsLoading(true)
 
-    const userData = {
-      userType,
-      phone: countryCode + phone,
+    const { error } = await signUp({
+      firstName: personalData.firstName,
+      lastName: personalData.lastName,
+      email: personalData.email,
+      password: personalData.password,
+      phone: phone.replace(/\s/g, ''),
       countryCode,
-      ...personalData,
-      emailVerified: true,
-      phoneVerified: true,
-      memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-      status: 'active',
-      createdAt: new Date().toISOString()
-    }
+      userType,
+      dateOfBirth: personalData.dateOfBirth,
+      address: personalData.address,
+      postalCode: personalData.postalCode,
+      city: personalData.city,
+      country: personalData.country,
+    })
 
-    localStorage.setItem('ikasso_user', JSON.stringify(userData))
-    
-    const allUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-    allUsers.push(userData)
-    localStorage.setItem('ikasso_all_users', JSON.stringify(allUsers))
+    if (error) {
+      alert(error)
+      setIsLoading(false)
+      return
+    }
 
     try {
       await fetch('/api/send-welcome-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: personalData.email,
           name: `${personalData.firstName} ${personalData.lastName}`,
           userType
         })
       })
-    } catch (error) {}
+    } catch {}
 
     setIsLoading(false)
     router.push(userType === 'hote' ? '/dashboard/host' : '/dashboard')

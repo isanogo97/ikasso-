@@ -11,9 +11,10 @@ const securityHeaders = () => {
     // Allow inline styles only in development; be strict in production
     (isProd ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'"),
     // Next dev needs eval/websocket; keep strict in prod
-    isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-    isProd ? "connect-src 'self'" : "connect-src 'self' ws: http://localhost:*",
-    "img-src 'self' data: https://images.unsplash.com https://via.placeholder.com",
+    isProd ? "script-src 'self' 'unsafe-inline' https://js.stripe.com" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    isProd ? "frame-src 'self' https://js.stripe.com https://hooks.stripe.com" : "frame-src 'self'",
+    isProd ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.orange.com" : "connect-src 'self' ws: http://localhost:* https://*.supabase.co wss://*.supabase.co",
+    "img-src 'self' data: https://images.unsplash.com https://via.placeholder.com https://*.supabase.co",
     "font-src 'self' data:",
     "form-action 'self'",
     "upgrade-insecure-requests",
@@ -59,11 +60,19 @@ const nextConfig = {
   },
   output: 'standalone',
   images: {
-    domains: ['images.unsplash.com', 'via.placeholder.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
+      { protocol: 'https', hostname: '*.supabase.co' },
+    ],
   },
   async headers() {
-    // Temporarily disable custom security headers to diagnose CSP-related blank pages
-    return []
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders(),
+      },
+    ]
   },
 }
 

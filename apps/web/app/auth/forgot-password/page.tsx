@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { resetPassword } from '../../lib/dal'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -14,52 +15,21 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
 
     if (!email || !email.includes('@')) {
-      alert('❌ Veuillez entrer une adresse email valide')
+      alert('Veuillez entrer une adresse email valide')
       return
     }
 
     setIsLoading(true)
 
-    // Générer un token de réinitialisation
-    const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    const resetLink = `${window.location.origin}/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`
+    const { error } = await resetPassword(email)
 
-    // Sauvegarder le token (en production, ceci serait dans une base de données)
-    const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 1) // Expire dans 1 heure
-    
-    localStorage.setItem(`reset_token_${email}`, JSON.stringify({
-      token: resetToken,
-      expiresAt: expiresAt.toISOString()
-    }))
-
-    try {
-      const response = await fetch('/api/send-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: email,
-          name: email.split('@')[0],
-          resetLink: resetLink
-        })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setEmailSent(true)
-        alert(`✅ Email envoyé !\n\nUn email de réinitialisation a été envoyé à ${email}.\n\nVérifiez votre boîte de réception.`)
-      } else {
-        alert(`❌ Erreur: ${data.message}\n\nLien de réinitialisation (démo):\n${resetLink}`)
-        setEmailSent(true)
-      }
-    } catch (error) {
-      console.error('Erreur:', error)
-      alert(`⚠️ Impossible d'envoyer l'email.\n\nLien de réinitialisation (démo):\n${resetLink}`)
+    if (error) {
+      alert(`Erreur: ${error}`)
+    } else {
       setEmailSent(true)
-    } finally {
-      setIsLoading(false)
     }
+
+    setIsLoading(false)
   }
 
   if (emailSent) {

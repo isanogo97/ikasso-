@@ -3,15 +3,43 @@ import { Inter } from 'next/font/google'
 import React from 'react'
 import './globals.css'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { AuthProvider } from './contexts/AuthContext'
 import CookieConsent from './components/CookieConsent'
+import InstallPrompt from './components/InstallPrompt'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ikasso - Chez Toi au Mali',
-  description: "Découvrez et réservez les meilleurs hébergements au Mali. Hôtels, maisons d'hôtes et logements chez l'habitant.",
-  keywords: "Mali, hébergement, hôtel, maison d'hôte, Bamako, Sikasso, Ségou, Mopti, Tombouctou",
+  title: {
+    default: 'Ikasso - Chez Toi au Mali',
+    template: '%s | Ikasso',
+  },
+  description: "Decouvrez et reservez les meilleurs hebergements au Mali. Hotels, maisons d'hotes et logements chez l'habitant a Bamako, Sikasso, Segou, Mopti, Tombouctou.",
+  keywords: "Mali, hebergement, hotel, maison d'hote, Bamako, Sikasso, Segou, Mopti, Tombouctou, reservation, Airbnb Mali",
   manifest: '/manifest.json',
+  metadataBase: new URL('https://ikasso.ml'),
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    url: 'https://ikasso.ml',
+    siteName: 'Ikasso',
+    title: 'Ikasso - Chez Toi au Mali',
+    description: "La premiere plateforme malienne de reservation d'hebergements. Trouvez le logement ideal pour vos voyages au Mali.",
+    images: [
+      {
+        url: '/images/logos/ikasso-logo-800.png',
+        width: 800,
+        height: 600,
+        alt: 'Ikasso - Hebergements au Mali',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ikasso - Chez Toi au Mali',
+    description: "Reservez les meilleurs hebergements au Mali.",
+    images: ['/images/logos/ikasso-logo-800.png'],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -52,8 +80,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.className} antialiased`}>
         <LanguageProvider>
-          {children}
-          <CookieConsent />
+          <AuthProvider>
+            {children}
+            <CookieConsent />
+            <InstallPrompt />
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
