@@ -21,62 +21,9 @@ export interface Message {
   createdAt: string
 }
 
-// Demo conversations for localStorage mode
-const DEMO_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-1',
-    participantId: 'host-1',
-    participantName: 'Aminata Traore',
-    participantAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
-    propertyId: '1',
-    propertyName: 'Villa Moderne a Bamako',
-    lastMessage: 'Bienvenue ! N\'hesitez pas si vous avez des questions.',
-    lastMessageAt: new Date(Date.now() - 3600000).toISOString(),
-    unreadCount: 1,
-  },
-  {
-    id: 'conv-2',
-    participantId: 'host-2',
-    participantName: 'Oumar Coulibaly',
-    participantAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
-    propertyId: '3',
-    propertyName: 'Maison Traditionnelle a Segou',
-    lastMessage: 'Votre reservation est confirmee. A bientot !',
-    lastMessageAt: new Date(Date.now() - 86400000).toISOString(),
-    unreadCount: 0,
-  },
-]
-
-const DEMO_MESSAGES: Record<string, Message[]> = {
-  'conv-1': [
-    {
-      id: 'msg-1',
-      conversationId: 'conv-1',
-      senderId: 'host-1',
-      content: 'Bonjour et bienvenue sur Ikasso ! Je suis Aminata, votre hote.',
-      read: true,
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      id: 'msg-2',
-      conversationId: 'conv-1',
-      senderId: 'host-1',
-      content: 'N\'hesitez pas si vous avez des questions sur la villa ou sur Bamako.',
-      read: false,
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-    },
-  ],
-  'conv-2': [
-    {
-      id: 'msg-3',
-      conversationId: 'conv-2',
-      senderId: 'host-2',
-      content: 'Votre reservation est confirmee. A bientot !',
-      read: true,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ],
-}
+// No demo data — empty until real conversations happen via Supabase
+const DEMO_CONVERSATIONS: Conversation[] = []
+const DEMO_MESSAGES: Record<string, Message[]> = {}
 
 export async function getConversations(userId?: string): Promise<Conversation[]> {
   const mode = getStorageMode()

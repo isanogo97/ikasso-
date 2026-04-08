@@ -214,9 +214,9 @@ export default function TravelerDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { href: '/search',              icon: Search,         label: 'Rechercher un logement', desc: 'Explorer les offres',   color: 'from-orange-400 to-primary-500' },
-              { href: '/dashboard/bookings',  icon: Calendar,       label: 'Mes reservations',       desc: `${bookings.length} reservation(s)`, color: 'from-blue-400 to-blue-600' },
+              { href: '/dashboard#reservations', icon: Calendar, label: 'Mes reservations', desc: `${bookings.length} reservation(s)`, color: 'from-blue-400 to-blue-600' },
               { href: '/dashboard/messages',  icon: MessageCircle,  label: 'Messages',               desc: 'Vos conversations',    color: 'from-emerald-400 to-emerald-600' },
-              { href: '/dashboard/profile',   icon: User,           label: 'Mon profil',             desc: 'Parametres du compte', color: 'from-violet-400 to-violet-600' },
+              { href: '/settings', icon: User, label: 'Mon profil', desc: 'Parametres du compte', color: 'from-violet-400 to-violet-600' },
             ].map(({ href, icon: Icon, label, desc, color }) => (
               <Link
                 key={href}
