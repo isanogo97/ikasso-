@@ -3,14 +3,18 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  Search, Calendar, MessageCircle, User, Bell,
-  LogOut, Menu, X, MapPin, Clock, ChevronRight,
+  Search, Calendar, MessageCircle, User, MapPin,
+  LogOut, Menu, X, Clock, ChevronRight,
   Home, Compass, ArrowRight
 } from 'lucide-react'
 import Logo from '../components/Logo'
+import NotificationBell from '../components/NotificationBell'
+import dynamic from 'next/dynamic'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserBookings } from '../lib/dal'
 import type { Booking } from '../lib/dal'
+
+const MapView = dynamic(() => import('../components/MapView'), { ssr: false })
 
 // ---------------------------------------------------------------------------
 // Avatar helper
@@ -117,12 +121,7 @@ export default function TravelerDashboard() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <Bell className="h-5 w-5 text-gray-500" />
-              {upcomingBookings.length > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 bg-primary-500 rounded-full" />
-              )}
-            </button>
+            <NotificationBell />
 
             {/* Desktop user menu */}
             <div className="hidden md:flex items-center gap-3">
@@ -325,7 +324,12 @@ export default function TravelerDashboard() {
           </div>
         </section>
 
-        {/* Section "Mon compte" supprimee — accessible via le bouton profil en haut et la carte quick action */}
+        {/* ---- Interactive Map ---- */}
+        <section>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Carte du Mali</h2>
+          <p className="text-sm text-gray-500 mb-4">Explorez les villes ou des logements sont disponibles</p>
+          <MapView height="350px" showCities={true} />
+        </section>
       </main>
 
       {/* ----------------------------------------------------------------- */}
