@@ -112,7 +112,6 @@ export default function TravelerDashboard() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/search" className="hover:text-primary-500 transition-colors">Explorer</Link>
-            <Link href="/dashboard#reservations" className="hover:text-primary-500 transition-colors">Reservations</Link>
             <Link href="/messages" className="hover:text-primary-500 transition-colors">Messages</Link>
           </nav>
 
@@ -164,8 +163,8 @@ export default function TravelerDashboard() {
             <Link href="/search" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
               <Search className="h-4 w-4 text-gray-400" /> Explorer
             </Link>
-            <Link href="/dashboard#reservations" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
-              <Calendar className="h-4 w-4 text-gray-400" /> Mes reservations
+            <Link href="/settings" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
+              <User className="h-4 w-4 text-gray-400" /> Mon profil
             </Link>
             <Link href="/messages" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
               <MessageCircle className="h-4 w-4 text-gray-400" /> Messages
@@ -211,12 +210,11 @@ export default function TravelerDashboard() {
         {/* ---- Quick actions ---- */}
         <section>
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Acces rapide</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { href: '/search',              icon: Search,         label: 'Rechercher un logement', desc: 'Explorer les offres',   color: 'from-orange-400 to-primary-500' },
-              { href: '/dashboard#reservations', icon: Calendar, label: 'Mes reservations', desc: `${bookings.length} reservation(s)`, color: 'from-blue-400 to-blue-600' },
-              { href: '/messages',             icon: MessageCircle,  label: 'Messages',               desc: 'Vos conversations',    color: 'from-emerald-400 to-emerald-600' },
-              { href: '/settings', icon: User, label: 'Mon profil', desc: 'Parametres du compte', color: 'from-violet-400 to-violet-600' },
+              { href: '/search',    icon: Search,         label: 'Rechercher un logement', desc: 'Explorer les offres',   color: 'from-orange-400 to-primary-500' },
+              { href: '/messages',  icon: MessageCircle,  label: 'Messages',               desc: 'Vos conversations',    color: 'from-emerald-400 to-emerald-600' },
+              { href: '/settings',  icon: User,           label: 'Mon profil',             desc: 'Parametres du compte',  color: 'from-violet-400 to-violet-600' },
             ].map(({ href, icon: Icon, label, desc, color }) => (
               <Link
                 key={href}
@@ -237,14 +235,9 @@ export default function TravelerDashboard() {
         </section>
 
         {/* ---- Recent bookings ---- */}
-        <section>
+        <section id="reservations">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Reservations recentes</h2>
-            {bookings.length > 0 && (
-              <Link href="/dashboard#reservations" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
-                Tout voir <ChevronRight className="h-4 w-4" />
-              </Link>
-            )}
           </div>
 
           {loadingBookings ? (
@@ -332,29 +325,7 @@ export default function TravelerDashboard() {
           </div>
         </section>
 
-        {/* ---- Account summary ---- */}
-        {user && (
-          <section className="rounded-2xl bg-white ring-1 ring-gray-100 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Mon compte</h2>
-            <div className="flex items-center gap-5">
-              <UserAvatar user={user} size="lg" />
-              <div className="space-y-1">
-                <p className="text-base font-semibold text-gray-800">{user.firstName} {user.lastName}</p>
-                <p className="text-sm text-gray-400">{user.email}</p>
-                {user.memberSince && (
-                  <p className="text-xs text-gray-400">
-                    Membre depuis {new Date(user.memberSince).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="mt-5 pt-5 border-t border-gray-100 flex flex-wrap gap-3">
-              <Link href="/settings" className="text-sm text-primary-500 hover:text-primary-600 font-medium flex items-center gap-1">
-                Modifier le profil <ChevronRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
+        {/* Section "Mon compte" supprimee — accessible via le bouton profil en haut et la carte quick action */}
       </main>
 
       {/* ----------------------------------------------------------------- */}
@@ -363,11 +334,10 @@ export default function TravelerDashboard() {
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 backdrop-blur-lg border-t border-gray-100 safe-area-bottom">
         <div className="flex items-center justify-around py-2">
           {[
-            { href: '/dashboard',          icon: Home,           label: 'Accueil',       active: true  },
-            { href: '/search',             icon: Search,         label: 'Explorer',      active: false },
-            { href: '/dashboard#reservations', icon: Calendar, label: 'Reservations', active: false },
-            { href: '/messages',            icon: MessageCircle,  label: 'Messages',      active: false },
-            { href: '/settings',            icon: User,           label: 'Profil',        active: false },
+            { href: '/dashboard', icon: Home,          label: 'Accueil',  active: true  },
+            { href: '/search',    icon: Search,        label: 'Explorer', active: false },
+            { href: '/messages',  icon: MessageCircle, label: 'Messages', active: false },
+            { href: '/settings',  icon: User,          label: 'Profil',   active: false },
           ].map(({ href, icon: Icon, label, active }) => (
             <Link
               key={href}
