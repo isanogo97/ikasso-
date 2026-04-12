@@ -11,6 +11,7 @@ import {
 import LogoIkasso from "./components/LogoIkasso"
 import Logo from "./components/Logo"
 import { useLanguage, availableLanguages, Language } from "./contexts/LanguageContext"
+import { useAuth } from "./contexts/AuthContext"
 
 const cities = ["Bamako", "Sikasso", "Ségou", "Mopti", "Tombouctou", "Kayes", "Koutiala", "Gao"]
 
@@ -47,6 +48,7 @@ const hostServices = [
 
 export default function HomePage() {
   const { t, language, setLanguage } = useLanguage()
+  const { user, isAuthenticated } = useAuth()
   const [searchLocation, setSearchLocation] = useState("")
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
@@ -116,19 +118,32 @@ export default function HomePage() {
                 {t('nav.become_host')}
               </button>
               
-              <Link 
-                href="/auth/login"
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
-              >
-                {t('nav.login')}
-              </Link>
-              
-              <Link 
-                href="/auth/register-new"
-                className="px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all"
-              >
-                {t('nav.signup')}
-              </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/dashboard"
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all flex items-center gap-2"
+                >
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">
+                    {(user?.firstName?.[0] || '').toUpperCase()}
+                  </div>
+                  Mon compte
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-all"
+                  >
+                    {t('nav.login')}
+                  </Link>
+                  <Link
+                    href="/auth/register-new"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all"
+                  >
+                    {t('nav.signup')}
+                  </Link>
+                </>
+              )}
               
               <button 
                 onClick={() => setShowLanguageModal(true)}
@@ -176,12 +191,20 @@ export default function HomePage() {
                   {t('nav.experiences')}
                 </button>
               </div>
-              <Link href="/auth/register-new" className="block px-4 py-3 text-sm font-semibold text-white bg-primary-500 rounded-lg mx-1">
-                {t('nav.signup')}
-              </Link>
-              <Link href="/auth/login" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
-                {t('nav.login')}
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/dashboard" className="block px-4 py-3 text-sm font-semibold text-white bg-primary-500 rounded-lg mx-1">
+                  Mon compte
+                </Link>
+              ) : (
+                <>
+                  <Link href="/auth/register-new" className="block px-4 py-3 text-sm font-semibold text-white bg-primary-500 rounded-lg mx-1">
+                    {t('nav.signup')}
+                  </Link>
+                  <Link href="/auth/login" className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                    {t('nav.login')}
+                  </Link>
+                </>
+              )}
               <div className="border-t border-gray-100 my-2"></div>
               <button 
                 onClick={() => { setShowHostModal(true); setIsMenuOpen(false); }}

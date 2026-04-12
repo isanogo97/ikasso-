@@ -5,7 +5,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
 import Logo from '../components/Logo'
-import PhotoCapture from "../components/PhotoCapture"
 import { useAuth } from "../contexts/AuthContext"
 
 export default function SettingsPage() {
@@ -242,32 +241,44 @@ export default function SettingsPage() {
               <div>
                 <h3 className="font-semibold mb-3">Photo de profil</h3>
                 <div className="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mb-3">
-                  <User className="h-10 w-10 text-gray-400" />
+                  {(user?.avatar || user?.avatarUrl) ? (
+                    <img src={user.avatar || user.avatarUrl} alt="Photo" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-2xl font-bold">
+                      {(profileData.firstName?.[0] || '').toUpperCase()}{(profileData.lastName?.[0] || '').toUpperCase()}
+                    </div>
+                  )}
                 </div>
-                <PhotoCapture
-                  onPhotoCapture={(imageUrl) => {
-                    try {
-                      // La sauvegarde persistante est déjà gérée dans PhotoCapture
-                      // Il suffit de mettre à jour l'utilisateur actuel
-                      const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
-                      currentUser.avatar = imageUrl
-                      localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
-                      
-                      // Recharger pour voir la photo
-                      setTimeout(() => {
-                        window.location.reload()
-                      }, 1000)
-                    } catch (error) {
-                      console.error('Erreur lors de la sauvegarde:', error)
-                      alert('Erreur lors de la sauvegarde de la photo')
-                    }
-                  }}
-                  onError={(error) => {
-                    console.error('Erreur photo:', error)
-                  }}
-                  maxSizeMB={5}
-                  acceptedFormats={['image/jpeg', 'image/png', 'image/webp']}
-                />
+                <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg cursor-pointer text-sm font-medium transition-colors">
+                  <Camera className="h-4 w-4" />
+                  Choisir une photo
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      if (file.size > 5 * 1024 * 1024) {
+                        alert('La photo ne doit pas depasser 5 MB')
+                        return
+                      }
+                      const reader = new FileReader()
+                      reader.onload = (ev) => {
+                        const imageUrl = ev.target?.result as string
+                        // Update localStorage
+                        const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+                        currentUser.avatar = imageUrl
+                        currentUser.avatarUrl = imageUrl
+                        localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
+                        setUser({ ...user, avatar: imageUrl, avatarUrl: imageUrl })
+                        alert('Photo mise a jour !')
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                </label>
+                <p className="text-xs text-gray-400 mt-2">JPEG, PNG, WEBP - Max 5MB</p>
               </div>
             </div>
           )}
@@ -372,17 +383,10 @@ export default function SettingsPage() {
           {activeTab === "payments" && (
             <div>
               <h2 className="text-xl font-semibold mb-4">Paiements</h2>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="bg-blue-100 p-2 rounded-lg mr-3"><CreditCard className="h-5 w-5 text-blue-600" /></div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">Carte Visa</h3>
-                      <p className="text-sm text-gray-600">•••• •••• •••• 1234</p>
-                    </div>
-                  </div>
-                  <button className="text-red-600 hover:text-red-700 text-sm font-medium">Supprimer</button>
-                </div>
+              <div className="text-center py-8">
+                <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">Aucun moyen de paiement enregistre.</p>
+                <p className="text-gray-400 text-xs mt-1">Les paiements sont geres via Orange Money ou Stripe lors de la reservation.</p>
               </div>
             </div>
           )}
