@@ -2,10 +2,12 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import React from 'react'
 import './globals.css'
+import dynamic from 'next/dynamic'
 import { LanguageProvider } from './contexts/LanguageContext'
-import { AuthProvider } from './contexts/AuthContext'
-import CookieConsent from './components/CookieConsent'
-import InstallPrompt from './components/InstallPrompt'
+
+const AuthProvider = dynamic(() => import('./contexts/AuthContext').then(m => ({ default: m.AuthProvider })), { ssr: false })
+const CookieConsent = dynamic(() => import('./components/CookieConsent'), { ssr: false })
+const InstallPrompt = dynamic(() => import('./components/InstallPrompt'), { ssr: false })
 
 const inter = Inter({ subsets: ['latin'] })
 

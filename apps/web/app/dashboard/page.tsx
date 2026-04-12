@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
-  Search, Calendar, MessageCircle, User, MapPin,
+  Search, Calendar, MessageCircle, User, MapPin, Bell,
   LogOut, Menu, X, Clock, ChevronRight,
   Home, Compass, ArrowRight
 } from 'lucide-react'
 import Logo from '../components/Logo'
-import NotificationBell from '../components/NotificationBell'
 import dynamic from 'next/dynamic'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserBookings } from '../lib/dal'
 import type { Booking } from '../lib/dal'
 
-const MapView = dynamic(() => import('../components/MapView'), { ssr: false })
+const NotificationBell = dynamic(() => import('../components/NotificationBell'), { ssr: false, loading: () => <div className="p-2"><Bell className="h-5 w-5 text-gray-400" /></div> })
+const MapView = dynamic(() => import('../components/MapView'), { ssr: false, loading: () => <div className="h-[350px] rounded-2xl bg-gray-100 animate-pulse" /> })
 
 // ---------------------------------------------------------------------------
 // Avatar helper

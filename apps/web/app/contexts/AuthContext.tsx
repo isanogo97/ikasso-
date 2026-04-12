@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isSupabaseConfigured()) {
       import('../lib/supabase/client').then(({ createClient }) => {
         const supabase = createClient()
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, _session: any) => {
           refreshUser()
         })
         return () => subscription.unsubscribe()
