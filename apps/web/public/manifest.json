@@ -1,7 +1,7 @@
 {
   "name": "Ikasso - Chez Toi au Mali",
   "short_name": "Ikasso",
-  "description": "Découvrez et réservez les meilleurs hébergements au Mali",
+  "description": "Decouvrez et reservez les meilleurs hebergements au Mali",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -12,14 +12,14 @@
   "categories": ["travel", "lifestyle", "business"],
   "icons": [
     {
-      "src": "/images/logos/ikasso-logo-48.png",
-      "sizes": "48x48",
+      "src": "/images/logos/favicon-32x32.png",
+      "sizes": "32x32",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/images/logos/ikasso-logo-96.png",
-      "sizes": "96x96",
+      "src": "/images/logos/ikasso-logo-icon.png",
+      "sizes": "64x64",
       "type": "image/png",
       "purpose": "any"
     },
@@ -27,53 +27,51 @@
       "src": "/images/logos/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/images/logos/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/images/screenshots/desktop-home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Page d'accueil Ikasso"
+      "purpose": "any"
     },
     {
-      "src": "/images/screenshots/mobile-search.png", 
-      "sizes": "390x844",
+      "src": "/images/logos/android-chrome-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Recherche d'hébergements"
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
       "name": "Rechercher",
       "short_name": "Recherche",
-      "description": "Rechercher des hébergements",
+      "description": "Rechercher des hebergements",
       "url": "/search",
       "icons": [
         {
-          "src": "/images/logos/ikasso-logo-96.png",
-          "sizes": "96x96"
+          "src": "/images/logos/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     },
     {
       "name": "Mon Dashboard",
-      "short_name": "Dashboard", 
-      "description": "Accéder à mon compte",
+      "short_name": "Dashboard",
+      "description": "Acceder a mon compte",
       "url": "/dashboard",
       "icons": [
         {
-          "src": "/images/logos/ikasso-logo-96.png",
-          "sizes": "96x96"
+          "src": "/images/logos/android-chrome-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
       ]
     }
