@@ -1,14 +1,35 @@
 {
   "expo": {
-    "extra": {
-      "eas": {
-        "projectId": "57d8d69a-c0f7-4df8-85d2-6e1f9363bbc9"
-      }
+    "name": "Ikasso",
+    "slug": "ikasso",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./apps/web/public/images/logos/android-chrome-512x512.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./apps/web/public/images/logos/android-chrome-512x512.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E85D04"
     },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
+      "supportsTablet": true,
       "bundleIdentifier": "ml.ikasso.app",
+      "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./apps/web/public/images/logos/android-chrome-512x512.png",
+        "backgroundColor": "#E85D04"
+      },
+      "package": "ml.ikasso.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "173e6b5e-a54f-4e02-a5a0-54fe3f47ace8"
       }
     }
   }
