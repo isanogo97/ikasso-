@@ -428,33 +428,31 @@ export default function HomePage() {
               <h3 className="font-semibold text-gray-900 mb-3 text-sm">{t('footer.support')}</h3>
               <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
                 <li><Link href="/help" className="hover:underline">{t('footer.help_center')}</Link></li>
-                <li><a href="#" className="hover:underline">{t('footer.safety_support')}</a></li>
-                <li><a href="#" className="hover:underline">{t('footer.cancellation_options')}</a></li>
+                <li><a href="mailto:support@ikasso.ml" className="hover:underline">support@ikasso.ml</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-sm">{t('footer.hosting')}</h3>
               <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
-                <li><button onClick={() => setShowHostModal(true)} className="hover:underline">{t('footer.list_property')}</button></li>
-                <li><a href="#" className="hover:underline">{t('footer.host_resources')}</a></li>
+                <li><Link href="/host" className="hover:underline">{t('footer.list_property')}</Link></li>
               </ul>
             </div>
             <div className="col-span-2 lg:col-span-1">
               <h3 className="font-semibold text-gray-900 mb-3 text-sm">Ikasso</h3>
               <ul className="space-y-2 text-xs lg:text-sm text-gray-600">
-                <li><a href="#" className="hover:underline">{t('footer.newsroom')}</a></li>
-                <li><a href="#" className="hover:underline">{t('footer.careers')}</a></li>
+                <li><Link href="/privacy" className="hover:underline">Confidentialite</Link></li>
+                <li><Link href="/terms" className="hover:underline">Conditions generales</Link></li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-200 pt-5 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-gray-600">
-              <span>© {new Date().getFullYear()} Ikasso</span>
-              <span>·</span>
-              <a href="#" className="hover:underline">{t('footer.privacy')}</a>
-              <span>·</span>
-              <a href="#" className="hover:underline">{t('footer.terms')}</a>
+              <span>&copy; {new Date().getFullYear()} Ikasso</span>
+              <span>&middot;</span>
+              <Link href="/privacy" className="hover:underline">{t('footer.privacy')}</Link>
+              <span>&middot;</span>
+              <Link href="/terms" className="hover:underline">{t('footer.terms')}</Link>
             </div>
             <div className="flex items-center gap-3">
               <button 
