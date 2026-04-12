@@ -256,17 +256,58 @@ export default function SettingsPage() {
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (!file) return
                       if (file.size > 5 * 1024 * 1024) {
                         alert('La photo ne doit pas depasser 5 MB')
                         return
                       }
+
+                      try {
+                        // Try Supabase Storage first
+                        const { isSupabaseConfigured, createClient } = await import('../lib/supabase/client')
+                        if (isSupabaseConfigured()) {
+                          const supabase = createClient()
+                          const { data: { user: authUser } } = await supabase.auth.getUser()
+                          if (authUser) {
+                            const ext = file.name.split('.').pop() || 'jpg'
+                            const path = `${authUser.id}/avatar.${ext}`
+
+                            // Upload to storage
+                            const { error: uploadError } = await supabase.storage
+                              .from('avatars')
+                              .upload(path, file, { upsert: true })
+
+                            if (!uploadError) {
+                              const { data: urlData } = supabase.storage
+                                .from('avatars')
+                                .getPublicUrl(path)
+
+                              const avatarUrl = urlData.publicUrl + '?t=' + Date.now()
+
+                              // Update profile in database
+                              await supabase.from('profiles')
+                                .update({ avatar_url: avatarUrl })
+                                .eq('id', authUser.id)
+
+                              // Update local state
+                              const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+                              currentUser.avatar = avatarUrl
+                              currentUser.avatarUrl = avatarUrl
+                              localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
+                              setUser({ ...user, avatar: avatarUrl, avatarUrl: avatarUrl })
+                              alert('Photo enregistree !')
+                              return
+                            }
+                          }
+                        }
+                      } catch {}
+
+                      // Fallback: localStorage base64
                       const reader = new FileReader()
                       reader.onload = (ev) => {
                         const imageUrl = ev.target?.result as string
-                        // Update localStorage
                         const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
                         currentUser.avatar = imageUrl
                         currentUser.avatarUrl = imageUrl
