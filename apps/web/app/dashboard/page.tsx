@@ -8,13 +8,9 @@ import {
   Home, Compass, ArrowRight
 } from 'lucide-react'
 import Logo from '../components/Logo'
-import dynamic from 'next/dynamic'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserBookings } from '../lib/dal'
 import type { Booking } from '../lib/dal'
-
-const NotificationBell = dynamic(() => import('../components/NotificationBell'), { ssr: false, loading: () => <div className="p-2"><Bell className="h-5 w-5 text-gray-400" /></div> })
-const MapView = dynamic(() => import('../components/MapView'), { ssr: false, loading: () => <div className="h-[350px] rounded-2xl bg-gray-100 animate-pulse" /> })
 
 // ---------------------------------------------------------------------------
 // Avatar helper
@@ -121,7 +117,9 @@ export default function TravelerDashboard() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <NotificationBell />
+            <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <Bell className="h-5 w-5 text-gray-500" />
+            </button>
 
             {/* Desktop user menu */}
             <div className="hidden md:flex items-center gap-3">
@@ -324,12 +322,7 @@ export default function TravelerDashboard() {
           </div>
         </section>
 
-        {/* ---- Interactive Map ---- */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Carte du Mali</h2>
-          <p className="text-sm text-gray-500 mb-4">Explorez les villes ou des logements sont disponibles</p>
-          <MapView height="350px" showCities={true} />
-        </section>
+        {/* Carte interactive sera ajoutee quand les logements reels seront disponibles */}
       </main>
 
       {/* ----------------------------------------------------------------- */}
