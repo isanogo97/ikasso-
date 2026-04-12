@@ -4,10 +4,10 @@
     "slug": "ikasso",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./apps/web/public/images/logos/android-chrome-512x512.png",
+    "icon": "./apps/web/public/icons/1024x1024.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./apps/web/public/images/logos/android-chrome-512x512.png",
+      "image": "./apps/web/public/icons/1024x1024.png",
       "resizeMode": "contain",
       "backgroundColor": "#E85D04"
     },
@@ -22,7 +22,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./apps/web/public/images/logos/android-chrome-512x512.png",
+        "foregroundImage": "./apps/web/public/icons/1024x1024.png",
         "backgroundColor": "#E85D04"
       },
       "package": "ml.ikasso.app"
