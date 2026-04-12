@@ -21,12 +21,12 @@
   "dependencies": {
     "@auth/core": "^0.34.3",
     "@types/nodemailer": "^7.0.4",
-    "expo": "^55.0.14",
-    "expo-splash-screen": "^55.0.17",
+    "expo": "~52.0.0",
+    "expo-splash-screen": "^0.29.24",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.10",
-    "react-native": "^0.85.0",
-    "react-native-safe-area-context": "^5.7.0",
-    "react-native-webview": "^13.16.1"
+    "react-native": "^0.76.7",
+    "react-native-safe-area-context": "^4.14.1",
+    "react-native-webview": "^13.12.5"
   }
 }
