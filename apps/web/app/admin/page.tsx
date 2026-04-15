@@ -130,6 +130,9 @@ export default function AdminPage() {
   const [expandedUser, setExpandedUser] = useState<string | null>(null)
   const [userDocs, setUserDocs] = useState<Record<string, Verification[]>>({})
 
+  // User observations (admin notes)
+  const [userObservations, setUserObservations] = useState<Record<string, string>>({})
+
   // Verifications
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [verificationsLoading, setVerificationsLoading] = useState(false)
@@ -376,6 +379,8 @@ export default function AdminPage() {
     if (e1 || e2) {
       flash('error', 'Erreur lors de la validation')
     } else {
+      // TODO: Send email notification to user about approval
+      // await fetch('/api/send-email-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
       flash('success', 'Identite approuvee')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
     }
@@ -389,6 +394,8 @@ export default function AdminPage() {
     if (error) {
       flash('error', 'Erreur lors du rejet')
     } else {
+      // TODO: Send email notification to user about rejection with reason
+      // await fetch('/api/send-email-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
       flash('success', 'Verification rejetee')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
       setRejectingId(null)
@@ -649,7 +656,7 @@ export default function AdminPage() {
                     { label: 'Comptes verifies', value: stats.verifiedUsers, icon: Shield, color: 'text-emerald-600 bg-emerald-50' },
                     { label: 'Comptes bloques', value: stats.suspendedUsers, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div key={i} onClick={() => setActiveTab('users')} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
                         <div>
@@ -669,7 +676,7 @@ export default function AdminPage() {
                     { label: 'Approuvees', value: stats.approvedVerifications, icon: CheckCircle2, color: 'text-green-600 bg-green-50' },
                     { label: 'Refusees', value: stats.rejectedVerifications, icon: XCircle, color: 'text-red-600 bg-red-50' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div key={i} onClick={() => setActiveTab('verifications')} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
                         <div>
@@ -690,7 +697,7 @@ export default function AdminPage() {
                     { label: 'Reservations total', value: stats.totalBookings, icon: Calendar, color: 'text-purple-600 bg-purple-50' },
                     { label: 'Reservations payees', value: stats.paidBookings, icon: CheckCircle2, color: 'text-green-600 bg-green-50' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
                         <div>
@@ -709,7 +716,7 @@ export default function AdminPage() {
                     { label: 'Actives', value: stats.activeProperties, icon: Home, color: 'text-green-600 bg-green-50' },
                     { label: 'En attente', value: stats.pendingProperties, icon: Clock, color: 'text-amber-600 bg-amber-50' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
                         <div>
@@ -836,40 +843,144 @@ export default function AdminPage() {
                             </div>
                           </div>
 
-                          {/* Expanded details */}
+                          {/* Expanded details - comprehensive card layout */}
                           {isExpanded && (
-                            <div className="px-4 py-4 bg-gray-50 border-t border-gray-100">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                                <div><span className="text-gray-500">ID:</span> <span className="text-gray-900 break-all">{u.id}</span></div>
-                                <div><span className="text-gray-500">Telephone:</span> <span className="text-gray-900">{u.phone || '-'}</span></div>
-                                <div><span className="text-gray-500">Ville:</span> <span className="text-gray-900">{u.city || '-'}</span></div>
-                                <div><span className="text-gray-500">Type:</span> <span className="text-gray-900">{u.user_type || '-'}</span></div>
-                                <div><span className="text-gray-500">Identite verifiee:</span> <span className="text-gray-900">{u.identity_verified ? 'Oui' : 'Non'}</span></div>
-                                <div><span className="text-gray-500">Inscription:</span> <span className="text-gray-900">{u.created_at ? new Date(u.created_at).toLocaleString('fr-FR') : '-'}</span></div>
-                              </div>
-
-                              {/* Identity documents */}
-                              {userDocs[u.id] && userDocs[u.id].length > 0 && (
-                                <div className="mt-4">
-                                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Documents d'identite</h4>
-                                  <div className="space-y-2">
-                                    {userDocs[u.id].map(doc => (
-                                      <div key={doc.id} className="flex items-center gap-3 text-sm bg-white rounded-lg p-3 border border-gray-200">
-                                        <Eye className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                        <span className="text-gray-700">{doc.document_type}</span>
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                          {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
-                                        </span>
-                                        {doc.document_url && (
-                                          <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 text-xs underline ml-auto">
-                                            Voir le document
-                                          </a>
-                                        )}
-                                      </div>
-                                    ))}
+                            <div className="px-4 py-5 bg-gray-50 border-t border-gray-100">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* Personal info card */}
+                                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Users className="h-4 w-4 text-primary-500" /> Informations personnelles
+                                  </h4>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div><span className="text-gray-500">Prenom:</span> <span className="text-gray-900 font-medium">{u.first_name || '-'}</span></div>
+                                    <div><span className="text-gray-500">Nom:</span> <span className="text-gray-900 font-medium">{u.last_name || '-'}</span></div>
+                                    <div><span className="text-gray-500">Email:</span> <span className="text-gray-900">{u.email || '-'}</span></div>
+                                    <div><span className="text-gray-500">Telephone:</span> <span className="text-gray-900">{u.phone || '-'}</span></div>
+                                    <div><span className="text-gray-500">Date de naissance:</span> <span className="text-gray-900">{u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString('fr-FR') : '-'}</span></div>
+                                    <div><span className="text-gray-500">Adresse:</span> <span className="text-gray-900">{u.address || '-'}</span></div>
+                                    <div><span className="text-gray-500">Code postal:</span> <span className="text-gray-900">{u.postal_code || '-'}</span></div>
+                                    <div><span className="text-gray-500">Ville:</span> <span className="text-gray-900">{u.city || '-'}</span></div>
+                                    <div><span className="text-gray-500">Pays:</span> <span className="text-gray-900">{u.country || '-'}</span></div>
                                   </div>
                                 </div>
-                              )}
+
+                                {/* Account status card */}
+                                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Shield className="h-4 w-4 text-primary-500" /> Statut du compte
+                                  </h4>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                    <div><span className="text-gray-500">ID:</span> <span className="text-gray-900 break-all text-xs">{u.id}</span></div>
+                                    <div><span className="text-gray-500">Type:</span> <span className="text-gray-900 font-medium">{u.user_type === 'host' || u.user_type === 'hote' ? 'Hote' : 'Client'}</span></div>
+                                    <div><span className="text-gray-500">Statut:</span>{' '}
+                                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700' : u.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                                        {u.status === 'active' ? 'Actif' : u.status === 'suspended' ? 'Suspendu' : u.status || 'Inconnu'}
+                                      </span>
+                                    </div>
+                                    <div><span className="text-gray-500">Identite verifiee:</span>{' '}
+                                      {u.identity_verified ? <span className="text-green-600 font-medium">Oui</span> : <span className="text-red-500 font-medium">Non</span>}
+                                    </div>
+                                    <div><span className="text-gray-500">Inscription:</span> <span className="text-gray-900">{u.created_at ? new Date(u.created_at).toLocaleString('fr-FR') : '-'}</span></div>
+                                    <div><span className="text-gray-500">Membre depuis:</span> <span className="text-gray-900">{u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '-'}</span></div>
+                                  </div>
+                                </div>
+
+                                {/* Identity documents card */}
+                                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <FileCheck className="h-4 w-4 text-primary-500" /> Documents d'identite
+                                  </h4>
+                                  {userDocs[u.id] && userDocs[u.id].length > 0 ? (
+                                    <div className="space-y-2">
+                                      {userDocs[u.id].map(doc => (
+                                        <div key={doc.id} className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                          <Eye className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                          <span className="text-gray-700">{doc.document_type}</span>
+                                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                            {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
+                                          </span>
+                                          {doc.document_url && (
+                                            <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 text-xs underline ml-auto">
+                                              Voir le document
+                                            </a>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-400 italic">Aucun document soumis</p>
+                                  )}
+                                </div>
+
+                                {/* Observations card */}
+                                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <Flag className="h-4 w-4 text-primary-500" /> Observations de l'administrateur
+                                  </h4>
+                                  <textarea
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none"
+                                    rows={3}
+                                    placeholder="Ajouter des notes ou observations sur cet utilisateur..."
+                                    value={userObservations[u.id] || ''}
+                                    onChange={e => setUserObservations(prev => ({ ...prev, [u.id]: e.target.value }))}
+                                  />
+                                  <p className="text-xs text-gray-400 mt-1">Ces notes sont locales a cette session.</p>
+                                </div>
+                              </div>
+
+                              {/* Actions row */}
+                              <div className="mt-4 flex flex-wrap items-center gap-2">
+                                {u.status !== 'suspended' ? (
+                                  <button onClick={() => updateUserStatus(u.id, 'suspended')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+                                    <UserX className="h-4 w-4" /> Suspendre
+                                  </button>
+                                ) : (
+                                  <button onClick={() => updateUserStatus(u.id, 'active')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                    <UserCheck className="h-4 w-4" /> Reactiver
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    const obs = userObservations[u.id] || ''
+                                    const reason = obs.trim() ? ` (Observation: ${obs.trim()})` : ''
+                                    updateUserStatus(u.id, 'suspended')
+                                    flash('success', `Utilisateur marque comme suspect${reason}`)
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 transition-colors"
+                                >
+                                  <Flag className="h-4 w-4" /> Marquer suspect
+                                </button>
+                                {!u.identity_verified && (
+                                  <button
+                                    onClick={async () => {
+                                      const sb = supabase()
+                                      if (!sb) return
+                                      const { error } = await sb.from('profiles').update({ identity_verified: true }).eq('id', u.id)
+                                      if (error) { flash('error', error.message) } else {
+                                        flash('success', 'Utilisateur valide')
+                                        setUsers(prev => prev.map(x => x.id === u.id ? { ...x, identity_verified: true } : x))
+                                      }
+                                    }}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                                  >
+                                    <CheckCircle className="h-4 w-4" /> Valider identite
+                                  </button>
+                                )}
+                                {u.email && (
+                                  <a href={`mailto:${u.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                                    <Mail className="h-4 w-4" /> Contacter par email
+                                  </a>
+                                )}
+                              </div>
+
+                              {/* Bookings section */}
+                              <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4">
+                                <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                  <Calendar className="h-4 w-4 text-primary-500" /> Reservations de cet utilisateur
+                                </h4>
+                                <p className="text-sm text-gray-400 italic">Aucune reservation pour le moment.</p>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -917,38 +1028,45 @@ export default function AdminPage() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => approveVerification(v)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
-                            >
-                              <CheckCircle className="h-4 w-4" /> Approuver
-                            </button>
-                            {rejectingId === v.id ? (
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="Motif du rejet..."
-                                  className="w-48 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
-                                  value={rejectionReason}
-                                  onChange={e => setRejectionReason(e.target.value)}
-                                  autoFocus
-                                />
-                                <button onClick={() => rejectVerification(v)} className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
-                                  Confirmer
-                                </button>
-                                <button onClick={() => { setRejectingId(null); setRejectionReason('') }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500">
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                            ) : (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setRejectingId(v.id)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                                onClick={() => approveVerification(v)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
                               >
-                                <XCircle className="h-4 w-4" /> Rejeter
+                                <CheckCircle className="h-4 w-4" /> Approuver
                               </button>
-                            )}
+                              {rejectingId === v.id ? (
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Motif du rejet..."
+                                    className="w-48 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
+                                    value={rejectionReason}
+                                    onChange={e => setRejectionReason(e.target.value)}
+                                    autoFocus
+                                  />
+                                  <button onClick={() => rejectVerification(v)} className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+                                    Confirmer
+                                  </button>
+                                  <button onClick={() => { setRejectingId(null); setRejectionReason('') }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500">
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setRejectingId(v.id)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                                >
+                                  <XCircle className="h-4 w-4" /> Rejeter
+                                </button>
+                              )}
+                              {v.profiles?.email && (
+                                <a href={`mailto:${v.profiles.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors" title="Contacter l'utilisateur">
+                                  <Mail className="h-4 w-4" /> Contacter
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
