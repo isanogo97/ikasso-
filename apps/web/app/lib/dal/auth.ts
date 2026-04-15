@@ -274,8 +274,14 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
   if (mode === 'supabase') {
     const { createClient } = await import('../supabase/client')
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+
+    // Use getSession first (uses refresh token from localStorage)
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user
+    if (!user) {
+      // Fallback to localStorage
+      return getLocalUser()
+    }
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -283,7 +289,47 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
       .eq('id', user.id)
       .single()
 
-    return mapSupabaseProfile(profile || { id: user.id }, user.email || '')
+    if (profile) {
+      const mapped = mapSupabaseProfile(profile, user.email || '')
+      // Also keep localStorage in sync
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ikasso_user', JSON.stringify(mapped))
+      }
+      return mapped
+    }
+
+    // Profile not found yet (new OAuth user) - use metadata
+    const meta = user.user_metadata || {}
+    const fallback: UserProfile = {
+      id: user.id,
+      email: user.email || '',
+      firstName: meta.full_name?.split(' ')[0] || meta.name?.split(' ')[0] || '',
+      lastName: meta.full_name?.split(' ').slice(1).join(' ') || meta.name?.split(' ').slice(1).join(' ') || '',
+      phone: '',
+      countryCode: '+223',
+      phoneVerified: false,
+      emailVerified: true,
+      dateOfBirth: '',
+      address: '',
+      postalCode: '',
+      city: '',
+      country: 'Mali',
+      userType: 'client',
+      avatar: meta.avatar_url || meta.picture || null,
+      avatarUrl: meta.avatar_url || meta.picture || null,
+      bio: '',
+      status: 'active',
+      memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+      hostType: null,
+      companyName: null,
+      responseRate: 0,
+      responseTime: '1 heure',
+      createdAt: new Date().toISOString(),
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ikasso_user', JSON.stringify(fallback))
+    }
+    return fallback
   }
 
   return getLocalUser()

@@ -51,7 +51,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         refreshUser()
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, _session: any) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, _session: any) => {
+          if (_event === 'SIGNED_IN' && _session?.user) {
+            // After OAuth sign in, update profile with Apple/Google data
+            const meta = _session.user.user_metadata || {}
+            const profileData: Record<string, any> = {}
+            if (meta.full_name) {
+              const parts = meta.full_name.split(' ')
+              profileData.first_name = parts[0] || ''
+              profileData.last_name = parts.slice(1).join(' ') || ''
+            } else if (meta.name) {
+              const parts = meta.name.split(' ')
+              profileData.first_name = parts[0] || ''
+              profileData.last_name = parts.slice(1).join(' ') || ''
+            }
+            if (meta.email) profileData.email = meta.email
+
+            // Update profile in Supabase if we have data
+            if (Object.keys(profileData).length > 0) {
+              const hasName = profileData.first_name && profileData.first_name.length > 0
+              if (hasName) {
+                await supabase.from('profiles').update(profileData).eq('id', _session.user.id)
+              }
+            }
+
+            // Also update localStorage for immediate use
+            const localUser = {
+              id: _session.user.id,
+              email: _session.user.email || meta.email || '',
+              firstName: profileData.first_name || meta.full_name?.split(' ')[0] || '',
+              lastName: profileData.last_name || meta.full_name?.split(' ').slice(1).join(' ') || '',
+              userType: 'client',
+              status: 'active',
+              memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+            }
+            localStorage.setItem('ikasso_user', JSON.stringify(localUser))
+          }
           refreshUser()
         })
         return () => subscription.unsubscribe()
