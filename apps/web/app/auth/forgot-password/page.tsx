@@ -1,31 +1,46 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { resetPassword } from '../../lib/dal'
+import { Mail, ArrowLeft, CheckCircle, Loader } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
 
     if (!email || !email.includes('@')) {
-      alert('Veuillez entrer une adresse email valide')
+      setError('Veuillez entrer une adresse email valide')
       return
     }
 
     setIsLoading(true)
 
-    const { error } = await resetPassword(email)
+    try {
+      // Send reset email via our own API (with Ikasso branding)
+      const response = await fetch('/api/send-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          name: email.split('@')[0],
+          resetLink: `${window.location.origin}/auth/reset-password?email=${encodeURIComponent(email)}`
+        })
+      })
 
-    if (error) {
-      alert(`Erreur: ${error}`)
-    } else {
+      const data = await response.json()
+      if (data.success) {
+        setEmailSent(true)
+      } else {
+        // Even if API fails, show success (don't reveal if email exists)
+        setEmailSent(true)
+      }
+    } catch {
       setEmailSent(true)
     }
 
@@ -34,38 +49,39 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
-          <div className="text-center">
-            <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <header className="bg-white border-b border-gray-100">
+          <div className="max-w-md mx-auto px-4 h-14 flex items-center">
+            <Link href="/auth/login" className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </Link>
+          </div>
+        </header>
+
+        <div className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="max-w-sm w-full text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              📧 Email envoyé !
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Un email de réinitialisation a été envoyé à <strong>{email}</strong>.
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Email envoye</h1>
+            <p className="text-gray-500 text-sm mb-2">
+              Si un compte existe avec <strong>{email}</strong>, vous recevrez un email avec les instructions pour reinitialiser votre mot de passe.
             </p>
-            <p className="text-gray-600 mb-8">
-              Vérifiez votre boîte de réception et cliquez sur le lien pour réinitialiser votre mot de passe.
+            <p className="text-gray-400 text-xs mb-8">
+              Verifiez aussi vos spams si vous ne le trouvez pas.
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
-                onClick={() => {
-                  setEmailSent(false)
-                  setEmail('')
-                }}
-                className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                onClick={() => { setEmailSent(false); setEmail('') }}
+                className="w-full py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
               >
                 Renvoyer l'email
               </button>
               <Link
                 href="/auth/login"
-                className="block w-full text-center text-primary-600 hover:text-primary-700 font-medium"
+                className="block w-full py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl text-sm font-semibold transition-all text-center"
               >
-                Retour à la connexion
+                Retour a la connexion
               </Link>
             </div>
           </div>
@@ -75,76 +91,75 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
-        <div>
-          <Link href="/" className="flex justify-center mb-6">
-            <span className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-              Ikasso
-            </span>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <header className="bg-white border-b border-gray-100">
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center">
+          <Link href="/auth/login" className="p-2 -ml-2 hover:bg-gray-100 rounded-full">
+            <ArrowLeft className="h-5 w-5 text-gray-600" />
           </Link>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            🔐 Mot de passe oublié ?
-          </h2>
-          <p className="mt-4 text-center text-gray-600">
-            Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-          </p>
         </div>
+      </header>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Adresse email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="votre.email@example.com"
-            />
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="max-w-sm w-full">
+          <div className="flex justify-center mb-6">
+            <img src="/images/logos/ikasso-logo-800.png" alt="Ikasso" className="h-12 object-contain" />
           </div>
 
-          <div>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-900">Mot de passe oublie ?</h1>
+            <p className="mt-2 text-sm text-gray-500">
+              Entrez votre email et nous vous enverrons un lien pour reinitialiser votre mot de passe.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Adresse email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-gray-400" />
+                <input
+                  type="email"
+                  required
+                  placeholder="vous@exemple.com"
+                  className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all bg-white shadow-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-300 disabled:to-gray-300 text-white py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-primary-500/25"
             >
               {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Envoi en cours...
-                </>
+                <span className="flex items-center justify-center gap-2">
+                  <Loader className="h-4 w-4 animate-spin" />
+                  Envoi...
+                </span>
               ) : (
-                'Envoyer le lien de réinitialisation'
+                'Envoyer le lien'
               )}
             </button>
-          </div>
+          </form>
 
-          <div className="text-center">
-            <Link
-              href="/auth/login"
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              ← Retour à la connexion
+          <div className="mt-6 text-center">
+            <Link href="/auth/login" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              Retour a la connexion
             </Link>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )
 }
-
-
-
-
-
-
-
