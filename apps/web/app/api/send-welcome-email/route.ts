@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <!-- Header -->
   <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:48px 40px 36px;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="220" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
+    <img src="${logoUrl}" alt="Ikasso" width="220" style="display:block;margin:0 auto 16px;" />
     <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Bienvenue, ${name} !</h1>
     <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">Votre compte a bien ete cree</p>
   </td></tr>
