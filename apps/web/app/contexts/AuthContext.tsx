@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       import('../lib/supabase/client').then(async ({ createClient }) => {
         const supabase = createClient()
 
-        // Always call getSession first - this also processes OAuth hash fragments
+        // Process OAuth hash fragments and get session
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
           // Clean up URL hash if present
@@ -49,7 +49,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             window.history.replaceState(null, '', window.location.pathname)
           }
         }
-        refreshUser()
+        // Always refresh - will use localStorage fallback if no Supabase session
+        await refreshUser()
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, _session: any) => {
           if (_event === 'SIGNED_IN' && _session?.user) {

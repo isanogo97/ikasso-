@@ -275,11 +275,14 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
     const { createClient } = await import('../supabase/client')
     const supabase = createClient()
 
-    // Use getSession first (uses refresh token from localStorage)
-    const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user
+    let user: any = null
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      user = session?.user
+    } catch {}
+
+    // ALWAYS fallback to localStorage if no Supabase session
     if (!user) {
-      // Fallback to localStorage
       return getLocalUser()
     }
 

@@ -48,7 +48,7 @@ const hostServices = [
 
 export default function HomePage() {
   const { t, language, setLanguage } = useLanguage()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [searchLocation, setSearchLocation] = useState("")
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
@@ -118,7 +118,7 @@ export default function HomePage() {
                 {t('nav.become_host')}
               </button>
               
-              {isAuthenticated ? (
+              {(isAuthenticated || authLoading) ? (
                 <Link
                   href="/dashboard"
                   className="px-5 py-2.5 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-all flex items-center gap-2"
@@ -191,7 +191,7 @@ export default function HomePage() {
                   {t('nav.experiences')}
                 </button>
               </div>
-              {isAuthenticated ? (
+              {(isAuthenticated || authLoading) ? (
                 <Link href="/dashboard" className="block px-4 py-3 text-sm font-semibold text-white bg-primary-500 rounded-lg mx-1">
                   Mon compte
                 </Link>
