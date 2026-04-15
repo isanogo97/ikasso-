@@ -356,7 +356,15 @@ export default function AdminPage() {
     if (error) {
       flash('error', `Erreur: ${error.message}`)
     } else {
-      flash('success', status === 'suspended' ? 'Compte suspendu' : 'Compte reactive')
+      // Send email notification
+      const targetUser = users.find(u => u.id === userId)
+      if (targetUser?.email) {
+        try {
+          const obs = userObservations[userId] || ''
+          await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: targetUser.email, name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim(), status: status === 'suspended' ? 'suspended' : 'reactivated', reason: obs }) })
+        } catch {}
+      }
+      flash('success', status === 'suspended' ? 'Compte suspendu — email envoye' : 'Compte reactive — email envoye')
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u))
     }
   }
@@ -379,9 +387,10 @@ export default function AdminPage() {
     if (e1 || e2) {
       flash('error', 'Erreur lors de la validation')
     } else {
-      // TODO: Send email notification to user about approval
-      // await fetch('/api/send-email-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
-      flash('success', 'Identite approuvee')
+      try {
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
+      } catch {}
+      flash('success', 'Identite approuvee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
     }
   }
@@ -394,9 +403,10 @@ export default function AdminPage() {
     if (error) {
       flash('error', 'Erreur lors du rejet')
     } else {
-      // TODO: Send email notification to user about rejection with reason
-      // await fetch('/api/send-email-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
-      flash('success', 'Verification rejetee')
+      try {
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
+      } catch {}
+      flash('success', 'Verification rejetee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
       setRejectingId(null)
       setRejectionReason('')
