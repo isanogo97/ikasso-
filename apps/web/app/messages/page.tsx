@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, MessageCircle, Search, Send } from 'lucide-react'
+import { ArrowLeft, MessageCircle, Search, Send, Mail } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
 import { getConversations, getMessages, sendMessage } from '../lib/dal'
@@ -91,13 +91,23 @@ export default function MessagesPage() {
 
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center max-w-sm">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="h-10 w-10 text-gray-300" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Aucun message</h2>
-            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
               Vos conversations avec les hotes apparaitront ici lorsque vous effectuerez une reservation.
             </p>
+
+            <a
+              href="mailto:support@ikasso.ml"
+              className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 hover:shadow-md hover:ring-primary-200 transition-all mb-6 text-left"
+            >
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white flex-shrink-0">
+                <Mail className="h-6 w-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">Service Client Ikasso</p>
+                <p className="text-xs text-gray-500 mt-0.5">Besoin d&apos;aide ? Contactez notre equipe</p>
+              </div>
+            </a>
+
             <Link
               href="/search"
               className="inline-flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-primary-500/25"

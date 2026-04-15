@@ -8,6 +8,7 @@ import {
   Home, Compass, ArrowRight
 } from 'lucide-react'
 import Logo from '../components/Logo'
+import VerificationBanner from '../components/VerificationBanner'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserBookings } from '../lib/dal'
 import type { Booking } from '../lib/dal'
@@ -186,6 +187,9 @@ export default function TravelerDashboard() {
       {/* MAIN CONTENT                                                      */}
       {/* ----------------------------------------------------------------- */}
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-8">
+
+        {/* ---- Verification banner ---- */}
+        <VerificationBanner />
 
         {/* ---- Welcome banner ---- */}
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-orange-700 p-6 md:p-10 text-white">

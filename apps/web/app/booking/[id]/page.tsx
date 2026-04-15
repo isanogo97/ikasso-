@@ -108,6 +108,17 @@ export default function BookingPage() {
     }
   }
 
+  const handleOpenPayment = () => {
+    // Check if identity is verified before booking
+    const storedUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+    if (!storedUser.identityVerified && !storedUser.identity_verified) {
+      alert('Vous devez verifier votre identite avant de reserver. Allez dans votre profil pour completer la verification.')
+      window.location.href = '/verify-identity'
+      return
+    }
+    setShowPaymentModal(true)
+  }
+
   const handlePaymentSuccess = () => {
     setBookingComplete(true)
     setShowPaymentModal(false)
@@ -449,7 +460,7 @@ export default function BookingPage() {
 
                 <div className="text-center">
                   <button
-                    onClick={() => setShowPaymentModal(true)}
+                    onClick={handleOpenPayment}
                     className="btn-primary text-lg px-8 py-3"
                   >
                     Payer {formatPrice(total)}
