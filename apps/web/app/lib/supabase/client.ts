@@ -1,4 +1,4 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export function isSupabaseConfigured(): boolean {
   return !!(
@@ -8,13 +8,22 @@ export function isSupabaseConfigured(): boolean {
   )
 }
 
-let _client: ReturnType<typeof createBrowserClient> | null = null
+let _client: any = null
 
-export function createClient() {
+export function createClient(): any {
   if (_client) return _client
-  _client = createBrowserClient(
+  _client = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: true,
+        storageKey: 'ikasso-auth',
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      }
+    }
   )
   return _client
 }
