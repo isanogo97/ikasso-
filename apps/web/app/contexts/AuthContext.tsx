@@ -36,19 +36,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    refreshUser()
-
     // Subscribe to Supabase auth changes when configured
     if (isSupabaseConfigured()) {
-      import('../lib/supabase/client').then(({ createClient }) => {
+      import('../lib/supabase/client').then(async ({ createClient }) => {
         const supabase = createClient()
+
+        // If URL has hash fragment (OAuth redirect), let Supabase process it first
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          // Wait for Supabase to process the hash
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session) {
+            refreshUser()
+          }
+        } else {
+          refreshUser()
+        }
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, _session: any) => {
           refreshUser()
         })
         return () => subscription.unsubscribe()
       })
     } else {
-      // Listen for localStorage changes (e.g., login from another tab)
+      refreshUser()
       const handleStorage = (e: StorageEvent) => {
         if (e.key === 'ikasso_user') refreshUser()
       }

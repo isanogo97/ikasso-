@@ -32,6 +32,14 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  // Skip auth check if this could be an OAuth callback (hash fragments are client-side)
+  const isOAuthCallback = request.nextUrl.searchParams.has('code') ||
+    request.nextUrl.searchParams.has('error') ||
+    pathname === '/api/auth/callback'
+  if (isOAuthCallback) {
+    return response
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   // Redirect unauthenticated users away from protected routes
