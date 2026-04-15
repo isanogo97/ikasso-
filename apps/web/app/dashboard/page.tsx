@@ -88,6 +88,14 @@ export default function TravelerDashboard() {
     )
   }
 
+  // Redirect to home if not authenticated
+  if (!user && !isLoading) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
+    return null
+  }
+
   const firstName = user?.firstName || 'Voyageur'
   const upcomingBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending')
   const recentBookings = bookings.slice(0, 3)

@@ -116,7 +116,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await dalSignOut()
+    // Also clear Supabase auth storage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ikasso-auth')
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-')) localStorage.removeItem(key)
+      })
+    }
     setUser(null)
+    window.location.href = '/'
   }
 
   const updateProfile = async (data: Partial<ProfileUpdateInput>) => {
