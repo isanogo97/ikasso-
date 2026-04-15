@@ -149,13 +149,18 @@ export default function RegisterNewPage() {
   const sendEmailVerification = async () => {
     if (!personalData.email) return
 
-    const existingUsers = JSON.parse(localStorage.getItem('ikasso_all_users') || '[]')
-    const emailExists = existingUsers.some((user: any) => user.email === personalData.email)
-    
-    if (emailExists) {
-      alert('Un compte existe déjà avec cet email.')
-      return
-    }
+    // Check if email already exists in Supabase
+    try {
+      const { isSupabaseConfigured, createClient } = await import('../../lib/supabase/client')
+      if (isSupabaseConfigured()) {
+        const supabase = createClient()
+        const { data } = await supabase.from('profiles').select('id').eq('email', personalData.email).limit(1) as any
+        if (data && data.length > 0) {
+          alert('Un compte existe deja avec cet email.')
+          return
+        }
+      }
+    } catch {}
 
     setSendingEmail(true)
     const code = Math.floor(100000 + Math.random() * 900000).toString()
