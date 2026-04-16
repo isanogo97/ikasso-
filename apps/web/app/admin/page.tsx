@@ -228,6 +228,11 @@ export default function AdminPage() {
   const [incidentSendEmail, setIncidentSendEmail] = useState(true)
   const [userIncidents, setUserIncidents] = useState<any[]>([])
   const [userIncidentsLoading, setUserIncidentsLoading] = useState(false)
+  const [showAddHistory, setShowAddHistory] = useState(false)
+  const [historySubject, setHistorySubject] = useState('')
+  const [historyMessage, setHistoryMessage] = useState('')
+  const [historyChannel, setHistoryChannel] = useState<'email' | 'phone' | 'other'>('email')
+  const [historyStatus, setHistoryStatus] = useState<'open' | 'pending' | 'closed'>('open')
 
   // Action feedback
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -556,6 +561,43 @@ export default function AdminPage() {
     } finally {
       setUserIncidentsLoading(false)
     }
+  }
+
+  const addHistoryEntry = async () => {
+    if (!historySubject.trim() || !selectedUserId) return
+    try {
+      const res = await fetch('/api/admin/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUserId,
+          subject: `[${historyChannel === 'email' ? 'Email' : historyChannel === 'phone' ? 'Telephone' : 'Autre'}] ${historySubject}`,
+          message: historyMessage || null,
+          adminName: currentAdmin?.name,
+          sendEmail: false,
+        }),
+      })
+      if (res.ok) {
+        // If status is not open, update it
+        if (historyStatus !== 'open') {
+          const json = await res.json()
+          if (json.incident?.id) {
+            await fetch('/api/admin/incidents/' + json.incident.id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ status: historyStatus, adminName: currentAdmin?.name }),
+            })
+          }
+        }
+        flash('success', 'Entree ajoutee a l\'historique')
+        setShowAddHistory(false)
+        setHistorySubject('')
+        setHistoryMessage('')
+        setHistoryChannel('email')
+        setHistoryStatus('open')
+        fetchUserIncidents(selectedUserId)
+      }
+    } catch { flash('error', 'Erreur') }
   }
 
   const sendAdminEmail = async () => {
@@ -1489,44 +1531,143 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  {/* Historique incidents */}
+                  {/* Historique complet */}
                   <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
-                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                          <Clock className="h-4 w-4 text-amber-600" />
+                        </div>
+                        Historique
+                      </h4>
+                      <button
+                        onClick={() => setShowAddHistory(!showAddHistory)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Ajouter
+                      </button>
+                    </div>
+
+                    {/* Add history form */}
+                    {showAddHistory && (
+                      <div className="mb-4 p-4 rounded-xl border border-primary-200 bg-primary-50/50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Canal</label>
+                            <select
+                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                              value={historyChannel}
+                              onChange={e => setHistoryChannel(e.target.value as any)}
+                            >
+                              <option value="email">Email</option>
+                              <option value="phone">Telephone</option>
+                              <option value="other">Autre</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Statut</label>
+                            <select
+                              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                              value={historyStatus}
+                              onChange={e => setHistoryStatus(e.target.value as any)}
+                            >
+                              <option value="open">Ouvert</option>
+                              <option value="pending">En attente</option>
+                              <option value="closed">Cloture / Resolu</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Sujet / Motif</label>
+                          <input
+                            type="text"
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
+                            value={historySubject}
+                            onChange={e => setHistorySubject(e.target.value)}
+                            placeholder="Ex: Demande de remboursement, Probleme de connexion..."
+                          />
+                        </div>
+                        <div className="mb-3">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Details (optionnel)</label>
+                          <textarea
+                            rows={3}
+                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none"
+                            value={historyMessage}
+                            onChange={e => setHistoryMessage(e.target.value)}
+                            placeholder="Details de la demande, resolution, notes..."
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={addHistoryEntry} className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors">
+                            Enregistrer
+                          </button>
+                          <button onClick={() => { setShowAddHistory(false); setHistorySubject(''); setHistoryMessage('') }} className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">
+                            Annuler
+                          </button>
+                        </div>
                       </div>
-                      Historique incidents
-                    </h4>
+                    )}
+
+                    {/* History entries */}
                     {userIncidentsLoading ? (
                       <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-primary-500" /></div>
                     ) : userIncidents.length === 0 ? (
-                      <p className="text-sm text-gray-400 italic">Aucun incident pour cet utilisateur</p>
+                      <div className="text-center py-6">
+                        <Clock className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-sm text-gray-400">Aucun historique pour cet utilisateur</p>
+                        <p className="text-xs text-gray-300 mt-1">Cliquez sur + Ajouter pour creer une entree</p>
+                      </div>
                     ) : (
-                      <div className="space-y-2">
-                        {userIncidents.map((inc: any) => (
-                          <div
-                            key={inc.id}
-                            onClick={() => { navigateToTab('incidents'); loadIncidentDetail(inc.id); }}
-                            className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-primary-300 hover:bg-gray-50 cursor-pointer transition-all"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-gray-900 truncate">{inc.subject}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">
-                                {inc.created_at ? new Date(inc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
-                              </p>
+                      <div className="space-y-0 relative">
+                        {/* Timeline line */}
+                        <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-gray-200" />
+                        {userIncidents.map((inc: any, idx: number) => {
+                          const isEmail = inc.subject?.includes('[Email]')
+                          const isPhone = inc.subject?.includes('[Telephone]')
+                          const cleanSubject = inc.subject?.replace(/^\[(Email|Telephone|Autre)\]\s*/, '') || inc.subject
+                          return (
+                            <div key={inc.id} className="relative pl-10 pb-4">
+                              {/* Timeline dot */}
+                              <div className={`absolute left-2.5 top-1 h-3 w-3 rounded-full border-2 border-white ${
+                                inc.status === 'open' ? 'bg-green-500' :
+                                inc.status === 'pending' ? 'bg-amber-500' :
+                                inc.status === 'on_hold' ? 'bg-blue-500' :
+                                'bg-gray-400'
+                              }`} />
+                              <div
+                                onClick={() => { navigateToTab('incidents'); loadIncidentDetail(inc.id); }}
+                                className="p-3 rounded-lg border border-gray-100 hover:border-primary-300 hover:bg-gray-50 cursor-pointer transition-all"
+                              >
+                                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                                    isEmail ? 'bg-blue-100 text-blue-700' :
+                                    isPhone ? 'bg-purple-100 text-purple-700' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {isEmail ? 'Email' : isPhone ? 'Tel' : 'Note'}
+                                  </span>
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                    inc.status === 'open' ? 'bg-green-100 text-green-700' :
+                                    inc.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                    inc.status === 'on_hold' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {inc.status === 'open' ? 'Ouvert' :
+                                     inc.status === 'pending' ? 'En attente' :
+                                     inc.status === 'on_hold' ? 'En pause' : 'Resolu'}
+                                  </span>
+                                  <span className="text-[10px] text-gray-400">
+                                    {inc.created_at ? new Date(inc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-medium text-gray-900">{cleanSubject}</p>
+                                {inc.message_count > 0 && (
+                                  <p className="text-xs text-gray-400 mt-0.5">{inc.message_count} message(s)</p>
+                                )}
+                              </div>
                             </div>
-                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
-                              inc.status === 'open' ? 'bg-green-100 text-green-700' :
-                              inc.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                              inc.status === 'on_hold' ? 'bg-blue-100 text-blue-700' :
-                              'bg-gray-100 text-gray-600'
-                            }`}>
-                              {inc.status === 'open' ? 'Ouvert' :
-                               inc.status === 'pending' ? 'En attente' :
-                               inc.status === 'on_hold' ? 'En pause' : 'Cloture'}
-                            </span>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -1568,19 +1709,17 @@ export default function AdminPage() {
                         </button>
                       )}
 
-                      {selectedUser.email && (
-                        <button
-                          onClick={() => {
-                            setEmailTo(selectedUser.email || '')
-                            setEmailSubject('')
-                            setEmailMessage('')
-                            setShowEmailModal(true)
-                          }}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
-                        >
-                          <Mail className="h-4 w-4" /> Contacter
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          setEmailTo(selectedUser.email || '')
+                          setEmailSubject('')
+                          setEmailMessage('')
+                          setShowEmailModal(true)
+                        }}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+                      >
+                        <Mail className="h-4 w-4" /> Contacter
+                      </button>
 
                       {/* Delete button and confirmation */}
                       {deleteConfirmId === selectedUser.id ? (
