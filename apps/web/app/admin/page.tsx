@@ -6,7 +6,7 @@ import {
   Shield, Users, BarChart3, LogOut, Search, ChevronDown, ChevronUp,
   CheckCircle, CheckCircle2, XCircle, AlertTriangle, Mail, Eye, UserCheck, UserX,
   Flag, RefreshCw, Plus, Trash2, LayoutDashboard, FileCheck, UserCog,
-  Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft
+  Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft, Tag, Send, Percent
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
@@ -17,7 +17,7 @@ import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'dashboard' | 'users' | 'verifications' | 'admins'
+type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions'
 type UserFilter = 'all' | 'clients' | 'hosts' | 'suspended' | 'verified'
 
 interface DashboardStats {
@@ -107,10 +107,24 @@ const ROLE_LABELS: Record<string, string> = {
   support: 'Support',
 }
 
+interface PromoCode {
+  id: string
+  code: string
+  description?: string
+  discount_percent?: number
+  discount_amount?: number
+  is_active: boolean
+  expires_at?: string
+  max_uses?: number
+  current_uses: number
+  created_at: string
+}
+
 const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { key: 'users', label: 'Utilisateurs', icon: Users },
   { key: 'verifications', label: 'Verifications', icon: FileCheck },
+  { key: 'promotions', label: 'Promotions', icon: Tag },
   { key: 'admins', label: 'Administrateurs', icon: UserCog },
 ]
 
@@ -182,6 +196,25 @@ export default function AdminPage() {
   const [showAddAdmin, setShowAddAdmin] = useState(false)
   const [newAdmin, setNewAdmin] = useState<NewAdminForm>(defaultNewAdmin)
   const [addAdminError, setAddAdminError] = useState('')
+
+  // Email modal
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailTo, setEmailTo] = useState('')
+  const [emailSubject, setEmailSubject] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [emailSending, setEmailSending] = useState(false)
+
+  // Promotions
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
+  const [promosLoading, setPromosLoading] = useState(false)
+  const [showAddPromo, setShowAddPromo] = useState(false)
+  const [newPromoCode, setNewPromoCode] = useState('')
+  const [newPromoDesc, setNewPromoDesc] = useState('')
+  const [newPromoPercent, setNewPromoPercent] = useState('')
+  const [newPromoAmount, setNewPromoAmount] = useState('')
+  const [newPromoExpires, setNewPromoExpires] = useState('')
+  const [newPromoMaxUses, setNewPromoMaxUses] = useState('')
+  const [promoError, setPromoError] = useState('')
 
   // Action feedback
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -406,6 +439,117 @@ export default function AdminPage() {
     }
   }, [flash])
 
+  const fetchPromoCodes = useCallback(async () => {
+    setPromosLoading(true)
+    try {
+      const res = await fetch('/api/admin/promo-codes')
+      const json = await res.json()
+      setPromoCodes(json.codes || [])
+    } catch {
+      flash('error', 'Impossible de charger les codes promo')
+    } finally {
+      setPromosLoading(false)
+    }
+  }, [flash])
+
+  const sendAdminEmail = async () => {
+    if (!emailTo || !emailSubject || !emailMessage) {
+      flash('error', 'Remplissez tous les champs')
+      return
+    }
+    setEmailSending(true)
+    try {
+      const res = await fetch('/api/admin/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: emailTo,
+          subject: emailSubject,
+          message: emailMessage,
+          senderName: currentAdmin?.name || 'Admin Ikasso',
+        }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        flash('success', `Email envoye a ${emailTo}`)
+        setShowEmailModal(false)
+        setEmailTo('')
+        setEmailSubject('')
+        setEmailMessage('')
+      } else {
+        flash('error', json.error || 'Erreur envoi email')
+      }
+    } catch {
+      flash('error', 'Erreur envoi email')
+    } finally {
+      setEmailSending(false)
+    }
+  }
+
+  const createPromoCode = async () => {
+    if (!newPromoCode || (!newPromoPercent && !newPromoAmount)) {
+      setPromoError('Code et reduction requis')
+      return
+    }
+    try {
+      const res = await fetch('/api/admin/promo-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: newPromoCode,
+          description: newPromoDesc || null,
+          discount_percent: newPromoPercent ? parseInt(newPromoPercent) : null,
+          discount_amount: newPromoAmount ? parseInt(newPromoAmount) : null,
+          expires_at: newPromoExpires || null,
+          max_uses: newPromoMaxUses ? parseInt(newPromoMaxUses) : null,
+        }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        flash('success', `Code "${newPromoCode.toUpperCase()}" cree`)
+        setShowAddPromo(false)
+        setNewPromoCode('')
+        setNewPromoDesc('')
+        setNewPromoPercent('')
+        setNewPromoAmount('')
+        setNewPromoExpires('')
+        setNewPromoMaxUses('')
+        setPromoError('')
+        fetchPromoCodes()
+      } else {
+        setPromoError(json.error || 'Erreur creation')
+        if (json.needsMigration && json.sql) {
+          setPromoError('Table non creee. Executez ce SQL dans Supabase SQL Editor: ' + json.sql)
+        }
+      }
+    } catch {
+      setPromoError('Erreur creation')
+    }
+  }
+
+  const togglePromoCode = async (id: string, isActive: boolean) => {
+    try {
+      await fetch('/api/admin/promo-codes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_active: !isActive }),
+      })
+      fetchPromoCodes()
+    } catch { flash('error', 'Erreur') }
+  }
+
+  const deletePromoCode = async (id: string) => {
+    try {
+      await fetch('/api/admin/promo-codes', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      flash('success', 'Code supprime')
+      fetchPromoCodes()
+    } catch { flash('error', 'Erreur suppression') }
+  }
+
   // Fetch data when tab changes
   useEffect(() => {
     if (!isAdmin) return
@@ -413,7 +557,8 @@ export default function AdminPage() {
     if (activeTab === 'users') fetchUsers()
     if (activeTab === 'verifications') fetchVerifications()
     if (activeTab === 'admins') fetchAdmins()
-  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins])
+    if (activeTab === 'promotions') fetchPromoCodes()
+  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes])
 
   // Load user docs when a user is selected
   useEffect(() => {
@@ -737,8 +882,15 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
-          <div className="mb-3">
+        <div className="p-4 border-t border-gray-100 space-y-2">
+          <button
+            onClick={() => setShowEmailModal(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+          >
+            <Send className="h-4 w-4" />
+            Envoyer un email
+          </button>
+          <div className="pt-2 border-t border-gray-100">
             <p className="text-sm font-medium text-gray-900 truncate">{currentAdmin?.name}</p>
             <p className="text-xs text-gray-500">{ROLE_LABELS[currentAdmin?.role || 'admin']}</p>
           </div>
@@ -1402,6 +1554,174 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* =============== PROMOTIONS TAB =============== */}
+          {activeTab === 'promotions' && (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Codes promotionnels</h1>
+                  <p className="text-gray-500 text-sm mt-1">Gerez les bons de reduction pour Ikasso</p>
+                </div>
+                <button
+                  onClick={() => setShowAddPromo(!showAddPromo)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-sm"
+                >
+                  <Plus className="h-4 w-4" /> Nouveau code promo
+                </button>
+              </div>
+
+              {/* Add promo form */}
+              {showAddPromo && (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Creer un code promotionnel</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500 uppercase"
+                        value={newPromoCode}
+                        onChange={e => setNewPromoCode(e.target.value.toUpperCase())}
+                        placeholder="ex: BIENVENUE20"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Reduction en %</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                          value={newPromoPercent}
+                          onChange={e => { setNewPromoPercent(e.target.value); if (e.target.value) setNewPromoAmount('') }}
+                          placeholder="ex: 20"
+                        />
+                        <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ou reduction fixe (FCFA)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoAmount}
+                        onChange={e => { setNewPromoAmount(e.target.value); if (e.target.value) setNewPromoPercent('') }}
+                        placeholder="ex: 5000"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoDesc}
+                        onChange={e => setNewPromoDesc(e.target.value)}
+                        placeholder="Offre de bienvenue"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date d&apos;expiration</label>
+                      <input
+                        type="date"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoExpires}
+                        onChange={e => setNewPromoExpires(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Utilisations max</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoMaxUses}
+                        onChange={e => setNewPromoMaxUses(e.target.value)}
+                        placeholder="Illimite si vide"
+                      />
+                    </div>
+                  </div>
+
+                  {promoError && (
+                    <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-800">{promoError}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3">
+                    <button onClick={createPromoCode} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors">
+                      Creer le code
+                    </button>
+                    <button onClick={() => { setShowAddPromo(false); setPromoError('') }} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Promo codes list */}
+              {promosLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+              ) : promoCodes.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  <Tag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Aucun code promotionnel</p>
+                  <p className="text-gray-400 text-sm mt-1">Creez votre premier code promo</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {promoCodes.map(pc => (
+                    <div key={pc.id} className={`bg-white rounded-2xl border shadow-sm p-5 transition-all ${pc.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'}`}>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-center gap-4">
+                          <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${pc.is_active ? 'bg-green-100' : 'bg-gray-100'}`}>
+                            <Tag className={`h-6 w-6 ${pc.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-lg text-gray-900">{pc.code}</span>
+                              {pc.is_active ? (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Actif</span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactif</span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-500 mt-0.5">{pc.description || 'Pas de description'}</p>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                              <span className="font-semibold text-primary-600">
+                                {pc.discount_percent ? `-${pc.discount_percent}%` : pc.discount_amount ? `-${pc.discount_amount.toLocaleString()} FCFA` : '-'}
+                              </span>
+                              {pc.max_uses && <span>{pc.current_uses}/{pc.max_uses} utilisations</span>}
+                              {pc.expires_at && <span>Expire le {new Date(pc.expires_at).toLocaleDateString('fr-FR')}</span>}
+                              <span>Cree le {new Date(pc.created_at).toLocaleDateString('fr-FR')}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => togglePromoCode(pc.id, pc.is_active)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${pc.is_active ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-green-700 bg-green-50 hover:bg-green-100'}`}
+                          >
+                            {pc.is_active ? 'Desactiver' : 'Reactiver'}
+                          </button>
+                          <button
+                            onClick={() => deletePromoCode(pc.id)}
+                            className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* =============== ADMINS TAB =============== */}
           {activeTab === 'admins' && (
             <div>
@@ -1571,6 +1891,83 @@ export default function AdminPage() {
           )}
         </div>
       </main>
+
+      {/* =============== EMAIL MODAL =============== */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Send className="h-5 w-5 text-primary-500" />
+                Envoyer un email
+              </h3>
+              <button onClick={() => setShowEmailModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Destinataire</label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={emailTo}
+                    onChange={e => setEmailTo(e.target.value)}
+                    placeholder="utilisateur@email.com"
+                    list="user-emails"
+                  />
+                  <datalist id="user-emails">
+                    {users.filter(u => u.email).map(u => (
+                      <option key={u.id} value={u.email!}>{u.first_name} {u.last_name}</option>
+                    ))}
+                  </datalist>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Commencez a taper pour voir les suggestions</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sujet</label>
+                <input
+                  type="text"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                  value={emailSubject}
+                  onChange={e => setEmailSubject(e.target.value)}
+                  placeholder="Objet de l'email"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                <textarea
+                  rows={6}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none"
+                  value={emailMessage}
+                  onChange={e => setEmailMessage(e.target.value)}
+                  placeholder="Votre message..."
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={sendAdminEmail}
+                disabled={emailSending || !emailTo || !emailSubject || !emailMessage}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 transition-colors"
+              >
+                {emailSending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Envoi...</>
+                ) : (
+                  <><Send className="h-4 w-4" /> Envoyer</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
