@@ -52,6 +52,8 @@ export default function RegisterNewPage() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const [phone, setPhone] = useState('')
   const [referralCode, setReferralCode] = useState('')
+  const [referralValid, setReferralValid] = useState<null | { valid: boolean; reward?: string; error?: string }>(null)
+  const [checkingReferral, setCheckingReferral] = useState(false)
 
   const [personalData, setPersonalData] = useState({
     firstName: '',
@@ -170,6 +172,24 @@ export default function RegisterNewPage() {
       alert(error)
       setIsLoading(false)
       return
+    }
+
+    // Apply referral/promo code if provided
+    if (referralCode.trim()) {
+      try {
+        // Get the newly created user ID from localStorage
+        const savedUser = localStorage.getItem('ikasso_user')
+        const userId = savedUser ? JSON.parse(savedUser).id : null
+        await fetch('/api/validate-referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: referralCode.trim(),
+            userId,
+            userEmail: personalData.email,
+          }),
+        })
+      } catch {}
     }
 
     try {
@@ -510,13 +530,43 @@ export default function RegisterNewPage() {
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Code de parrainage <span className="text-gray-400">(optionnel)</span>
               </label>
-              <input
-                type="text"
-                placeholder="Entrez votre code de parrainage"
-                className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Ex: WELCOMEIKASSO"
+                  className={`flex-1 px-3 py-3 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 uppercase ${referralValid?.valid ? 'border-green-400 bg-green-50' : referralValid && !referralValid.valid ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                  value={referralCode}
+                  onChange={(e) => { setReferralCode(e.target.value.toUpperCase()); setReferralValid(null) }}
+                />
+                {referralCode.trim().length >= 3 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setCheckingReferral(true)
+                      try {
+                        const res = await fetch('/api/validate-referral', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ code: referralCode.trim() }),
+                        })
+                        const json = await res.json()
+                        setReferralValid(json)
+                      } catch { setReferralValid({ valid: false, error: 'Erreur' }) }
+                      setCheckingReferral(false)
+                    }}
+                    disabled={checkingReferral}
+                    className="px-4 py-3 bg-primary-500 text-white text-sm font-semibold rounded-xl hover:bg-primary-600 disabled:bg-gray-300 transition-colors whitespace-nowrap"
+                  >
+                    {checkingReferral ? '...' : 'Verifier'}
+                  </button>
+                )}
+              </div>
+              {referralValid?.valid && (
+                <p className="text-xs text-green-600 mt-1 font-medium">✓ {referralValid.reward}</p>
+              )}
+              {referralValid && !referralValid.valid && (
+                <p className="text-xs text-red-500 mt-1">✗ {referralValid.error}</p>
+              )}
             </div>
 
             {/* Bouton continuer */}
