@@ -16,8 +16,8 @@ const DOCUMENT_TYPES: { value: DocumentType; label: string; description: string 
 
 const FACE_DIRECTIONS = [
   { key: 'front' as const, label: 'Face', instruction: 'Regardez directement la camera' },
-  { key: 'left' as const, label: 'Gauche', instruction: 'Tournez legerement la tete vers la gauche' },
-  { key: 'right' as const, label: 'Droite', instruction: 'Tournez legerement la tete vers la droite' },
+  { key: 'left' as const, label: 'Profil gauche', instruction: 'Tournez votre tete vers votre droite pour montrer votre profil gauche' },
+  { key: 'right' as const, label: 'Profil droit', instruction: 'Tournez votre tete vers votre gauche pour montrer votre profil droit' },
 ]
 
 type FaceKey = 'front' | 'left' | 'right'

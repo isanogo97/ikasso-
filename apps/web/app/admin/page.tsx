@@ -58,10 +58,13 @@ interface Verification {
   status: string
   submitted_at?: string
   created_at?: string
-  document_url?: string
-  selfie_url?: string
+  document_front_url?: string
+  document_back_url?: string
+  face_front_url?: string
+  face_left_url?: string
+  face_right_url?: string
   rejection_reason?: string
-  profiles?: { first_name?: string; last_name?: string; email?: string }
+  profiles?: { first_name?: string; last_name?: string; email?: string } | null
 }
 
 interface NewAdminForm {
@@ -304,23 +307,20 @@ export default function AdminPage() {
   const fetchVerifications = useCallback(async () => {
     setVerificationsLoading(true)
     try {
-      const sb = supabase()
-      if (sb) {
-        const { data } = await sb
-          .from('identity_verifications')
-          .select('*, profiles(first_name, last_name, email)')
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-        setVerifications(data || [])
+      const res = await fetch('/api/admin/verifications')
+      const json = await res.json()
+      if (res.ok && json.verifications) {
+        setVerifications(json.verifications)
       } else {
         setVerifications([])
+        flash('error', json.error || 'Impossible de charger les verifications')
       }
     } catch {
       flash('error', 'Impossible de charger les verifications')
     } finally {
       setVerificationsLoading(false)
     }
-  }, [supabase, flash])
+  }, [flash])
 
   const fetchAdmins = useCallback(async () => {
     setAdminsLoading(true)
@@ -910,8 +910,8 @@ export default function AdminPage() {
                                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
                                             {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
                                           </span>
-                                          {doc.document_url && (
-                                            <a href={doc.document_url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 text-xs underline ml-auto">
+                                          {doc.document_front_url && (
+                                            <a href={doc.document_front_url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 text-xs underline ml-auto">
                                               Voir le document
                                             </a>
                                           )}
@@ -1021,25 +1021,27 @@ export default function AdminPage() {
                 <div className="space-y-4">
                   {verifications.map(v => {
                     const userName = v.profiles ? `${v.profiles.first_name || ''} ${v.profiles.last_name || ''}`.trim() : v.user_id
+                    const docLabels: { key: keyof Verification; label: string }[] = [
+                      { key: 'document_front_url', label: 'Document Recto' },
+                      { key: 'document_back_url', label: 'Document Verso' },
+                      { key: 'face_front_url', label: 'Visage Face' },
+                      { key: 'face_left_url', label: 'Visage Gauche' },
+                      { key: 'face_right_url', label: 'Visage Droite' },
+                    ]
                     return (
                       <div key={v.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{userName}</p>
-                            <p className="text-xs text-gray-500">{v.profiles?.email || '-'}</p>
-                            <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                              <span>Type: <strong className="text-gray-700">{v.document_type}</strong></span>
-                              <span>Soumis le: <strong className="text-gray-700">{v.submitted_at || v.created_at ? new Date(v.submitted_at || v.created_at!).toLocaleDateString('fr-FR') : '-'}</strong></span>
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{userName}</p>
+                              <p className="text-xs text-gray-500">{v.profiles?.email || '-'}</p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                                <span>Type: <strong className="text-gray-700">{v.document_type}</strong></span>
+                                <span>Soumis le: <strong className="text-gray-700">{v.submitted_at || v.created_at ? new Date(v.submitted_at || v.created_at!).toLocaleDateString('fr-FR') : '-'}</strong></span>
+                              </div>
                             </div>
-                            {v.document_url && (
-                              <a href={v.document_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary-500 hover:text-primary-600 mt-2">
-                                <Eye className="h-3 w-3" /> Voir le document
-                              </a>
-                            )}
-                          </div>
 
-                          <div className="flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <button
                                 onClick={() => approveVerification(v)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
@@ -1077,6 +1079,31 @@ export default function AdminPage() {
                                 </a>
                               )}
                             </div>
+                          </div>
+
+                          {/* Document & Face Photos Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            {docLabels.map(({ key, label }) => {
+                              const url = v[key] as string | undefined
+                              return (
+                                <div key={key} className="text-center">
+                                  <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
+                                  {url ? (
+                                    <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+                                      <img
+                                        src={url}
+                                        alt={label}
+                                        className="w-full h-24 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors cursor-pointer"
+                                      />
+                                    </a>
+                                  ) : (
+                                    <div className="w-full h-24 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
+                                      <span className="text-xs text-gray-400">Manquant</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
                           </div>
                         </div>
                       </div>
