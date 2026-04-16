@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, ArrowLeft, CheckCircle, Loader } from 'lucide-react'
+import { resetPassword } from '../../lib/dal'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -21,28 +22,12 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true)
 
-    try {
-      // Send reset email via our own API (with Ikasso branding)
-      const response = await fetch('/api/send-password-reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          name: email.split('@')[0],
-          resetLink: `${window.location.origin}/auth/reset-password?email=${encodeURIComponent(email)}`
-        })
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        setEmailSent(true)
-      } else {
-        // Even if API fails, show success (don't reveal if email exists)
-        setEmailSent(true)
-      }
-    } catch {
-      setEmailSent(true)
+    // Use Supabase auth reset (sends via our custom SMTP = Ikasso branded)
+    const { error: resetError } = await resetPassword(email)
+    if (resetError) {
+      // Don't reveal if email exists — always show success
     }
+    setEmailSent(true)
 
     setIsLoading(false)
   }
