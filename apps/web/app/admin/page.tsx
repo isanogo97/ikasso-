@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
   Shield, Users, BarChart3, LogOut, Search, ChevronDown, ChevronUp,
   CheckCircle, CheckCircle2, XCircle, AlertTriangle, Mail, Eye, UserCheck, UserX,
   Flag, RefreshCw, Plus, Trash2, LayoutDashboard, FileCheck, UserCog,
-  Loader2, Home, X, CreditCard, Calendar, Clock
+  Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
@@ -18,6 +18,7 @@ import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 // Types
 // ---------------------------------------------------------------------------
 type Tab = 'dashboard' | 'users' | 'verifications' | 'admins'
+type UserFilter = 'all' | 'clients' | 'hosts' | 'suspended' | 'verified'
 
 interface DashboardStats {
   totalUsers: number
@@ -47,7 +48,11 @@ interface UserRow {
   identity_verified?: boolean
   created_at?: string
   phone?: string
+  date_of_birth?: string
+  address?: string
+  postal_code?: string
   city?: string
+  country?: string
   [key: string]: any
 }
 
@@ -110,6 +115,27 @@ const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 // ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
+function getTabFromUrl(): { tab: Tab; userId: string | null } {
+  if (typeof window === 'undefined') return { tab: 'dashboard', userId: null }
+  const params = new URLSearchParams(window.location.search)
+  const raw = params.get('tab')
+  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins']
+  const tab = validTabs.includes(raw as Tab) ? (raw as Tab) : 'dashboard'
+  const userId = params.get('user') || null
+  return { tab, userId }
+}
+
+function pushUrl(tab: Tab, userId?: string | null) {
+  const params = new URLSearchParams()
+  params.set('tab', tab)
+  if (userId) params.set('user', userId)
+  const url = `${window.location.pathname}?${params.toString()}`
+  window.history.pushState({ tab, userId: userId || null }, '', url)
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 export default function AdminPage() {
@@ -127,6 +153,7 @@ export default function AdminPage() {
   // Navigation
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Dashboard
   const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, totalHosts: 0, totalClients: 0, pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0, activeProperties: 0, pendingProperties: 0, suspendedUsers: 0, activeUsers: 0, verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0 })
@@ -136,8 +163,9 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [userSearch, setUserSearch] = useState('')
-  const [expandedUser, setExpandedUser] = useState<string | null>(null)
+  const [userFilter, setUserFilter] = useState<UserFilter>('all')
   const [userDocs, setUserDocs] = useState<Record<string, Verification[]>>({})
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   // User observations (admin notes)
   const [userObservations, setUserObservations] = useState<Record<string, string>>({})
@@ -169,6 +197,44 @@ export default function AdminPage() {
   const supabase = useCallback(() => {
     if (!isSupabaseConfigured()) return null
     return createClient()
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // Navigation: tab change with pushState
+  // ---------------------------------------------------------------------------
+  const navigateToTab = useCallback((tab: Tab) => {
+    setActiveTab(tab)
+    setSelectedUserId(null)
+    pushUrl(tab)
+    setSidebarOpen(false)
+  }, [])
+
+  const navigateToUser = useCallback((userId: string) => {
+    setSelectedUserId(userId)
+    pushUrl('users', userId)
+  }, [])
+
+  const navigateBackFromUser = useCallback(() => {
+    setSelectedUserId(null)
+    pushUrl('users')
+  }, [])
+
+  // Read URL on mount
+  useEffect(() => {
+    const { tab, userId } = getTabFromUrl()
+    setActiveTab(tab)
+    setSelectedUserId(userId)
+  }, [])
+
+  // Listen for popstate (browser back/forward)
+  useEffect(() => {
+    const handler = () => {
+      const { tab, userId } = getTabFromUrl()
+      setActiveTab(tab)
+      setSelectedUserId(userId)
+    }
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
   }, [])
 
   // ---------------------------------------------------------------------------
@@ -349,37 +415,82 @@ export default function AdminPage() {
     if (activeTab === 'admins') fetchAdmins()
   }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins])
 
+  // Load user docs when a user is selected
+  useEffect(() => {
+    if (selectedUserId && activeTab === 'users') {
+      loadUserDocs(selectedUserId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUserId])
+
   // ---------------------------------------------------------------------------
   // User actions
   // ---------------------------------------------------------------------------
   const updateUserStatus = async (userId: string, status: string) => {
-    const sb = supabase()
-    if (!sb) {
-      flash('error', 'Supabase non configure')
-      return
-    }
-    const { error } = await sb.from('profiles').update({ status }).eq('id', userId)
-    if (error) {
-      flash('error', `Erreur: ${error.message}`)
-    } else {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        flash('error', json.error || 'Erreur lors de la mise a jour')
+        return
+      }
       // Send email notification
       const targetUser = users.find(u => u.id === userId)
       if (targetUser?.email) {
         try {
           const obs = userObservations[userId] || ''
-          await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: targetUser.email, name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim(), status: status === 'suspended' ? 'suspended' : 'reactivated', reason: obs }) })
+          await fetch('/api/send-verification-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: targetUser.email,
+              name: `${targetUser.first_name || ''} ${targetUser.last_name || ''}`.trim(),
+              status: status === 'suspended' ? 'suspended' : 'reactivated',
+              reason: obs,
+            }),
+          })
         } catch {}
       }
       flash('success', status === 'suspended' ? 'Compte suspendu — email envoye' : 'Compte reactive — email envoye')
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u))
+    } catch {
+      flash('error', 'Erreur reseau lors de la mise a jour')
     }
   }
 
   const loadUserDocs = async (userId: string) => {
-    const sb = supabase()
-    if (!sb) return
-    const { data } = await sb.from('identity_verifications').select('*').eq('user_id', userId)
-    setUserDocs(prev => ({ ...prev, [userId]: data || [] }))
+    try {
+      const res = await fetch('/api/admin/users?docs=' + userId)
+      const json = await res.json()
+      if (res.ok) {
+        setUserDocs(prev => ({ ...prev, [userId]: json.verifications || json.docs || [] }))
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  const deleteUser = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) {
+        flash('error', json.error || 'Erreur lors de la suppression')
+        return
+      }
+      flash('success', 'Utilisateur supprime')
+      setUsers(prev => prev.filter(u => u.id !== userId))
+      setDeleteConfirmId(null)
+      if (selectedUserId === userId) {
+        navigateBackFromUser()
+      }
+    } catch {
+      flash('error', 'Erreur reseau lors de la suppression')
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -394,7 +505,7 @@ export default function AdminPage() {
       flash('error', 'Erreur lors de la validation')
     } else {
       try {
-        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email || v.user_email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
       } catch {}
       flash('success', 'Identite approuvee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
@@ -410,7 +521,7 @@ export default function AdminPage() {
       flash('error', 'Erreur lors du rejet')
     } else {
       try {
-        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email, name: `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email || v.user_email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
       } catch {}
       flash('success', 'Verification rejetee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
@@ -487,11 +598,22 @@ export default function AdminPage() {
   // Filtered users
   // ---------------------------------------------------------------------------
   const filteredUsers = users.filter(u => {
-    if (!userSearch) return true
-    const q = userSearch.toLowerCase()
-    const name = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase()
-    return name.includes(q) || (u.email || '').toLowerCase().includes(q)
+    // Text search
+    if (userSearch) {
+      const q = userSearch.toLowerCase()
+      const name = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase()
+      if (!name.includes(q) && !(u.email || '').toLowerCase().includes(q)) return false
+    }
+    // Filter pills
+    if (userFilter === 'clients') return u.user_type === 'client'
+    if (userFilter === 'hosts') return u.user_type === 'host' || u.user_type === 'hote'
+    if (userFilter === 'suspended') return u.status === 'suspended'
+    if (userFilter === 'verified') return u.identity_verified === true
+    return true
   })
+
+  // Selected user object
+  const selectedUser = selectedUserId ? users.find(u => u.id === selectedUserId) || null : null
 
   // ---------------------------------------------------------------------------
   // Loading / Auth gate
@@ -580,7 +702,9 @@ export default function AdminPage() {
     )
   }
 
-  // Admin dashboard
+  // =========================================================================
+  // ADMIN DASHBOARD LAYOUT
+  // =========================================================================
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
@@ -604,7 +728,7 @@ export default function AdminPage() {
           {TAB_ITEMS.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => { setActiveTab(key); setSidebarOpen(false) }}
+              onClick={() => navigateToTab(key)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === key ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
@@ -629,11 +753,11 @@ export default function AdminPage() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 overflow-x-hidden">
         {/* Top bar (mobile) */}
         <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <button onClick={() => setSidebarOpen(true)} className="p-1 rounded hover:bg-gray-100">
-            <LayoutDashboard className="h-5 w-5 text-gray-700" />
+            <Menu className="h-5 w-5 text-gray-700" />
           </button>
           <span className="text-sm font-semibold text-gray-900">
             {TAB_ITEMS.find(t => t.key === activeTab)?.label}
@@ -654,7 +778,7 @@ export default function AdminPage() {
             <div>
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-                <p className="text-gray-500 text-sm mt-1">Vue d'ensemble de la plateforme Ikasso</p>
+                <p className="text-gray-500 text-sm mt-1">Vue d&apos;ensemble de la plateforme Ikasso</p>
               </div>
 
               {statsLoading ? (
@@ -663,21 +787,27 @@ export default function AdminPage() {
                 <>
                 {/* Section: Utilisateurs */}
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Utilisateurs</h3>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {[
-                    { label: 'Total inscrits', value: stats.totalUsers, icon: Users, color: 'text-blue-600 bg-blue-50' },
-                    { label: 'Comptes actifs', value: stats.activeUsers, icon: UserCheck, color: 'text-green-600 bg-green-50' },
-                    { label: 'Clients', value: stats.totalClients, icon: Users, color: 'text-indigo-600 bg-indigo-50' },
-                    { label: 'Hotes', value: stats.totalHosts, icon: Home, color: 'text-primary-600 bg-primary-50' },
-                    { label: 'Comptes verifies', value: stats.verifiedUsers, icon: Shield, color: 'text-emerald-600 bg-emerald-50' },
-                    { label: 'Comptes bloques', value: stats.suspendedUsers, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
+                    { label: 'Total inscrits', value: stats.totalUsers, icon: Users, bg: 'bg-blue-100', fg: 'text-blue-600' },
+                    { label: 'Comptes actifs', value: stats.activeUsers, icon: UserCheck, bg: 'bg-green-100', fg: 'text-green-600' },
+                    { label: 'Clients', value: stats.totalClients, icon: Users, bg: 'bg-indigo-100', fg: 'text-indigo-600' },
+                    { label: 'Hotes', value: stats.totalHosts, icon: Home, bg: 'bg-purple-100', fg: 'text-purple-600' },
+                    { label: 'Comptes verifies', value: stats.verifiedUsers, icon: Shield, bg: 'bg-emerald-100', fg: 'text-emerald-600' },
+                    { label: 'Comptes bloques', value: stats.suspendedUsers, icon: AlertTriangle, bg: 'bg-red-100', fg: 'text-red-600' },
                   ].map((card, i) => (
-                    <div key={i} onClick={() => setActiveTab('users')} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
+                    <div
+                      key={i}
+                      onClick={() => navigateToTab('users')}
+                      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full ${card.bg} flex items-center justify-center flex-shrink-0`}>
+                          {React.createElement(card.icon, { className: `h-6 w-6 ${card.fg}` })}
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">{card.label}</p>
-                          <p className="text-xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
                         </div>
                       </div>
                     </div>
@@ -685,19 +815,25 @@ export default function AdminPage() {
                 </div>
 
                 {/* Section: Verifications */}
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Verifications d'identite</h3>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Verifications d&apos;identite</h3>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {[
-                    { label: 'En attente', value: stats.pendingVerifications, icon: FileCheck, color: 'text-amber-600 bg-amber-50' },
-                    { label: 'Approuvees', value: stats.approvedVerifications, icon: CheckCircle2, color: 'text-green-600 bg-green-50' },
-                    { label: 'Refusees', value: stats.rejectedVerifications, icon: XCircle, color: 'text-red-600 bg-red-50' },
+                    { label: 'En attente', value: stats.pendingVerifications, icon: FileCheck, bg: 'bg-amber-100', fg: 'text-amber-600' },
+                    { label: 'Approuvees', value: stats.approvedVerifications, icon: CheckCircle2, bg: 'bg-green-100', fg: 'text-green-600' },
+                    { label: 'Refusees', value: stats.rejectedVerifications, icon: XCircle, bg: 'bg-red-100', fg: 'text-red-600' },
                   ].map((card, i) => (
-                    <div key={i} onClick={() => setActiveTab('verifications')} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
+                    <div
+                      key={i}
+                      onClick={() => navigateToTab('verifications')}
+                      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full ${card.bg} flex items-center justify-center flex-shrink-0`}>
+                          {React.createElement(card.icon, { className: `h-6 w-6 ${card.fg}` })}
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">{card.label}</p>
-                          <p className="text-xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
                         </div>
                       </div>
                     </div>
@@ -706,47 +842,68 @@ export default function AdminPage() {
 
                 {/* Section: Finances */}
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Finances & Reservations</h3>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
-                    { label: 'Revenus total', value: stats.totalRevenue.toLocaleString('fr-FR') + ' FCFA', icon: CreditCard, color: 'text-emerald-600 bg-emerald-50' },
-                    { label: 'Revenus ce mois', value: stats.monthRevenue.toLocaleString('fr-FR') + ' FCFA', icon: CreditCard, color: 'text-blue-600 bg-blue-50' },
-                    { label: 'Reservations total', value: stats.totalBookings, icon: Calendar, color: 'text-purple-600 bg-purple-50' },
-                    { label: 'Reservations payees', value: stats.paidBookings, icon: CheckCircle2, color: 'text-green-600 bg-green-50' },
+                    { label: 'Revenus total', value: stats.totalRevenue.toLocaleString('fr-FR') + ' FCFA', icon: CreditCard, gradient: 'from-emerald-500 to-emerald-600' },
+                    { label: 'Revenus ce mois', value: stats.monthRevenue.toLocaleString('fr-FR') + ' FCFA', icon: CreditCard, gradient: 'from-blue-500 to-blue-600' },
+                    { label: 'Reservations total', value: String(stats.totalBookings), icon: Calendar, gradient: 'from-purple-500 to-purple-600' },
+                    { label: 'Reservations payees', value: String(stats.paidBookings), icon: CheckCircle2, gradient: 'from-green-500 to-green-600' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
-                        <div>
-                          <p className="text-xs text-gray-500">{card.label}</p>
-                          <p className="text-lg font-bold text-gray-900">{card.value}</p>
+                    <div key={i} className={`rounded-xl p-5 shadow-sm bg-gradient-to-br ${card.gradient} text-white`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                          {React.createElement(card.icon, { className: 'h-5 w-5 text-white' })}
                         </div>
                       </div>
+                      <p className="text-lg font-bold">{card.value}</p>
+                      <p className="text-xs text-white/80 mt-0.5">{card.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Section: Proprietes */}
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Proprietes</h3>
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-8">
                   {[
-                    { label: 'Actives', value: stats.activeProperties, icon: Home, color: 'text-green-600 bg-green-50' },
-                    { label: 'En attente', value: stats.pendingProperties, icon: Clock, color: 'text-amber-600 bg-amber-50' },
+                    { label: 'Actives', value: stats.activeProperties, icon: Home, bg: 'bg-green-100', fg: 'text-green-600' },
+                    { label: 'En attente', value: stats.pendingProperties, icon: Clock, bg: 'bg-amber-100', fg: 'text-amber-600' },
                   ].map((card, i) => (
-                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${card.color}`}>{React.createElement(card.icon, { className: 'h-5 w-5' })}</div>
+                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full ${card.bg} flex items-center justify-center flex-shrink-0`}>
+                          {React.createElement(card.icon, { className: `h-6 w-6 ${card.fg}` })}
+                        </div>
                         <div>
-                          <p className="text-xs text-gray-500">{card.label}</p>
-                          <p className="text-xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
+
+                {/* Actions rapides */}
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Actions rapides</h3>
+                <div className="flex flex-wrap gap-3 mb-8">
+                  <button
+                    onClick={() => { navigateToTab('verifications') }}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+                  >
+                    <FileCheck className="h-4 w-4" />
+                    {stats.pendingVerifications} verification(s) en attente
+                  </button>
+                  <button
+                    onClick={() => { navigateToTab('users'); setUserFilter('suspended') }}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors"
+                  >
+                    <UserX className="h-4 w-4" />
+                    {stats.suspendedUsers} utilisateur(s) suspendu(s)
+                  </button>
+                </div>
                 </>
               )}
 
-              <div className="mt-8 bg-primary-50 border border-primary-200 rounded-xl p-5">
+              <div className="mt-4 bg-primary-50 border border-primary-200 rounded-xl p-5">
                 <div className="flex gap-3">
                   <Shield className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" />
                   <div>
@@ -761,23 +918,44 @@ export default function AdminPage() {
           )}
 
           {/* =============== USERS TAB =============== */}
-          {activeTab === 'users' && (
+          {activeTab === 'users' && !selectedUserId && (
             <div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
-                  <p className="text-gray-500 text-sm mt-1">{users.length} comptes enregistres</p>
-                </div>
+              {/* Search bar */}
+              <div className="mb-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Rechercher par nom ou email..."
-                    className="pl-10 pr-4 py-2 w-full sm:w-72 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
+                    className="pl-12 pr-4 py-3 w-full rounded-xl border border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500 shadow-sm"
                     value={userSearch}
                     onChange={e => setUserSearch(e.target.value)}
                   />
                 </div>
+              </div>
+
+              {/* Filter pills */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {([
+                  { key: 'all' as UserFilter, label: 'Tous' },
+                  { key: 'clients' as UserFilter, label: 'Clients' },
+                  { key: 'hosts' as UserFilter, label: 'Hotes' },
+                  { key: 'suspended' as UserFilter, label: 'Suspendus' },
+                  { key: 'verified' as UserFilter, label: 'Verifies' },
+                ]).map(f => (
+                  <button
+                    key={f.key}
+                    onClick={() => setUserFilter(f.key)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      userFilter === f.key
+                        ? 'bg-primary-500 text-white shadow-sm'
+                        : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+                <span className="flex items-center text-xs text-gray-400 ml-2">{filteredUsers.length} resultat(s)</span>
               </div>
 
               {usersLoading ? (
@@ -785,225 +963,315 @@ export default function AdminPage() {
               ) : filteredUsers.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">Aucun utilisateur trouve</div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                  {/* Table header - hidden on mobile */}
-                  <div className="hidden md:grid md:grid-cols-7 gap-2 px-4 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider border-b">
-                    <div className="col-span-2">Nom</div>
-                    <div>Type</div>
-                    <div>Statut</div>
-                    <div>Identite</div>
-                    <div>Inscription</div>
-                    <div className="text-right">Actions</div>
-                  </div>
-
-                  <div className="divide-y divide-gray-100">
-                    {filteredUsers.map(u => {
-                      const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Sans nom'
-                      const isExpanded = expandedUser === u.id
-                      return (
-                        <div key={u.id}>
-                          {/* Row */}
-                          <div className="px-4 py-3 md:grid md:grid-cols-7 md:gap-2 md:items-center">
-                            <div className="col-span-2">
-                              <p className="text-sm font-medium text-gray-900">{fullName}</p>
-                              <p className="text-xs text-gray-500 truncate">{u.email || '-'}</p>
-                            </div>
-                            <div className="mt-1 md:mt-0">
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${u.user_type === 'host' ? 'bg-primary-100 text-primary-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {u.user_type === 'host' ? 'Hote' : 'Client'}
-                              </span>
-                            </div>
-                            <div className="mt-1 md:mt-0">
-                              <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700' : u.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
-                                {u.status === 'active' ? 'Actif' : u.status === 'suspended' ? 'Suspendu' : u.status || 'Inconnu'}
-                              </span>
-                            </div>
-                            <div className="mt-1 md:mt-0">
-                              {u.identity_verified ? (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
-                              ) : (
-                                <XCircle className="h-5 w-5 text-gray-300" />
-                              )}
-                            </div>
-                            <div className="mt-1 md:mt-0 text-xs text-gray-500">
-                              {u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '-'}
-                            </div>
-                            <div className="mt-2 md:mt-0 flex items-center justify-end gap-1 flex-wrap">
-                              <button
-                                onClick={() => {
-                                  setExpandedUser(isExpanded ? null : u.id)
-                                  if (!isExpanded) loadUserDocs(u.id)
-                                }}
-                                className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
-                                title="Voir details"
-                              >
-                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                              </button>
-                              {u.status !== 'suspended' ? (
-                                <button onClick={() => updateUserStatus(u.id, 'suspended')} className="p-1.5 rounded hover:bg-red-50 text-red-500" title="Suspendre">
-                                  <UserX className="h-4 w-4" />
-                                </button>
-                              ) : (
-                                <button onClick={() => updateUserStatus(u.id, 'active')} className="p-1.5 rounded hover:bg-green-50 text-green-500" title="Reactiver">
-                                  <UserCheck className="h-4 w-4" />
-                                </button>
-                              )}
-                              <button onClick={() => updateUserStatus(u.id, 'suspended')} className="p-1.5 rounded hover:bg-amber-50 text-amber-500" title="Signaler comme suspect">
-                                <Flag className="h-4 w-4" />
-                              </button>
-                              {u.email && (
-                                <a href={`mailto:${u.email}`} className="p-1.5 rounded hover:bg-blue-50 text-blue-500" title="Contacter">
-                                  <Mail className="h-4 w-4" />
-                                </a>
-                              )}
-                            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredUsers.map(u => {
+                    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Sans nom'
+                    const initials = `${(u.first_name || '?')[0]}${(u.last_name || '?')[0]}`.toUpperCase()
+                    return (
+                      <div
+                        key={u.id}
+                        onClick={() => navigateToUser(u.id)}
+                        className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md hover:border-primary-300 transition-all"
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-11 w-11 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-bold text-primary-600">{initials}</span>
                           </div>
-
-                          {/* Expanded details - comprehensive card layout */}
-                          {isExpanded && (
-                            <div className="px-4 py-5 bg-gray-50 border-t border-gray-100">
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {/* Personal info card */}
-                                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-primary-500" /> Informations personnelles
-                                  </h4>
-                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                    <div><span className="text-gray-500">Prenom:</span> <span className="text-gray-900 font-medium">{u.first_name || '-'}</span></div>
-                                    <div><span className="text-gray-500">Nom:</span> <span className="text-gray-900 font-medium">{u.last_name || '-'}</span></div>
-                                    <div><span className="text-gray-500">Email:</span> <span className="text-gray-900">{u.email || '-'}</span></div>
-                                    <div><span className="text-gray-500">Telephone:</span> <span className="text-gray-900">{u.phone || '-'}</span></div>
-                                    <div><span className="text-gray-500">Date de naissance:</span> <span className="text-gray-900">{u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString('fr-FR') : '-'}</span></div>
-                                    <div><span className="text-gray-500">Adresse:</span> <span className="text-gray-900">{u.address || '-'}</span></div>
-                                    <div><span className="text-gray-500">Code postal:</span> <span className="text-gray-900">{u.postal_code || '-'}</span></div>
-                                    <div><span className="text-gray-500">Ville:</span> <span className="text-gray-900">{u.city || '-'}</span></div>
-                                    <div><span className="text-gray-500">Pays:</span> <span className="text-gray-900">{u.country || '-'}</span></div>
-                                  </div>
-                                </div>
-
-                                {/* Account status card */}
-                                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Shield className="h-4 w-4 text-primary-500" /> Statut du compte
-                                  </h4>
-                                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                    <div><span className="text-gray-500">ID:</span> <span className="text-gray-900 break-all text-xs">{u.id}</span></div>
-                                    <div><span className="text-gray-500">Type:</span> <span className="text-gray-900 font-medium">{u.user_type === 'host' || u.user_type === 'hote' ? 'Hote' : 'Client'}</span></div>
-                                    <div><span className="text-gray-500">Statut:</span>{' '}
-                                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${u.status === 'active' ? 'bg-green-100 text-green-700' : u.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
-                                        {u.status === 'active' ? 'Actif' : u.status === 'suspended' ? 'Suspendu' : u.status || 'Inconnu'}
-                                      </span>
-                                    </div>
-                                    <div><span className="text-gray-500">Identite verifiee:</span>{' '}
-                                      {u.identity_verified ? <span className="text-green-600 font-medium">Oui</span> : <span className="text-red-500 font-medium">Non</span>}
-                                    </div>
-                                    <div><span className="text-gray-500">Inscription:</span> <span className="text-gray-900">{u.created_at ? new Date(u.created_at).toLocaleString('fr-FR') : '-'}</span></div>
-                                    <div><span className="text-gray-500">Membre depuis:</span> <span className="text-gray-900">{u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '-'}</span></div>
-                                  </div>
-                                </div>
-
-                                {/* Identity documents card */}
-                                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <FileCheck className="h-4 w-4 text-primary-500" /> Documents d'identite
-                                  </h4>
-                                  {userDocs[u.id] && userDocs[u.id].length > 0 ? (
-                                    <div className="space-y-2">
-                                      {userDocs[u.id].map(doc => (
-                                        <div key={doc.id} className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-3 border border-gray-100">
-                                          <Eye className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                          <span className="text-gray-700">{doc.document_type}</span>
-                                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                            {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
-                                          </span>
-                                          {doc.document_front_url && (
-                                            <a href={doc.document_front_url} target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:text-primary-600 text-xs underline ml-auto">
-                                              Voir le document
-                                            </a>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-gray-400 italic">Aucun document soumis</p>
-                                  )}
-                                </div>
-
-                                {/* Observations card */}
-                                <div className="bg-white rounded-xl border border-gray-200 p-4">
-                                  <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Flag className="h-4 w-4 text-primary-500" /> Observations de l'administrateur
-                                  </h4>
-                                  <textarea
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none"
-                                    rows={3}
-                                    placeholder="Ajouter des notes ou observations sur cet utilisateur..."
-                                    value={userObservations[u.id] || ''}
-                                    onChange={e => setUserObservations(prev => ({ ...prev, [u.id]: e.target.value }))}
-                                  />
-                                  <p className="text-xs text-gray-400 mt-1">Ces notes sont locales a cette session.</p>
-                                </div>
-                              </div>
-
-                              {/* Actions row */}
-                              <div className="mt-4 flex flex-wrap items-center gap-2">
-                                {u.status !== 'suspended' ? (
-                                  <button onClick={() => updateUserStatus(u.id, 'suspended')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
-                                    <UserX className="h-4 w-4" /> Suspendre
-                                  </button>
-                                ) : (
-                                  <button onClick={() => updateUserStatus(u.id, 'active')} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors">
-                                    <UserCheck className="h-4 w-4" /> Reactiver
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    const obs = userObservations[u.id] || ''
-                                    const reason = obs.trim() ? ` (Observation: ${obs.trim()})` : ''
-                                    updateUserStatus(u.id, 'suspended')
-                                    flash('success', `Utilisateur marque comme suspect${reason}`)
-                                  }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 transition-colors"
-                                >
-                                  <Flag className="h-4 w-4" /> Marquer suspect
-                                </button>
-                                {!u.identity_verified && (
-                                  <button
-                                    onClick={async () => {
-                                      const sb = supabase()
-                                      if (!sb) return
-                                      const { error } = await sb.from('profiles').update({ identity_verified: true }).eq('id', u.id)
-                                      if (error) { flash('error', error.message) } else {
-                                        flash('success', 'Utilisateur valide')
-                                        setUsers(prev => prev.map(x => x.id === u.id ? { ...x, identity_verified: true } : x))
-                                      }
-                                    }}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
-                                  >
-                                    <CheckCircle className="h-4 w-4" /> Valider identite
-                                  </button>
-                                )}
-                                {u.email && (
-                                  <a href={`mailto:${u.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
-                                    <Mail className="h-4 w-4" /> Contacter par email
-                                  </a>
-                                )}
-                              </div>
-
-                              {/* Bookings section */}
-                              <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-primary-500" /> Reservations de cet utilisateur
-                                </h4>
-                                <p className="text-sm text-gray-400 italic">Aucune reservation pour le moment.</p>
-                              </div>
-                            </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">{fullName}</p>
+                            <p className="text-xs text-gray-500 truncate">{u.email || '-'}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            u.user_type === 'host' || u.user_type === 'hote'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {u.user_type === 'host' || u.user_type === 'hote' ? 'Hote' : 'Client'}
+                          </span>
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                            u.status === 'active'
+                              ? 'bg-green-100 text-green-700'
+                              : u.status === 'suspended'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {u.status === 'active' ? 'Actif' : u.status === 'suspended' ? 'Suspendu' : u.status || 'Inconnu'}
+                          </span>
+                          {u.identity_verified && (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                              <CheckCircle className="h-3 w-3" /> Verifie
+                            </span>
                           )}
                         </div>
-                      )
-                    })}
-                  </div>
+                      </div>
+                    )
+                  })}
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* =============== USER DETAIL VIEW =============== */}
+          {activeTab === 'users' && selectedUserId && (
+            <div>
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <button
+                  onClick={navigateBackFromUser}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="h-5 w-5 text-gray-600" />
+                </button>
+                {selectedUser ? (
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-primary-600">
+                        {`${(selectedUser.first_name || '?')[0]}${(selectedUser.last_name || '?')[0]}`.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <h1 className="text-xl font-bold text-gray-900 truncate">
+                        {`${selectedUser.first_name || ''} ${selectedUser.last_name || ''}`.trim() || 'Sans nom'}
+                      </h1>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          selectedUser.user_type === 'host' || selectedUser.user_type === 'hote'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {selectedUser.user_type === 'host' || selectedUser.user_type === 'hote' ? 'Hote' : 'Client'}
+                        </span>
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          selectedUser.status === 'active'
+                            ? 'bg-green-100 text-green-700'
+                            : selectedUser.status === 'suspended'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {selectedUser.status === 'active' ? 'Actif' : selectedUser.status === 'suspended' ? 'Suspendu' : selectedUser.status || 'Inconnu'}
+                        </span>
+                        {selectedUser.identity_verified && (
+                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                            <CheckCircle className="h-3 w-3" /> Verifie
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Utilisateur introuvable</p>
+                )}
+              </div>
+
+              {selectedUser && (
+                <>
+                  {/* Two-column info grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                    {/* Personal info card */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-5">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                          <Users className="h-4 w-4 text-primary-600" />
+                        </div>
+                        Informations personnelles
+                      </h4>
+                      <div className="space-y-3 text-sm">
+                        {[
+                          { label: 'Prenom', value: selectedUser.first_name },
+                          { label: 'Nom', value: selectedUser.last_name },
+                          { label: 'Email', value: selectedUser.email },
+                          { label: 'Telephone', value: selectedUser.phone },
+                          { label: 'Date de naissance', value: selectedUser.date_of_birth ? new Date(selectedUser.date_of_birth).toLocaleDateString('fr-FR') : undefined },
+                          { label: 'Adresse', value: selectedUser.address },
+                          { label: 'Ville', value: selectedUser.city },
+                          { label: 'Pays', value: selectedUser.country },
+                        ].map((row, i) => (
+                          <div key={i} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
+                            <span className="text-gray-500">{row.label}</span>
+                            <span className="text-gray-900 font-medium text-right">{row.value || '-'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Account status card */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-5">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                          <Shield className="h-4 w-4 text-primary-600" />
+                        </div>
+                        Statut du compte
+                      </h4>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+                          <span className="text-gray-500">ID</span>
+                          <span className="text-gray-900 text-xs font-mono break-all text-right max-w-[200px]">{selectedUser.id}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+                          <span className="text-gray-500">Type</span>
+                          <span className="text-gray-900 font-medium">{selectedUser.user_type === 'host' || selectedUser.user_type === 'hote' ? 'Hote' : 'Client'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+                          <span className="text-gray-500">Statut</span>
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${selectedUser.status === 'active' ? 'bg-green-100 text-green-700' : selectedUser.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {selectedUser.status === 'active' ? 'Actif' : selectedUser.status === 'suspended' ? 'Suspendu' : selectedUser.status || 'Inconnu'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+                          <span className="text-gray-500">Identite verifiee</span>
+                          {selectedUser.identity_verified
+                            ? <span className="text-green-600 font-medium">Oui</span>
+                            : <span className="text-red-500 font-medium">Non</span>
+                          }
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-gray-50">
+                          <span className="text-gray-500">Inscription</span>
+                          <span className="text-gray-900">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1">
+                          <span className="text-gray-500">Membre depuis</span>
+                          <span className="text-gray-900">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '-'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Documents section */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <FileCheck className="h-4 w-4 text-primary-600" />
+                      </div>
+                      Documents d&apos;identite
+                    </h4>
+                    {userDocs[selectedUser.id] && userDocs[selectedUser.id].length > 0 ? (
+                      <div className="space-y-4">
+                        {userDocs[selectedUser.id].map(doc => (
+                          <div key={doc.id} className="border border-gray-100 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-sm font-medium text-gray-700">{doc.document_type_label || doc.document_type}</span>
+                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                              {[
+                                { key: 'document_front_url', label: 'Document Recto' },
+                                { key: 'document_back_url', label: 'Document Verso' },
+                                { key: 'face_front_url', label: 'Visage Face' },
+                                { key: 'face_left_url', label: 'Visage Gauche' },
+                                { key: 'face_right_url', label: 'Visage Droite' },
+                              ].map(({ key, label }) => {
+                                const url = doc[key] as string | undefined
+                                return (
+                                  <div key={key} className="text-center">
+                                    <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
+                                    {url ? (
+                                      <a href={url} target="_blank" rel="noopener noreferrer" className="block group">
+                                        <div className="relative w-full h-28 rounded-lg border border-gray-200 group-hover:border-primary-400 overflow-hidden transition-colors">
+                                          <img
+                                            src={url}
+                                            alt={label}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="flex items-center justify-center h-full text-xs text-red-400">Erreur chargement</span>' }}
+                                          />
+                                        </div>
+                                      </a>
+                                    ) : (
+                                      <div className="w-full h-28 rounded-lg border border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                        <span className="text-xs text-gray-400">Manquant</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">Aucun document soumis</p>
+                    )}
+                  </div>
+
+                  {/* Actions bar */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">Actions</h4>
+                    <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2">
+                      {selectedUser.status !== 'suspended' ? (
+                        <button
+                          onClick={() => updateUserStatus(selectedUser.id, 'suspended')}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <UserX className="h-4 w-4" /> Suspendre
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => updateUserStatus(selectedUser.id, 'active')}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <UserCheck className="h-4 w-4" /> Reactiver
+                        </button>
+                      )}
+
+                      {!selectedUser.identity_verified && (
+                        <button
+                          onClick={async () => {
+                            const sb = supabase()
+                            if (!sb) return
+                            const { error } = await sb.from('profiles').update({ identity_verified: true }).eq('id', selectedUser.id)
+                            if (error) { flash('error', error.message) } else {
+                              flash('success', 'Utilisateur valide')
+                              setUsers(prev => prev.map(x => x.id === selectedUser.id ? { ...x, identity_verified: true } : x))
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <CheckCircle className="h-4 w-4" /> Valider identite
+                        </button>
+                      )}
+
+                      {selectedUser.email && (
+                        <a
+                          href={`mailto:${selectedUser.email}`}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <Mail className="h-4 w-4" /> Contacter
+                        </a>
+                      )}
+
+                      {/* Delete button and confirmation */}
+                      {deleteConfirmId === selectedUser.id ? (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto border border-red-200 rounded-lg p-3 bg-red-50">
+                          <p className="text-sm text-red-800">Etes-vous sur ? Cette action est irreversible.</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => deleteUser(selectedUser.id)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" /> Confirmer la suppression
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirmId(null)}
+                              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmId(selectedUser.id)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <Trash2 className="h-4 w-4" /> Supprimer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}
