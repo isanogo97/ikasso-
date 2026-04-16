@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { createAdminClient } from '../../lib/supabase/admin'
 
 export const runtime = 'nodejs'
 
@@ -20,7 +21,6 @@ export async function POST(request: NextRequest) {
     }
 
     const isHost = userType === 'host' || userType === 'hote'
-    const logoUrl = 'https://ikasso.ml/images/logos/ikasso-logo-800.png'
     const dashboardUrl = isHost ? 'https://ikasso.ml/dashboard/host' : 'https://ikasso.ml/search'
 
     const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <!-- Header -->
   <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:48px 40px 36px;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="220" style="display:block;margin:0 auto 16px;" />
+    <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
     <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Bienvenue, ${name} !</h1>
     <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">Votre compte a bien ete cree</p>
   </td></tr>
@@ -83,8 +83,7 @@ export async function POST(request: NextRequest) {
   </td></tr>
   <!-- Footer -->
   <tr><td style="background:#FAFAFA;padding:24px 40px;border-top:1px solid #f0f0f0;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
-    <p style="margin:0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali. Tous droits reserves.</p>
+    <p style="margin:0;color:#9ca3af;font-size:12px;">Ikasso Mali - ikasso.ml</p>
   </td></tr>
 </table>
 </td></tr></table>
@@ -109,8 +108,55 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Email de bienvenue envoyé:', data?.id, 'à', email)
 
-      return NextResponse.json({ 
-        success: true, 
+      // Send in-app welcome message
+      try {
+        const supabase = createAdminClient()
+        // Find the new user's profile
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .single()
+
+        // Find or get Support Ikasso account
+        const { data: supportProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', '%support%ikasso%')
+          .limit(1)
+          .single()
+
+        if (userProfile && supportProfile && userProfile.id !== supportProfile.id) {
+          // Create conversation
+          const { data: conv } = await supabase
+            .from('conversations')
+            .insert({
+              participant_1: supportProfile.id,
+              participant_2: userProfile.id,
+              last_message: userType === 'hote'
+                ? `Bienvenue ${name.split(' ')[0]} ! Merci de rejoindre Ikasso en tant qu'hote. Publiez votre premier logement et commencez a recevoir des reservations. L'equipe Ikasso est a votre disposition pour toute question.`
+                : `Bienvenue ${name.split(' ')[0]} ! Merci de rejoindre Ikasso. Explorez les logements disponibles et reservez votre prochain sejour au Mali. N'hesitez pas a nous contacter si vous avez des questions.`,
+              last_message_at: new Date().toISOString(),
+              unread_count_2: 1,
+            })
+            .select()
+            .single()
+
+          if (conv) {
+            await supabase.from('messages').insert({
+              conversation_id: conv.id,
+              sender_id: supportProfile.id,
+              content: conv.last_message,
+              read: false,
+            })
+          }
+        }
+      } catch (msgErr) {
+        console.error('Welcome message error (non-blocking):', msgErr)
+      }
+
+      return NextResponse.json({
+        success: true,
         message: 'Email de bienvenue envoyé avec succès',
         messageId: data?.id
       })

@@ -265,10 +265,10 @@ export async function signOut(): Promise<void> {
     } catch {}
   }
 
-  // Nuclear cleanup: remove ALL ikasso and Supabase keys
+  // Nuclear cleanup: remove ALL ikasso and Supabase keys (preserve saved avatars)
   if (typeof window !== 'undefined') {
     const keysToRemove = Object.keys(localStorage).filter(key =>
-      key.startsWith('ikasso') || key.startsWith('sb-')
+      (key.startsWith('ikasso') || key.startsWith('sb-')) && key !== 'ikasso_saved_avatars'
     )
     keysToRemove.forEach(key => localStorage.removeItem(key))
   }

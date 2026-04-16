@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       <body style="margin:0;padding:0;background:#f8f9fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
         <div style="max-width:560px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
           <div style="background:linear-gradient(135deg,#c2410c,#ea580c);padding:28px 32px;text-align:center;">
-            <img src="https://ikasso.ml/images/logos/ikasso-logo-800.png" alt="Ikasso" style="height:40px;" />
+            <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
           </div>
           <div style="padding:32px;">
             <h2 style="color:#111827;font-size:20px;margin:0 0 16px;">${subject}</h2>

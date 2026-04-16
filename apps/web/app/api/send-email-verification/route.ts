@@ -19,8 +19,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const logoUrl = 'https://ikasso.ml/images/logos/ikasso-logo-800.png'
-
     const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <!-- Header with logo -->
   <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:40px 40px 30px;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="200" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
+    <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
     <p style="color:rgba(255,255,255,0.85);margin:0;font-size:14px;">Plateforme de reservation au Mali</p>
   </td></tr>
   <!-- Content -->
@@ -45,9 +43,7 @@ export async function POST(request: NextRequest) {
   </td></tr>
   <!-- Footer -->
   <tr><td style="background:#FAFAFA;padding:24px 40px;border-top:1px solid #f0f0f0;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
-    <p style="margin:0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali. Tous droits reserves.</p>
-    <p style="margin:4px 0 0;color:#999;font-size:11px;">support@ikasso.ml</p>
+    <p style="margin:0;color:#9ca3af;font-size:12px;">Ikasso Mali - ikasso.ml</p>
   </td></tr>
 </table>
 </td></tr></table>

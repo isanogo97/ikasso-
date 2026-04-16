@@ -316,8 +316,8 @@ export default function RegisterNewPage() {
               </label>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { type: 'client', emoji: '🏠', title: t('register.travel'), desc: t('register.book_accommodations') },
-                  { type: 'hote', emoji: '🏠', title: t('register.host'), desc: t('register.offer_accommodation') },
+                  { type: 'client', emoji: '🔍', title: t('register.travel'), desc: t('register.book_accommodations') },
+                  { type: 'hote', emoji: '🏡', title: t('register.host'), desc: t('register.offer_accommodation') },
                 ].map(({ type, emoji, title, desc }) => (
                   <button
                     key={type}

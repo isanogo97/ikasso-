@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (currentUser && currentUser.status === 'suspended') {
         setUser(null)
         if (typeof window !== 'undefined') {
-          Object.keys(localStorage).filter(k => k.startsWith('ikasso') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k))
+          Object.keys(localStorage).filter(k => (k.startsWith('ikasso') || k.startsWith('sb-')) && k !== 'ikasso_saved_avatars').forEach(k => localStorage.removeItem(k))
           window.location.href = '/'
         }
         return
@@ -126,10 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     setUser(null)
     await dalSignOut()
-    // Nuclear cleanup: remove ALL ikasso and Supabase keys
+    // Nuclear cleanup: remove ALL ikasso and Supabase keys (preserve saved avatars)
     if (typeof window !== 'undefined') {
       const keysToRemove = Object.keys(localStorage).filter(key =>
-        key.startsWith('ikasso') || key.startsWith('sb-')
+        (key.startsWith('ikasso') || key.startsWith('sb-')) && key !== 'ikasso_saved_avatars'
       )
       keysToRemove.forEach(key => localStorage.removeItem(key))
     }

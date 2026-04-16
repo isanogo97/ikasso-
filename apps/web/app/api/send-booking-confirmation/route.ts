@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
       <body>
         <div class="container">
           <div class="header">
+            <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
             <h1>✅ Réservation confirmée !</h1>
           </div>
           <div class="content">
@@ -197,8 +198,7 @@ export async function POST(request: NextRequest) {
             </p>
           </div>
           <div class="footer">
-            <p>© ${new Date().getFullYear()} <strong>Ikasso Mali</strong>. Tous droits réservés.</p>
-            <p>Réservation #${bookingId}</p>
+            <p style="color:#9ca3af;font-size:12px;margin:0;">Ikasso Mali - ikasso.ml</p>
           </div>
         </div>
       </body>

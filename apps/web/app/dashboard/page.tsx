@@ -23,15 +23,17 @@ function UserAvatar({ user, size = 'md' }: { user: any; size?: 'sm' | 'md' | 'lg
 
   if (src) {
     return (
-      <img
-        src={src}
-        alt={`${user.firstName} ${user.lastName}`}
-        className={`${sizeClasses[size]} rounded-full object-cover ring-2 ring-white shadow`}
-      />
+      <div className={`${sizeClasses[size]} rounded-full overflow-hidden ring-2 ring-white shadow flex-shrink-0`}>
+        <img
+          src={src}
+          alt={`${user.firstName} ${user.lastName}`}
+          className="h-full w-full object-cover"
+        />
+      </div>
     )
   }
   return (
-    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold ring-2 ring-white shadow`}>
+    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold ring-2 ring-white shadow flex-shrink-0`}>
       {initials}
     </div>
   )
@@ -92,8 +94,8 @@ export default function TravelerDashboard() {
   // Redirect to home if not authenticated - aggressive cleanup
   if (!user && !isLoading) {
     if (typeof window !== 'undefined') {
-      // Clean stale localStorage before redirect
-      Object.keys(localStorage).filter(k => k.startsWith('ikasso') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k))
+      // Clean stale localStorage before redirect (preserve saved avatars)
+      Object.keys(localStorage).filter(k => (k.startsWith('ikasso') || k.startsWith('sb-')) && k !== 'ikasso_saved_avatars').forEach(k => localStorage.removeItem(k))
       window.location.href = '/'
     }
     return null
@@ -128,9 +130,13 @@ export default function TravelerDashboard() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <Link
+              href="/messages"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              title="Notifications"
+            >
               <Bell className="h-5 w-5 text-gray-500" />
-            </button>
+            </Link>
 
             {/* Desktop user menu */}
             <div className="hidden md:flex items-center gap-3">

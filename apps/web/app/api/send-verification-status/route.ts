@@ -16,8 +16,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Email et statut requis' }, { status: 400 })
     }
 
-    const logoUrl = 'https://ikasso.ml/images/logos/ikasso-logo-800.png'
-
     const statusConfig: Record<string, { subject: string; title: string; message: string; color: string }> = {
       approved: {
         subject: 'Votre compte Ikasso est verifie !',
@@ -61,7 +59,7 @@ export async function POST(request: NextRequest) {
 <tr><td align="center">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
   <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:32px 40px;text-align:center;">
-    <span style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:1px;">Ikasso</span>
+    <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
   </td></tr>
   <tr><td style="padding:40px;">
     <div style="text-align:center;margin-bottom:24px;">

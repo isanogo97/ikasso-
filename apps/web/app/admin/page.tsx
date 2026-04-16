@@ -37,6 +37,8 @@ interface DashboardStats {
   paidBookings: number
   totalRevenue: number
   monthRevenue: number
+  openIncidents: number
+  activeSponsors: number
 }
 
 interface UserRow {
@@ -175,7 +177,7 @@ export default function AdminPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Dashboard
-  const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, totalHosts: 0, totalClients: 0, pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0, activeProperties: 0, pendingProperties: 0, suspendedUsers: 0, activeUsers: 0, verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0 })
+  const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, totalHosts: 0, totalClients: 0, pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0, activeProperties: 0, pendingProperties: 0, suspendedUsers: 0, activeUsers: 0, verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0, openIncidents: 0, activeSponsors: 0 })
   const [statsLoading, setStatsLoading] = useState(false)
 
   // Users
@@ -390,6 +392,8 @@ export default function AdminPage() {
           paidBookings: data.paidBookings ?? 0,
           totalRevenue: data.totalRevenue ?? 0,
           monthRevenue: data.monthRevenue ?? 0,
+          openIncidents: data.openIncidents ?? 0,
+          activeSponsors: data.activeSponsors ?? 0,
         })
       }
     } catch {
@@ -1302,6 +1306,27 @@ export default function AdminPage() {
                   {[
                     { label: 'Actives', value: stats.activeProperties, icon: Home, bg: 'bg-green-100', fg: 'text-green-600' },
                     { label: 'En attente', value: stats.pendingProperties, icon: Clock, bg: 'bg-amber-100', fg: 'text-amber-600' },
+                  ].map((card, i) => (
+                    <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-4">
+                        <div className={`h-12 w-12 rounded-full ${card.bg} flex items-center justify-center flex-shrink-0`}>
+                          {React.createElement(card.icon, { className: `h-6 w-6 ${card.fg}` })}
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Section: Incidents & Sponsors */}
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Incidents & Sponsors</h3>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  {[
+                    { label: 'Incidents ouverts', value: stats.openIncidents, icon: AlertTriangle, bg: 'bg-orange-100', fg: 'text-orange-600' },
+                    { label: 'Sponsors actifs', value: stats.activeSponsors, icon: Gift, bg: 'bg-cyan-100', fg: 'text-cyan-600' },
                   ].map((card, i) => (
                     <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-4">
