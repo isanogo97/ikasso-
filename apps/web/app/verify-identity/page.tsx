@@ -10,8 +10,8 @@ import type { DocumentType, VerificationStatus } from '../lib/dal/verification'
 const DOCUMENT_TYPES: { value: DocumentType; label: string; description: string }[] = [
   { value: 'nina', label: 'NINA', description: "Numero d'Identification Nationale" },
   { value: 'passport', label: 'Passeport', description: 'Passeport en cours de validite' },
-  { value: 'carte_identite', label: "Carte d'identite", description: "Carte nationale d'identite" },
-  { value: 'permis_conduire', label: 'Permis de conduire', description: 'Permis de conduire valide' },
+  { value: 'id_card', label: "Carte d'identite", description: "Carte nationale d'identite" },
+  { value: 'driver_license', label: 'Permis de conduire', description: 'Permis de conduire valide' },
 ]
 
 const FACE_DIRECTIONS = [

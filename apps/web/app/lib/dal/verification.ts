@@ -3,7 +3,7 @@ import { isSupabaseConfigured } from '../supabase/client'
 
 export type VerificationStatus = 'none' | 'pending' | 'approved' | 'rejected'
 
-export type DocumentType = 'nina' | 'passport' | 'carte_identite' | 'permis_conduire'
+export type DocumentType = 'nina' | 'passport' | 'id_card' | 'driver_license'
 
 export interface VerificationResult {
   verified: boolean
