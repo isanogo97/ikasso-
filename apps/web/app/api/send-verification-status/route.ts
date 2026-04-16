@@ -53,18 +53,20 @@ export async function POST(request: NextRequest) {
 
     const config = statusConfig[status] || statusConfig.pending
 
+    const iconSymbol = status === 'approved' || status === 'reactivated' ? '&#10003;' : status === 'rejected' || status === 'suspended' ? '&#10007;' : '&#9203;'
+
     const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
 <tr><td align="center">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-  <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:40px 40px 30px;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="200" style="display:block;margin:0 auto 16px;filter:brightness(0) invert(1);" />
+  <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:32px 40px;text-align:center;">
+    <span style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:1px;">Ikasso</span>
   </td></tr>
   <tr><td style="padding:40px;">
     <div style="text-align:center;margin-bottom:24px;">
-      <div style="display:inline-block;width:60px;height:60px;border-radius:50%;background:${config.color}15;line-height:60px;text-align:center;">
-        <span style="font-size:30px;">${status === 'approved' || status === 'reactivated' ? '✓' : status === 'rejected' || status === 'suspended' ? '✗' : '⏳'}</span>
+      <div style="display:inline-block;width:60px;height:60px;border-radius:50%;background:${config.color};line-height:60px;text-align:center;">
+        <span style="font-size:28px;color:#ffffff;">${iconSymbol}</span>
       </div>
     </div>
     <h1 style="margin:0 0 16px;font-size:22px;color:${config.color};text-align:center;">${config.title}</h1>
@@ -77,8 +79,8 @@ export async function POST(request: NextRequest) {
     </div>
   </td></tr>
   <tr><td style="background:#FAFAFA;padding:24px 40px;border-top:1px solid #f0f0f0;text-align:center;">
-    <img src="${logoUrl}" alt="Ikasso" width="100" style="display:block;margin:0 auto 12px;opacity:0.5;" />
-    <p style="margin:0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali</p>
+    <p style="margin:0;font-size:18px;font-weight:700;color:#E85D04;">Ikasso</p>
+    <p style="margin:8px 0 0;color:#999;font-size:12px;">&copy; ${new Date().getFullYear()} Ikasso Mali</p>
     <p style="margin:4px 0 0;color:#999;font-size:11px;">support@ikasso.ml</p>
   </td></tr>
 </table>

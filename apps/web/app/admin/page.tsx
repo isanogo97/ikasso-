@@ -642,36 +642,58 @@ export default function AdminPage() {
   // Verification actions
   // ---------------------------------------------------------------------------
   const approveVerification = async (v: Verification) => {
-    const sb = supabase()
-    if (!sb) return
-    const { error: e1 } = await sb.from('identity_verifications').update({ status: 'approved' }).eq('id', v.id)
-    const { error: e2 } = await sb.from('profiles').update({ identity_verified: true }).eq('id', v.user_id)
-    if (e1 || e2) {
-      flash('error', 'Erreur lors de la validation')
-    } else {
+    try {
+      // Use API routes to bypass RLS
+      const res1 = await fetch('/api/admin/users/' + v.user_id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identity_verified: true }),
+      })
+      // Update verification status via admin API
+      const res2 = await fetch('/api/admin/verifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: v.id, status: 'approved' }),
+      })
+      if (!res1.ok || !res2.ok) {
+        flash('error', 'Erreur lors de la validation')
+        return
+      }
       try {
-        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email || v.user_email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.user_email || v.profiles?.email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'approved' }) })
       } catch {}
       flash('success', 'Identite approuvee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
+      // Refresh user docs if viewing this user
+      if (selectedUser?.id === v.user_id) loadUserDocs(v.user_id)
+    } catch {
+      flash('error', 'Erreur lors de la validation')
     }
   }
 
   const rejectVerification = async (v: Verification) => {
     if (!rejectionReason.trim()) return
-    const sb = supabase()
-    if (!sb) return
-    const { error } = await sb.from('identity_verifications').update({ status: 'rejected', rejection_reason: rejectionReason }).eq('id', v.id)
-    if (error) {
-      flash('error', 'Erreur lors du rejet')
-    } else {
+    try {
+      const res = await fetch('/api/admin/verifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: v.id, status: 'rejected', rejection_reason: rejectionReason }),
+      })
+      if (!res.ok) {
+        flash('error', 'Erreur lors du rejet')
+        return
+      }
       try {
-        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.profiles?.email || v.user_email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
+        await fetch('/api/send-verification-status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: v.user_email || v.profiles?.email, name: v.user_name || `${v.profiles?.first_name || ''} ${v.profiles?.last_name || ''}`.trim(), status: 'rejected', reason: rejectionReason }) })
       } catch {}
       flash('success', 'Verification rejetee — email envoye')
       setVerifications(prev => prev.filter(x => x.id !== v.id))
       setRejectingId(null)
       setRejectionReason('')
+      // Refresh user docs if viewing this user
+      if (selectedUser?.id === v.user_id) loadUserDocs(v.user_id)
+    } catch {
+      flash('error', 'Erreur lors du rejet')
     }
   }
 
@@ -1301,13 +1323,19 @@ export default function AdminPage() {
                     {userDocs[selectedUser.id] && userDocs[selectedUser.id].length > 0 ? (
                       <div className="space-y-4">
                         {userDocs[selectedUser.id].map(doc => (
-                          <div key={doc.id} className="border border-gray-100 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className="text-sm font-medium text-gray-700">{doc.document_type_label || doc.document_type}</span>
+                          <div key={doc.id} className={`border rounded-lg p-4 ${doc.status === 'rejected' ? 'border-red-200 bg-red-50/30' : doc.status === 'approved' ? 'border-green-200 bg-green-50/30' : 'border-gray-100'}`}>
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              <span className="text-sm font-medium text-gray-700">{(doc as any).document_type_label || doc.document_type}</span>
                               <span className={`px-2 py-0.5 rounded text-xs font-medium ${doc.status === 'approved' ? 'bg-green-100 text-green-700' : doc.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                                {doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Rejete' : 'En attente'}
+                                {(doc as any).status_label || (doc.status === 'approved' ? 'Approuve' : doc.status === 'rejected' ? 'Refuse' : 'En attente')}
                               </span>
+                              {doc.created_at && <span className="text-xs text-gray-400">Soumis le {new Date(doc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>}
                             </div>
+                            {doc.rejection_reason && (
+                              <div className="mb-3 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+                                <strong>Motif du rejet :</strong> {doc.rejection_reason}
+                              </div>
+                            )}
                             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                               {[
                                 { key: 'document_front_url', label: 'Document Recto' },

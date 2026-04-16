@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  nina: 'NINA',
+  passport: 'Passeport',
+  id_card: "Carte d'identite",
+  driver_license: 'Permis de conduire',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'En attente',
+  approved: 'Approuve',
+  rejected: 'Refuse',
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = createAdminClient()
@@ -46,7 +59,12 @@ export async function GET(req: NextRequest) {
             }
           }
 
-          return { ...v, ...freshUrls }
+          return {
+            ...v,
+            ...freshUrls,
+            document_type_label: DOC_TYPE_LABELS[v.document_type] || v.document_type,
+            status_label: STATUS_LABELS[v.status] || v.status,
+          }
         })
       )
 

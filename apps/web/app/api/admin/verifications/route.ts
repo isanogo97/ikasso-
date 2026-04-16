@@ -126,3 +126,34 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const supabase = createAdminClient()
+    const { id, status, rejection_reason } = await req.json()
+
+    if (!id || !status) {
+      return NextResponse.json({ error: 'ID et statut requis' }, { status: 400 })
+    }
+
+    const updates: any = { status }
+    if (rejection_reason) updates.rejection_reason = rejection_reason
+    if (status === 'approved' || status === 'rejected') {
+      updates.reviewed_at = new Date().toISOString()
+    }
+
+    const { error } = await supabase
+      .from('identity_verifications')
+      .update(updates)
+      .eq('id', id)
+
+    if (error) {
+      console.error('Update verification error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
