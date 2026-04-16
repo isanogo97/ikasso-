@@ -4,9 +4,32 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { X, Cookie, Settings } from 'lucide-react'
 
+const CONSENT_MAX_AGE_MS = 13 * 30 * 24 * 60 * 60 * 1000 // ~13 months in milliseconds
+
 interface CookieConsentProps {
   onAccept?: () => void
   onDecline?: () => void
+}
+
+export function getCookieConsent(): { necessary: boolean; analytics: boolean; marketing: boolean; personalization: boolean } {
+  if (typeof window === 'undefined') return { necessary: true, analytics: false, marketing: false, personalization: false }
+  try {
+    const stored = localStorage.getItem('ikasso_cookie_consent')
+    if (stored) return JSON.parse(stored)
+  } catch {}
+  return { necessary: true, analytics: false, marketing: false, personalization: false }
+}
+
+function isConsentExpired(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const consentDate = localStorage.getItem('ikasso_cookie_consent_date')
+    if (!consentDate) return false
+    const elapsed = Date.now() - new Date(consentDate).getTime()
+    return elapsed > CONSENT_MAX_AGE_MS
+  } catch {
+    return false
+  }
 }
 
 export default function CookieConsent({ onAccept, onDecline }: CookieConsentProps) {
@@ -21,11 +44,38 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
 
   useEffect(() => {
     const consent = localStorage.getItem('ikasso_cookie_consent')
+
     if (!consent) {
-      // Petit délai pour l'animation
+      // No consent stored yet - show the banner
       setTimeout(() => setIsVisible(true), 1000)
+      return
     }
+
+    // Check if consent has expired (older than 13 months)
+    if (isConsentExpired()) {
+      // Clear expired consent and show banner again
+      localStorage.removeItem('ikasso_cookie_consent')
+      localStorage.removeItem('ikasso_cookie_consent_date')
+      setTimeout(() => setIsVisible(true), 1000)
+      return
+    }
+
+    // Consent exists and is still valid - apply stored preferences
+    try {
+      const stored = JSON.parse(consent)
+      // If non-necessary cookies were refused, ensure scripts are blocked
+      if (!stored.analytics || !stored.marketing || !stored.personalization) {
+        blockNonConsentedScripts(stored)
+      }
+    } catch {}
   }, [])
+
+  function blockNonConsentedScripts(consentState: { analytics: boolean; marketing: boolean; personalization: boolean }) {
+    // Dispatch a custom event so other components can react to consent state
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('ikasso_consent_update', { detail: consentState }))
+    }
+  }
 
   const handleAcceptAll = () => {
     const newPreferences = {
@@ -37,6 +87,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
     localStorage.setItem('ikasso_cookie_consent', JSON.stringify(newPreferences))
     localStorage.setItem('ikasso_cookie_consent_date', new Date().toISOString())
     setIsVisible(false)
+    blockNonConsentedScripts(newPreferences)
     onAccept?.()
   }
 
@@ -50,6 +101,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
     localStorage.setItem('ikasso_cookie_consent', JSON.stringify(newPreferences))
     localStorage.setItem('ikasso_cookie_consent_date', new Date().toISOString())
     setIsVisible(false)
+    blockNonConsentedScripts(newPreferences)
     onDecline?.()
   }
 
@@ -58,18 +110,19 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
     localStorage.setItem('ikasso_cookie_consent_date', new Date().toISOString())
     setIsVisible(false)
     setShowPreferences(false)
+    blockNonConsentedScripts(preferences)
   }
 
   if (!isVisible) return null
 
   return (
     <>
-      {/* Overlay pour les préférences */}
+      {/* Overlay pour les preferences */}
       {showPreferences && (
         <div className="fixed inset-0 bg-black/50 z-[100]" onClick={() => setShowPreferences(false)} />
       )}
 
-      {/* Bannière principale - Responsive */}
+      {/* Banniere principale - Responsive */}
       <div className={`fixed bottom-0 left-0 right-0 z-[99] transition-transform duration-500 ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}>
@@ -83,7 +136,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
-                    🍪 Nous respectons votre vie privée
+                    Nous respectons votre vie privee
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                     Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser le contenu.
@@ -123,14 +176,14 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
         </div>
       </div>
 
-      {/* Modal des préférences - Responsive */}
+      {/* Modal des preferences - Responsive */}
       {showPreferences && (
         <div className="fixed inset-x-4 bottom-4 sm:inset-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 w-auto sm:w-full sm:max-w-lg bg-white rounded-2xl shadow-2xl z-[101] max-h-[90vh] overflow-y-auto">
           <div className="p-4 sm:p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">Préférences de cookies</h2>
-              <button 
+              <button
                 onClick={() => setShowPreferences(false)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-all"
               >
@@ -140,7 +193,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
 
             {/* Options */}
             <div className="space-y-3 sm:space-y-4">
-              {/* Cookies nécessaires */}
+              {/* Cookies necessaires */}
               <div className="p-3 sm:p-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -173,7 +226,7 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
                   </button>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600">
-                  Nous aident à comprendre comment vous utilisez le site pour l'améliorer.
+                  Nous aident à comprendre comment vous utilisez le site pour l&apos;améliorer.
                 </p>
               </div>
 
@@ -249,8 +302,3 @@ export default function CookieConsent({ onAccept, onDecline }: CookieConsentProp
     </>
   )
 }
-
-
-
-
-
