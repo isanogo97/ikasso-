@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const PUBLIC_ROUTES = ['/', '/auth', '/api', '/search', '/property', '/help', '/contact', '/terms', '/privacy', '/pricing', '/host', '/experiences', '/offline', '/admin']
+// Dashboard must be public for OAuth redirects (hash fragments not visible to middleware)
+// Actual auth protection happens client-side in useAuth + dashboard guards
+const PUBLIC_ROUTES = ['/', '/auth', '/api', '/search', '/property', '/help', '/contact', '/terms', '/privacy', '/pricing', '/host', '/experiences', '/offline', '/admin', '/dashboard', '/messages', '/settings', '/verify-identity', '/booking']
 const PUBLIC_FILES = ['/_next', '/images', '/sw.js', '/manifest.json', '/robots.txt', '/sitemap.xml', '/favicon']
 
 export function middleware(req: NextRequest) {
