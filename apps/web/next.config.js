@@ -92,4 +92,17 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+// Wrap with Sentry if configured
+const { withSentryConfig } = require('@sentry/nextjs')
+
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+    }, {
+      widenClientFileUpload: true,
+      hideSourceMaps: true,
+      disableLogger: true,
+    })
+  : nextConfig

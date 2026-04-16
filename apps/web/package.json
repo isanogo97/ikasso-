@@ -12,6 +12,7 @@
   "dependencies": {
     "@auth/core": "^0.34.3",
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@sentry/nextjs": "^10.49.0",
     "@stripe/stripe-js": "^9.1.0",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.102.1",
