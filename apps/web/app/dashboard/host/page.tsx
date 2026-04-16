@@ -10,6 +10,7 @@ import {
   TrendingUp, Eye, Edit, Trash2, Users
 } from 'lucide-react'
 import Logo from '../../components/Logo'
+import { useAuth } from '../../contexts/AuthContext'
 
 // Types
 interface Property {
@@ -39,6 +40,7 @@ interface Booking {
 }
 
 export default function HostDashboard() {
+  const { user, isLoading: authLoading, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('overview')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -150,6 +152,23 @@ export default function HostDashboard() {
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'settings', label: 'Paramètres', icon: Settings },
   ]
+
+  // Auth guard: redirect if not authenticated
+  if (!authLoading && !user) {
+    if (typeof window !== 'undefined') {
+      Object.keys(localStorage).filter(k => k.startsWith('ikasso') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k))
+      window.location.href = '/'
+    }
+    return null
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="h-10 w-10 rounded-full border-4 border-primary-500 border-t-transparent animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
