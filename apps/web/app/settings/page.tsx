@@ -3,9 +3,77 @@
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin } from "lucide-react"
+import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin, Tag, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import Logo from '../components/Logo'
 import { useAuth } from "../contexts/AuthContext"
+
+function PromoCodeSection({ userId }: { userId?: string }) {
+  const [code, setCode] = useState('')
+  const [result, setResult] = useState<any>(null)
+  const [checking, setChecking] = useState(false)
+  const [applied, setApplied] = useState(false)
+
+  const validateAndApply = async () => {
+    if (!code.trim() || !userId) return
+    setChecking(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/validate-referral', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim(), userId }),
+      })
+      const json = await res.json()
+      setResult(json)
+      if (json.valid) setApplied(true)
+    } catch {
+      setResult({ valid: false, error: 'Erreur de connexion' })
+    }
+    setChecking(false)
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Code promotionnel</h2>
+      <p className="text-sm text-gray-500 mb-6">Entrez un code promo ou de parrainage pour beneficier d&apos;avantages (commission reduite, reduction, etc.)</p>
+
+      {applied ? (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+          <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
+          <p className="text-green-800 font-semibold text-lg mb-1">Code applique !</p>
+          <p className="text-green-600 text-sm">{result?.reward}</p>
+        </div>
+      ) : (
+        <div className="max-w-md">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Ex: WELCOMEIKASSO"
+              className={`flex-1 px-4 py-3 border rounded-xl text-base uppercase focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${result && !result.valid ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+              value={code}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setResult(null) }}
+            />
+            <button
+              onClick={validateAndApply}
+              disabled={checking || code.trim().length < 3}
+              className="px-5 py-3 bg-primary-500 text-white font-semibold rounded-xl hover:bg-primary-600 disabled:bg-gray-300 transition-colors whitespace-nowrap flex items-center gap-2"
+            >
+              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Tag className="h-4 w-4" />}
+              Appliquer
+            </button>
+          </div>
+          {result && !result.valid && (
+            <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+              <XCircle className="h-4 w-4 flex-shrink-0" />
+              {result.error}
+            </div>
+          )}
+          <p className="text-xs text-gray-400 mt-3">Un seul code par compte. Le code sera applique immediatement.</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { user: authUser } = useAuth()
@@ -141,6 +209,7 @@ export default function SettingsPage() {
     { id: "privacy", name: "Confidentialité", icon: Eye },
     { id: "payments", name: "Paiements", icon: CreditCard },
     { id: "preferences", name: "Préférences", icon: Globe },
+    { id: "promo", name: "Code promo", icon: Tag },
   ]
 
   const handleProfileUpdate = () => {
@@ -452,6 +521,10 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeTab === "promo" && (
+            <PromoCodeSection userId={authUser?.id} />
           )}
         </div>
       </div>

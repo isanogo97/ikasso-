@@ -9,6 +9,29 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient()
     const upperCode = code.toUpperCase().trim()
 
+    // Check if this user already used ANY code (1 code per account)
+    if (userId) {
+      const { data: existingRef } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referred_id', userId)
+        .limit(1)
+        .single()
+      if (existingRef) {
+        return NextResponse.json({ valid: false, error: 'Vous avez deja utilise un code sur ce compte' })
+      }
+
+      // Also check if profile already has commission_free_until set
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('commission_free_until')
+        .eq('id', userId)
+        .single()
+      if (profile?.commission_free_until && new Date(profile.commission_free_until) > new Date()) {
+        return NextResponse.json({ valid: false, error: 'Un code est deja actif sur ce compte' })
+      }
+    }
+
     // Check referral_codes table first (host-to-host referral)
     const { data: refCode } = await supabase
       .from('referral_codes')
