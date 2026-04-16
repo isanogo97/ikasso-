@@ -242,7 +242,6 @@ export default function VerifyIdentityPage() {
                 ref={frontInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={e => handleDocumentUpload('front', e.target.files?.[0] || null)}
               />
@@ -281,7 +280,6 @@ export default function VerifyIdentityPage() {
                 ref={backInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={e => handleDocumentUpload('back', e.target.files?.[0] || null)}
               />
@@ -367,7 +365,6 @@ export default function VerifyIdentityPage() {
                     ref={el => { faceInputRefs.current[dir.key] = el }}
                     type="file"
                     accept="image/*"
-                    capture="user"
                     className="hidden"
                     onChange={e => handleFaceUpload(dir.key, e.target.files?.[0] || null)}
                   />

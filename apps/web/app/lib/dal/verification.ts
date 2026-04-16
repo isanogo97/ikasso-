@@ -91,30 +91,36 @@ export async function isVerified(userId: string): Promise<boolean> {
   return result.verified
 }
 
-async function uploadFile(
-  supabase: any,
-  bucket: string,
-  path: string,
+async function uploadFileViaAPI(
+  userId: string,
+  timestamp: string,
+  fileKey: string,
   file: File
 ): Promise<string | null> {
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, file, {
-      cacheControl: '3600',
-      upsert: true,
-      contentType: file.type,
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('userId', userId)
+    formData.append('fileKey', fileKey)
+    formData.append('timestamp', timestamp)
+
+    const response = await fetch('/api/upload/identity', {
+      method: 'POST',
+      body: formData,
     })
 
-  if (error) {
-    console.error(`Upload error for ${path}:`, error.message)
+    const result = await response.json()
+
+    if (!response.ok || !result.success) {
+      console.error(`Upload error for ${fileKey}:`, result.error)
+      return null
+    }
+
+    return result.url || result.path || fileKey
+  } catch (err: any) {
+    console.error(`Upload error for ${fileKey}:`, err.message)
     return null
   }
-
-  const { data: urlData } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(path)
-
-  return urlData?.publicUrl || null
 }
 
 export async function submitVerification(
@@ -127,17 +133,16 @@ export async function submitVerification(
       const { createClient } = await import('../supabase/client')
       const supabase = createClient()
 
-      const bucket = 'identity-docs'
-      const basePath = `${data.userId}/${Date.now()}`
+      const timestamp = String(Date.now())
 
-      // Upload all files in parallel
+      // Upload all files via server-side API route (bypasses Storage RLS)
       const [docFrontUrl, docBackUrl, faceFrontUrl, faceLeftUrl, faceRightUrl] =
         await Promise.all([
-          uploadFile(supabase, bucket, `${basePath}/document_front`, data.documentFront),
-          uploadFile(supabase, bucket, `${basePath}/document_back`, data.documentBack),
-          uploadFile(supabase, bucket, `${basePath}/face_front`, data.faceFront),
-          uploadFile(supabase, bucket, `${basePath}/face_left`, data.faceLeft),
-          uploadFile(supabase, bucket, `${basePath}/face_right`, data.faceRight),
+          uploadFileViaAPI(data.userId, timestamp, 'document_front', data.documentFront),
+          uploadFileViaAPI(data.userId, timestamp, 'document_back', data.documentBack),
+          uploadFileViaAPI(data.userId, timestamp, 'face_front', data.faceFront),
+          uploadFileViaAPI(data.userId, timestamp, 'face_left', data.faceLeft),
+          uploadFileViaAPI(data.userId, timestamp, 'face_right', data.faceRight),
         ])
 
       const failedUploads = [
