@@ -56,6 +56,13 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Ban/unban at Supabase Auth level to force session invalidation
+    if (status === 'suspended') {
+      await supabase.auth.admin.updateUserById(userId, { ban_duration: '876000h' })
+    } else if (status === 'active') {
+      await supabase.auth.admin.updateUserById(userId, { ban_duration: 'none' })
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

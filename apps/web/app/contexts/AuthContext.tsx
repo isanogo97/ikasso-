@@ -27,6 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       const currentUser = await getCurrentUser()
+      // If user is suspended, force sign out
+      if (currentUser && currentUser.status === 'suspended') {
+        setUser(null)
+        if (typeof window !== 'undefined') {
+          Object.keys(localStorage).filter(k => k.startsWith('ikasso') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k))
+          window.location.href = '/'
+        }
+        return
+      }
       setUser(currentUser)
     } catch {
       setUser(null)
