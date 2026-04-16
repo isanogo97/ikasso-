@@ -9,7 +9,12 @@ export const registerSchema = z.object({
   firstName: z.string().min(1, 'Prenom requis'),
   lastName: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide'),
-  password: z.string().min(8, '8 caracteres minimum'),
+  password: z
+    .string()
+    .min(8, '8 caracteres minimum')
+    .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+    .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+    .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre'),
   phone: z.string().optional().default(''),
   countryCode: z.string().optional().default('+223'),
   userType: z.enum(['client', 'hote']),

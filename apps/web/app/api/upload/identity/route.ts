@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createAdminClient } from '../../../lib/supabase/admin'
 import { requireAuth } from '../../../lib/api-auth'
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
 const BUCKET = 'identity-docs'
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -35,9 +38,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Seules les images sont acceptees' },
+        { error: 'Type de fichier non autorise. Seuls JPEG, PNG, WebP, HEIC et HEIF sont acceptes.' },
         { status: 400 }
       )
     }
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer)
 
     const ext = file.name.split('.').pop() || 'jpg'
-    const path = `${userId}/${timestamp}/${fileKey}.${ext}`
+    const path = `${userId}/${timestamp}/${crypto.randomUUID()}.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET)

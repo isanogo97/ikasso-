@@ -165,6 +165,13 @@ export default function RegisterNewPage() {
     setShowAddressSuggestions(false)
   }
 
+  // Password strength check
+  const isPasswordStrong =
+    personalData.password.length >= 8 &&
+    /[A-Z]/.test(personalData.password) &&
+    /[a-z]/.test(personalData.password) &&
+    /[0-9]/.test(personalData.password)
+
   // Validation
   const canGoToStep2 =
     userType !== null &&
@@ -172,7 +179,7 @@ export default function RegisterNewPage() {
     personalData.lastName.trim() !== '' &&
     personalData.email.trim() !== '' &&
     personalData.email.includes('@') &&
-    personalData.password.length >= 8 &&
+    isPasswordStrong &&
     personalData.password === personalData.confirmPassword
 
   // Email verification
@@ -459,8 +466,13 @@ export default function RegisterNewPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {personalData.password && personalData.password.length < 8 && (
-                    <p className="text-xs text-amber-600 mt-1">Minimum 8 caracteres</p>
+                  {personalData.password && !isPasswordStrong && (
+                    <div className="text-xs text-amber-600 mt-1 space-y-0.5">
+                      {personalData.password.length < 8 && <p>Minimum 8 caracteres</p>}
+                      {!/[A-Z]/.test(personalData.password) && <p>Au moins une lettre majuscule</p>}
+                      {!/[a-z]/.test(personalData.password) && <p>Au moins une lettre minuscule</p>}
+                      {!/[0-9]/.test(personalData.password) && <p>Au moins un chiffre</p>}
+                    </div>
                   )}
                 </div>
 

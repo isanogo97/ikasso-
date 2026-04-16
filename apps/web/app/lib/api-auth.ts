@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logSecurityEvent } from './security-log'
 
 /**
  * Verify that the request comes from an authenticated Supabase user.
@@ -57,6 +58,12 @@ export async function requireAdmin(req: NextRequest): Promise<{ user: any; error
   const user = await getAuthenticatedUser(req)
 
   if (!user) {
+    logSecurityEvent({
+      action: 'unauthorized_access',
+      ip: req.headers.get('x-forwarded-for') || undefined,
+      path: req.nextUrl.pathname,
+      details: 'unauthenticated request to admin endpoint',
+    })
     return { user: null, error: NextResponse.json({ error: 'Non authentifie' }, { status: 401 }) }
   }
 
@@ -75,6 +82,13 @@ export async function requireAdmin(req: NextRequest): Promise<{ user: any; error
     .single()
 
   if (!adminRecord) {
+    logSecurityEvent({
+      action: 'unauthorized_access',
+      userId: user.id,
+      ip: req.headers.get('x-forwarded-for') || undefined,
+      path: req.nextUrl.pathname,
+      details: 'non-admin attempted admin access',
+    })
     return { user, error: NextResponse.json({ error: 'Acces refuse' }, { status: 403 }) }
   }
 
@@ -122,6 +136,11 @@ export function rateLimit(key: string, maxRequests: number = 10, windowMs: numbe
   }
 
   if (record.count >= maxRequests) {
+    logSecurityEvent({
+      action: 'rate_limited',
+      ip: key,
+      details: `rate limit exceeded: ${record.count}/${maxRequests} in ${windowMs}ms`,
+    })
     return false
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { escapeHtml } from '../../lib/api-auth'
+import { logSecurityEvent } from '../../lib/security-log'
 
 export const runtime = 'nodejs'
 
@@ -96,6 +97,13 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ success: false, message: error.message }, { status: 400 })
     }
+
+    logSecurityEvent({
+      action: 'admin_action',
+      ip: request.headers.get('x-forwarded-for') || undefined,
+      path: '/api/send-verification-status',
+      details: `verification status email sent: status=${status}, to=${email}`,
+    })
 
     return NextResponse.json({ success: true, messageId: data?.id })
   } catch (error: any) {

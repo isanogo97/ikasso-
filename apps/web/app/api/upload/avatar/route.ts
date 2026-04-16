@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createAdminClient } from '../../../lib/supabase/admin'
 import { requireAuth } from '../../../lib/api-auth'
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 const BUCKET = 'avatars'
 const MAX_SIZE = 5 * 1024 * 1024
@@ -27,6 +30,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Fichier trop volumineux (max 5 Mo)' }, { status: 400 })
     }
 
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Type de fichier non autorise. Seuls JPEG, PNG et WebP sont acceptes.' }, { status: 400 })
+    }
+
     const supabase = createAdminClient()
 
     // Ensure bucket exists
@@ -42,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     // Upload file
     const ext = file.name.split('.').pop() || 'jpg'
-    const path = `${userId}/avatar.${ext}`
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 

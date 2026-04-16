@@ -3,22 +3,29 @@ const isProd = process.env.NODE_ENV === 'production'
 
 const securityHeaders = () => {
   // Content Security Policy
-  const csp = [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "frame-ancestors 'none'",
-    "object-src 'none'",
-    // Allow inline styles only in development; be strict in production
-    (isProd ? "style-src 'self' 'unsafe-inline'" : "style-src 'self' 'unsafe-inline'"),
-    // Next dev needs eval/websocket; keep strict in prod
-    isProd ? "script-src 'self' 'unsafe-inline' https://js.stripe.com" : "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-    isProd ? "frame-src 'self' https://js.stripe.com https://hooks.stripe.com" : "frame-src 'self'",
-    isProd ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://api.orange.com" : "connect-src 'self' ws: http://localhost:* https://*.supabase.co wss://*.supabase.co",
-    "img-src 'self' data: https://images.unsplash.com https://via.placeholder.com https://*.supabase.co",
-    "font-src 'self' data:",
-    "form-action 'self'",
-    "upgrade-insecure-requests",
-  ].join('; ')
+  const csp = isProd
+    ? [
+        "default-src 'self'",
+        "script-src 'self' https://js.stripe.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "img-src 'self' data: blob: https: http:",
+        "font-src 'self' https://fonts.gstatic.com",
+        "connect-src 'self' https://*.supabase.co https://api.stripe.com https://nominatim.openstreetmap.org wss://*.supabase.co",
+        "frame-src https://js.stripe.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+      ].join('; ')
+    : [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https: http:",
+        "font-src 'self' data:",
+        "connect-src 'self' ws: http://localhost:* https://*.supabase.co wss://*.supabase.co",
+        "frame-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+      ].join('; ')
 
   /** @type {import('next/dist/server/config-shared').Header[]} */
   return [
@@ -66,11 +73,20 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
   },
+  productionBrowserSourceMaps: false,
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: securityHeaders(),
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: 'https://ikasso.ml' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PATCH, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
       },
     ]
   },
