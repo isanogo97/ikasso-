@@ -258,13 +258,19 @@ export async function signOut(): Promise<void> {
   const mode = getStorageMode()
 
   if (mode === 'supabase') {
-    const { createClient } = await import('../supabase/client')
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    try {
+      const { createClient } = await import('../supabase/client')
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch {}
   }
 
+  // Nuclear cleanup: remove ALL ikasso and Supabase keys
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('ikasso_user')
+    const keysToRemove = Object.keys(localStorage).filter(key =>
+      key.startsWith('ikasso') || key.startsWith('sb-')
+    )
+    keysToRemove.forEach(key => localStorage.removeItem(key))
   }
 }
 
@@ -281,9 +287,12 @@ export async function getCurrentUser(): Promise<UserProfile | null> {
       user = session?.user
     } catch {}
 
-    // ALWAYS fallback to localStorage if no Supabase session
+    // No Supabase session = not authenticated. Clean up stale localStorage.
     if (!user) {
-      return getLocalUser()
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('ikasso_user')
+      }
+      return null
     }
 
     const { data: profile } = await supabase

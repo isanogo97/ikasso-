@@ -89,15 +89,17 @@ export default function TravelerDashboard() {
     )
   }
 
-  // Redirect to home if not authenticated
+  // Redirect to home if not authenticated - aggressive cleanup
   if (!user && !isLoading) {
     if (typeof window !== 'undefined') {
+      // Clean stale localStorage before redirect
+      Object.keys(localStorage).filter(k => k.startsWith('ikasso') || k.startsWith('sb-')).forEach(k => localStorage.removeItem(k))
       window.location.href = '/'
     }
     return null
   }
 
-  const firstName = user?.firstName || 'Voyageur'
+  const firstName = user?.firstName || ''
   const upcomingBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending')
   const recentBookings = bookings.slice(0, 3)
 

@@ -6,7 +6,8 @@ import {
   Shield, Users, BarChart3, LogOut, Search, ChevronDown, ChevronUp,
   CheckCircle, CheckCircle2, XCircle, AlertTriangle, Mail, Eye, UserCheck, UserX,
   Flag, RefreshCw, Plus, Trash2, LayoutDashboard, FileCheck, UserCog,
-  Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft, Tag, Send, Percent
+  Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft, Tag, Send, Percent,
+  MessageSquare
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
@@ -17,7 +18,7 @@ import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions'
+type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions' | 'incidents'
 type UserFilter = 'all' | 'clients' | 'hosts' | 'suspended' | 'verified'
 
 interface DashboardStats {
@@ -125,6 +126,7 @@ const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: 'users', label: 'Utilisateurs', icon: Users },
   { key: 'verifications', label: 'Verifications', icon: FileCheck },
   { key: 'promotions', label: 'Promotions', icon: Tag },
+  { key: 'incidents', label: 'Incidents', icon: AlertTriangle },
   { key: 'admins', label: 'Administrateurs', icon: UserCog },
 ]
 
@@ -135,7 +137,7 @@ function getTabFromUrl(): { tab: Tab; userId: string | null } {
   if (typeof window === 'undefined') return { tab: 'dashboard', userId: null }
   const params = new URLSearchParams(window.location.search)
   const raw = params.get('tab')
-  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins']
+  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins', 'promotions', 'incidents']
   const tab = validTabs.includes(raw as Tab) ? (raw as Tab) : 'dashboard'
   const userId = params.get('user') || null
   return { tab, userId }
@@ -215,6 +217,17 @@ export default function AdminPage() {
   const [newPromoExpires, setNewPromoExpires] = useState('')
   const [newPromoMaxUses, setNewPromoMaxUses] = useState('')
   const [promoError, setPromoError] = useState('')
+
+  // Incidents
+  const [incidents, setIncidents] = useState<any[]>([])
+  const [incidentsLoading, setIncidentsLoading] = useState(false)
+  const [incidentFilter, setIncidentFilter] = useState<'all' | 'open' | 'pending' | 'on_hold' | 'closed'>('all')
+  const [selectedIncident, setSelectedIncident] = useState<any>(null)
+  const [incidentMessages, setIncidentMessages] = useState<any[]>([])
+  const [incidentReply, setIncidentReply] = useState('')
+  const [incidentSendEmail, setIncidentSendEmail] = useState(true)
+  const [userIncidents, setUserIncidents] = useState<any[]>([])
+  const [userIncidentsLoading, setUserIncidentsLoading] = useState(false)
 
   // Action feedback
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -452,6 +465,99 @@ export default function AdminPage() {
     }
   }, [flash])
 
+  const fetchIncidents = useCallback(async () => {
+    setIncidentsLoading(true)
+    try {
+      const res = await fetch('/api/admin/incidents?status=' + incidentFilter)
+      const json = await res.json()
+      setIncidents(json.incidents || [])
+    } catch {
+      flash('error', 'Impossible de charger les incidents')
+    } finally {
+      setIncidentsLoading(false)
+    }
+  }, [flash, incidentFilter])
+
+  const loadIncidentDetail = async (incidentId: string) => {
+    try {
+      const res = await fetch('/api/admin/incidents/' + incidentId)
+      const json = await res.json()
+      if (res.ok) {
+        setSelectedIncident(json.incident)
+        setIncidentMessages(json.messages || [])
+      }
+    } catch {}
+  }
+
+  const updateIncidentStatus = async (incidentId: string, status: string) => {
+    try {
+      await fetch('/api/admin/incidents/' + incidentId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, adminName: currentAdmin?.name }),
+      })
+      flash('success', 'Statut mis a jour')
+      loadIncidentDetail(incidentId)
+      fetchIncidents()
+    } catch { flash('error', 'Erreur') }
+  }
+
+  const sendIncidentReply = async () => {
+    if (!incidentReply.trim() || !selectedIncident) return
+    try {
+      const res = await fetch('/api/admin/incidents/' + selectedIncident.id, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: incidentReply,
+          adminName: currentAdmin?.name,
+          sendEmail: incidentSendEmail,
+          userEmail: selectedIncident.user_email,
+          subject: selectedIncident.subject,
+        }),
+      })
+      if (res.ok) {
+        flash('success', incidentSendEmail ? 'Reponse envoyee + email' : 'Reponse enregistree')
+        setIncidentReply('')
+        loadIncidentDetail(selectedIncident.id)
+      }
+    } catch { flash('error', 'Erreur envoi') }
+  }
+
+  const createIncidentFromUser = async (userId: string, userEmail: string, subject: string, message: string) => {
+    try {
+      const res = await fetch('/api/admin/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId, subject, message,
+          adminName: currentAdmin?.name,
+          sendEmail: true,
+          userEmail,
+        }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        flash('success', 'Incident cree + email envoye')
+        return json.incident
+      }
+    } catch {}
+    return null
+  }
+
+  const fetchUserIncidents = async (userId: string) => {
+    setUserIncidentsLoading(true)
+    try {
+      const res = await fetch('/api/admin/incidents?userId=' + userId)
+      const json = await res.json()
+      setUserIncidents(json.incidents || [])
+    } catch {
+      setUserIncidents([])
+    } finally {
+      setUserIncidentsLoading(false)
+    }
+  }
+
   const sendAdminEmail = async () => {
     if (!emailTo || !emailSubject || !emailMessage) {
       flash('error', 'Remplissez tous les champs')
@@ -471,6 +577,11 @@ export default function AdminPage() {
       })
       const json = await res.json()
       if (res.ok) {
+        // Auto-create incident if sending to a known user
+        const matchedUser = users.find(u => u.email === emailTo)
+        if (matchedUser) {
+          await createIncidentFromUser(matchedUser.id, emailTo, emailSubject, emailMessage)
+        }
         flash('success', `Email envoye a ${emailTo}`)
         setShowEmailModal(false)
         setEmailTo('')
@@ -558,12 +669,14 @@ export default function AdminPage() {
     if (activeTab === 'verifications') fetchVerifications()
     if (activeTab === 'admins') fetchAdmins()
     if (activeTab === 'promotions') fetchPromoCodes()
-  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes])
+    if (activeTab === 'incidents') fetchIncidents()
+  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents])
 
   // Load user docs when a user is selected
   useEffect(() => {
     if (selectedUserId && activeTab === 'users') {
       loadUserDocs(selectedUserId)
+      fetchUserIncidents(selectedUserId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId])
@@ -1376,6 +1489,48 @@ export default function AdminPage() {
                     )}
                   </div>
 
+                  {/* Historique incidents */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      </div>
+                      Historique incidents
+                    </h4>
+                    {userIncidentsLoading ? (
+                      <div className="flex justify-center py-4"><Loader2 className="h-6 w-6 animate-spin text-primary-500" /></div>
+                    ) : userIncidents.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic">Aucun incident pour cet utilisateur</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {userIncidents.map((inc: any) => (
+                          <div
+                            key={inc.id}
+                            onClick={() => { navigateToTab('incidents'); loadIncidentDetail(inc.id); }}
+                            className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-primary-300 hover:bg-gray-50 cursor-pointer transition-all"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-gray-900 truncate">{inc.subject}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {inc.created_at ? new Date(inc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                              </p>
+                            </div>
+                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                              inc.status === 'open' ? 'bg-green-100 text-green-700' :
+                              inc.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                              inc.status === 'on_hold' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {inc.status === 'open' ? 'Ouvert' :
+                               inc.status === 'pending' ? 'En attente' :
+                               inc.status === 'on_hold' ? 'En pause' : 'Cloture'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Actions bar */}
                   <div className="bg-white rounded-xl border border-gray-200 p-5">
                     <h4 className="text-sm font-semibold text-gray-900 mb-4">Actions</h4>
@@ -1414,12 +1569,17 @@ export default function AdminPage() {
                       )}
 
                       {selectedUser.email && (
-                        <a
-                          href={`mailto:${selectedUser.email}`}
+                        <button
+                          onClick={() => {
+                            setEmailTo(selectedUser.email || '')
+                            setEmailSubject('')
+                            setEmailMessage('')
+                            setShowEmailModal(true)
+                          }}
                           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors w-full sm:w-auto justify-center"
                         >
                           <Mail className="h-4 w-4" /> Contacter
-                        </a>
+                        </button>
                       )}
 
                       {/* Delete button and confirmation */}
@@ -1577,6 +1737,206 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =============== INCIDENTS TAB =============== */}
+          {activeTab === 'incidents' && (
+            <div>
+              {selectedIncident ? (
+                /* ---------- INCIDENT DETAIL VIEW ---------- */
+                <div>
+                  <button
+                    onClick={() => { setSelectedIncident(null); setIncidentMessages([]); setIncidentReply('') }}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-4"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Retour aux incidents
+                  </button>
+
+                  {/* Header */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">{selectedIncident.subject}</h2>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <span className="text-sm text-gray-600">{selectedIncident.user_name || 'Utilisateur'}</span>
+                          <span className="text-sm text-gray-400">{selectedIncident.user_email}</span>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            selectedIncident.status === 'open' ? 'bg-green-100 text-green-700' :
+                            selectedIncident.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                            selectedIncident.status === 'on_hold' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {selectedIncident.status === 'open' ? 'Ouvert' :
+                             selectedIncident.status === 'pending' ? 'En attente' :
+                             selectedIncident.status === 'on_hold' ? 'En pause' : 'Cloture'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedIncident.status !== 'pending' && (
+                          <button onClick={() => updateIncidentStatus(selectedIncident.id, 'pending')} className="px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors">
+                            En attente
+                          </button>
+                        )}
+                        {selectedIncident.status !== 'on_hold' && (
+                          <button onClick={() => updateIncidentStatus(selectedIncident.id, 'on_hold')} className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                            En pause
+                          </button>
+                        )}
+                        {selectedIncident.status !== 'closed' && (
+                          <button onClick={() => updateIncidentStatus(selectedIncident.id, 'closed')} className="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
+                            Cloturer
+                          </button>
+                        )}
+                        {selectedIncident.status === 'closed' && (
+                          <button onClick={() => updateIncidentStatus(selectedIncident.id, 'open')} className="px-3 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors">
+                            Rouvrir
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Messages timeline */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4 space-y-4 max-h-[500px] overflow-y-auto">
+                    {incidentMessages.length === 0 ? (
+                      <p className="text-sm text-gray-400 italic text-center py-4">Aucun message</p>
+                    ) : (
+                      incidentMessages.map((msg: any, i: number) => (
+                        <div key={i} className={`flex ${msg.sender === 'admin' ? 'justify-end' : msg.sender === 'system' ? 'justify-center' : 'justify-start'}`}>
+                          <div className={`max-w-[75%] rounded-xl px-4 py-3 ${
+                            msg.sender === 'admin' ? 'bg-blue-500 text-white' :
+                            msg.sender === 'system' ? 'bg-gray-100 text-gray-500 italic text-center' :
+                            'bg-white border border-gray-200 text-gray-900'
+                          }`}>
+                            {msg.sender === 'admin' && msg.admin_name && (
+                              <p className="text-xs font-medium mb-1 opacity-80">{msg.admin_name}</p>
+                            )}
+                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                            <p className={`text-xs mt-1 ${msg.sender === 'admin' ? 'text-blue-200' : 'text-gray-400'}`}>
+                              {msg.created_at ? new Date(msg.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Reply input */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <textarea
+                      rows={3}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none mb-3"
+                      placeholder="Votre reponse..."
+                      value={incidentReply}
+                      onChange={e => setIncidentReply(e.target.value)}
+                    />
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
+                          checked={incidentSendEmail}
+                          onChange={e => setIncidentSendEmail(e.target.checked)}
+                        />
+                        Envoyer aussi par email
+                      </label>
+                      <button
+                        onClick={sendIncidentReply}
+                        disabled={!incidentReply.trim()}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 transition-colors"
+                      >
+                        <Send className="h-4 w-4" /> Envoyer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* ---------- INCIDENTS LIST VIEW ---------- */
+                <div>
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">Incidents</h1>
+                    <p className="text-gray-500 text-sm mt-1">Gerez les demandes et reclamations des utilisateurs</p>
+                  </div>
+
+                  {/* Filter pills */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {([
+                      { key: 'all' as const, label: 'Tous' },
+                      { key: 'open' as const, label: 'Ouvert' },
+                      { key: 'pending' as const, label: 'En attente' },
+                      { key: 'on_hold' as const, label: 'En pause' },
+                      { key: 'closed' as const, label: 'Clos' },
+                    ]).map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setIncidentFilter(f.key)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                          incidentFilter === f.key
+                            ? 'bg-primary-500 text-white shadow-sm'
+                            : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                    <span className="flex items-center text-xs text-gray-400 ml-2">{incidents.length} incident(s)</span>
+                  </div>
+
+                  {incidentsLoading ? (
+                    <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+                  ) : incidents.length === 0 ? (
+                    <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                      <AlertTriangle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 font-medium">Aucun incident</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {incidents.map((inc: any) => {
+                        const initials = (inc.user_name || '??').split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
+                        return (
+                          <div
+                            key={inc.id}
+                            onClick={() => { loadIncidentDetail(inc.id); }}
+                            className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:shadow-md hover:border-primary-300 transition-all"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-bold text-primary-600">{initials}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm font-semibold text-gray-900 truncate">{inc.user_name || 'Utilisateur'}</span>
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    inc.status === 'open' ? 'bg-green-100 text-green-700' :
+                                    inc.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                    inc.status === 'on_hold' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {inc.status === 'open' ? 'Ouvert' :
+                                     inc.status === 'pending' ? 'En attente' :
+                                     inc.status === 'on_hold' ? 'En pause' : 'Cloture'}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 mt-0.5 truncate">{inc.subject}</p>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                                  {inc.created_at && <span>{new Date(inc.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                                  {inc.message_count != null && (
+                                    <span className="inline-flex items-center gap-1">
+                                      <MessageSquare className="h-3 w-3" /> {inc.message_count}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

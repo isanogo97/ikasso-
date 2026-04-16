@@ -115,15 +115,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await dalSignOut()
-    // Also clear Supabase auth storage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ikasso-auth')
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('sb-')) localStorage.removeItem(key)
-      })
-    }
     setUser(null)
+    await dalSignOut()
+    // Nuclear cleanup: remove ALL ikasso and Supabase keys
+    if (typeof window !== 'undefined') {
+      const keysToRemove = Object.keys(localStorage).filter(key =>
+        key.startsWith('ikasso') || key.startsWith('sb-')
+      )
+      keysToRemove.forEach(key => localStorage.removeItem(key))
+    }
     window.location.href = '/'
   }
 

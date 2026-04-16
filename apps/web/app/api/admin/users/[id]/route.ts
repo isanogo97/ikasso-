@@ -13,7 +13,12 @@ export async function DELETE(
 
     const supabase = createAdminClient()
 
-    // Delete from auth.users (cascades to profiles, verifications, etc.)
+    // First: ban the user to invalidate all their sessions immediately
+    try {
+      await supabase.auth.admin.updateUserById(userId, { ban_duration: '876000h' })
+    } catch {}
+
+    // Then delete from auth.users (cascades to profiles, verifications, etc.)
     const { error } = await supabase.auth.admin.deleteUser(userId)
 
     if (error) {
