@@ -7,7 +7,7 @@ import {
   CheckCircle, CheckCircle2, XCircle, AlertTriangle, Mail, Eye, UserCheck, UserX,
   Flag, RefreshCw, Plus, Trash2, LayoutDashboard, FileCheck, UserCog,
   Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft, Tag, Send, Percent,
-  MessageSquare
+  MessageSquare, Gift, FileText, DollarSign, ChevronRight
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
@@ -234,6 +234,16 @@ export default function AdminPage() {
   const [sponsorsLoading, setSponsorsLoading] = useState(false)
   const [showAddSponsor, setShowAddSponsor] = useState(false)
   const [sponsorForm, setSponsorForm] = useState({ business_name: '', contact_name: '', contact_email: '', contact_phone: '', plan: 'standard', amount_paid: '', payment_method: '', payment_reference: '', start_date: '', end_date: '', notes: '' })
+  const [sponsorTransactions, setSponsorTransactions] = useState<Record<string, any[]>>({})
+  const [expandedSponsor, setExpandedSponsor] = useState<string | null>(null)
+  // Referrals
+  const [referralCodes, setReferralCodes] = useState<any[]>([])
+  const [allReferrals, setAllReferrals] = useState<any[]>([])
+  const [referralsLoading, setReferralsLoading] = useState(false)
+  const [showAddReferral, setShowAddReferral] = useState(false)
+  const [referralHostId, setReferralHostId] = useState('')
+  const [referralRewardMonths, setReferralRewardMonths] = useState('3')
+  const [referralMaxUses, setReferralMaxUses] = useState('10')
 
   const [showAddHistory, setShowAddHistory] = useState(false)
   const [historySubject, setHistorySubject] = useState('')
@@ -617,6 +627,76 @@ export default function AdminPage() {
     fetchSponsors()
   }
 
+  const loadSponsorTransactions = async (sponsorId: string) => {
+    try {
+      const res = await fetch('/api/admin/sponsors/' + sponsorId + '/transactions')
+      const json = await res.json()
+      setSponsorTransactions(prev => ({ ...prev, [sponsorId]: json.transactions || [] }))
+    } catch {}
+  }
+
+  const addSponsorTransaction = async (sponsorId: string, type: string, amount: number, desc: string, payMethod?: string, payRef?: string) => {
+    try {
+      await fetch('/api/admin/sponsors/' + sponsorId + '/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, amount, description: desc, payment_method: payMethod, payment_reference: payRef, created_by: currentAdmin?.name }),
+      })
+      flash('success', type === 'paiement' ? 'Paiement enregistre + sponsor active' : 'Transaction ajoutee')
+      loadSponsorTransactions(sponsorId)
+      if (type === 'paiement') fetchSponsors()
+    } catch { flash('error', 'Erreur') }
+  }
+
+  const sendSponsorInvoice = async (sponsorId: string) => {
+    try {
+      const res = await fetch('/api/admin/sponsors/' + sponsorId + '/invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ created_by: currentAdmin?.name }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        flash('success', 'Facture ' + json.invoiceNumber + ' generee et envoyee')
+        loadSponsorTransactions(sponsorId)
+      } else flash('error', json.error || 'Erreur')
+    } catch { flash('error', 'Erreur envoi facture') }
+  }
+
+  const fetchReferrals = useCallback(async () => {
+    setReferralsLoading(true)
+    try {
+      const res = await fetch('/api/admin/referrals')
+      const json = await res.json()
+      setReferralCodes(json.codes || [])
+      setAllReferrals(json.referrals || [])
+    } catch {}
+    finally { setReferralsLoading(false) }
+  }, [])
+
+  const createReferralCode = async () => {
+    if (!referralHostId) { flash('error', 'Selectionnez un hote'); return }
+    try {
+      const res = await fetch('/api/admin/referrals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host_id: referralHostId, reward_months: parseInt(referralRewardMonths) || 3, max_referrals: parseInt(referralMaxUses) || 10 }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        flash('success', 'Code ' + json.referralCode.code + ' cree')
+        setShowAddReferral(false)
+        setReferralHostId('')
+        fetchReferrals()
+      }
+    } catch { flash('error', 'Erreur') }
+  }
+
+  const toggleReferralCode = async (id: string, isActive: boolean) => {
+    await fetch('/api/admin/referrals', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
+    fetchReferrals()
+  }
+
   const sendAdminEmail = async () => {
     if (!emailTo || !emailSubject || !emailMessage) {
       flash('error', 'Remplissez tous les champs')
@@ -727,10 +807,10 @@ export default function AdminPage() {
     if (activeTab === 'users') fetchUsers()
     if (activeTab === 'verifications') fetchVerifications()
     if (activeTab === 'admins') fetchAdmins()
-    if (activeTab === 'promotions') fetchPromoCodes()
+    if (activeTab === 'promotions') { fetchPromoCodes(); fetchReferrals() }
     if (activeTab === 'incidents') fetchIncidents()
     if (activeTab === 'publicite') fetchSponsors()
-  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents, fetchSponsors])
+  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents, fetchSponsors, fetchReferrals])
 
   // Load user docs when a user is selected
   useEffect(() => {
@@ -2264,6 +2344,123 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+
+              {/* =============== REFERRAL SECTION =============== */}
+              <div className="border-t border-gray-200 mt-8 pt-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Programme de parrainage</h2>
+                    <p className="text-gray-500 text-sm mt-1">Gerez les codes de parrainage des hotes</p>
+                  </div>
+                  <button onClick={() => setShowAddReferral(!showAddReferral)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-sm">
+                    <Plus className="h-4 w-4" /> Nouveau code
+                  </button>
+                </div>
+
+                {/* Add referral form */}
+                {showAddReferral && (
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Creer un code de parrainage</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Hote</label>
+                        <select className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={referralHostId} onChange={e => setReferralHostId(e.target.value)}>
+                          <option value="">-- Selectionnez un hote --</option>
+                          {users.filter(u => u.user_type === 'hote').map(u => (
+                            <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.email})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mois offerts</label>
+                        <input type="number" min="1" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={referralRewardMonths} onChange={e => setReferralRewardMonths(e.target.value)} placeholder="3" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Utilisations max</label>
+                        <input type="number" min="1" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={referralMaxUses} onChange={e => setReferralMaxUses(e.target.value)} placeholder="10" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button onClick={createReferralCode} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors">Creer le code</button>
+                      <button onClick={() => { setShowAddReferral(false); setReferralHostId('') }} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Referral codes list */}
+                {referralsLoading ? (
+                  <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+                ) : referralCodes.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                    <Gift className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-medium">Aucun code de parrainage</p>
+                    <p className="text-gray-400 text-sm mt-1">Creez un code pour permettre aux hotes de parrainer</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {referralCodes.map(rc => {
+                      const codeReferrals = allReferrals.filter(r => r.referral_code_id === rc.id)
+                      return (
+                        <div key={rc.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${rc.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'}`}>
+                          <div className="p-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                              <div className="flex items-center gap-4">
+                                <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${rc.is_active ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                                  <Gift className={`h-6 w-6 ${rc.is_active ? 'text-purple-600' : 'text-gray-400'}`} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-mono font-bold text-lg text-gray-900">{rc.code}</span>
+                                    {rc.is_active ? (
+                                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Actif</span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Inactif</span>
+                                    )}
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Parrainage</span>
+                                  </div>
+                                  <p className="text-sm text-gray-500 mt-0.5">Hote: {rc.host_name || rc.host_id}</p>
+                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                                    <span className="font-semibold text-purple-600">{rc.reward_months || 3} mois offerts</span>
+                                    <span>{codeReferrals.length}/{rc.max_referrals || 10} utilisations</span>
+                                    <span>Cree le {new Date(rc.created_at).toLocaleDateString('fr-FR')}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => toggleReferralCode(rc.id, rc.is_active)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${rc.is_active ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-green-700 bg-green-50 hover:bg-green-100'}`}>
+                                  {rc.is_active ? 'Desactiver' : 'Reactiver'}
+                                </button>
+                              </div>
+                            </div>
+                            {/* Referrals for this code */}
+                            {codeReferrals.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <p className="text-xs font-semibold text-gray-700 mb-2">Parrainages ({codeReferrals.length})</p>
+                                <div className="space-y-1.5">
+                                  {codeReferrals.map((ref: any, idx: number) => (
+                                    <div key={ref.id || idx} className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 text-xs">
+                                      <UserCheck className="h-3.5 w-3.5 text-purple-500 flex-shrink-0" />
+                                      <span className="text-gray-700">{ref.referrer_name || ref.referrer_id}</span>
+                                      <ChevronRight className="h-3 w-3 text-gray-300" />
+                                      <span className="text-gray-700">{ref.referred_name || ref.referred_id}</span>
+                                      <span className={`ml-auto px-1.5 py-0.5 rounded text-[10px] font-medium ${ref.status === 'completed' ? 'bg-green-100 text-green-700' : ref.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        {ref.status || 'pending'}
+                                      </span>
+                                      {ref.commission_free_until && (
+                                        <span className="text-[10px] text-gray-400">sans commission jusqu&apos;au {new Date(ref.commission_free_until).toLocaleDateString('fr-FR')}</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -2416,6 +2613,50 @@ export default function AdminPage() {
                               <button onClick={() => deleteSponsor(s.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"><Trash2 className="h-4 w-4" /></button>
                             </div>
                           </div>
+                          {/* Transaction action buttons */}
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                            <button onClick={() => sendSponsorInvoice(s.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors">
+                              <FileText className="h-3.5 w-3.5" /> Facture
+                            </button>
+                            <button onClick={() => { const amt = prompt('Montant du paiement (FCFA):'); if (amt) { const ref = prompt('Reference paiement (optionnel):'); addSponsorTransaction(s.id, 'paiement', parseInt(amt) || 0, 'Paiement sponsor', s.payment_method, ref || undefined) } }} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 transition-colors">
+                              <DollarSign className="h-3.5 w-3.5" /> Paiement
+                            </button>
+                            <button onClick={() => { if (expandedSponsor !== s.id) { setExpandedSponsor(s.id); loadSponsorTransactions(s.id) } else setExpandedSponsor(null) }} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${expandedSponsor === s.id ? 'text-gray-900 bg-gray-200' : 'text-gray-600 bg-gray-50 hover:bg-gray-100'}`}>
+                              <Clock className="h-3.5 w-3.5" /> Historique
+                              <ChevronRight className={`h-3 w-3 transition-transform ${expandedSponsor === s.id ? 'rotate-90' : ''}`} />
+                            </button>
+                          </div>
+                          {/* Expanded transaction timeline */}
+                          {expandedSponsor === s.id && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <h4 className="text-xs font-semibold text-gray-700 mb-3">Historique des transactions</h4>
+                              {!sponsorTransactions[s.id] ? (
+                                <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-gray-400" /></div>
+                              ) : sponsorTransactions[s.id].length === 0 ? (
+                                <p className="text-xs text-gray-400 py-2">Aucune transaction</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {sponsorTransactions[s.id].map((tx: any, idx: number) => (
+                                    <div key={tx.id || idx} className="flex items-start gap-3 p-2.5 rounded-lg bg-gray-50">
+                                      <div className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${tx.type === 'paiement' ? 'bg-green-500' : tx.type === 'facture' ? 'bg-blue-500' : tx.type === 'remboursement' ? 'bg-red-500' : 'bg-gray-400'}`} />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${tx.type === 'paiement' ? 'bg-green-100 text-green-700' : tx.type === 'facture' ? 'bg-blue-100 text-blue-700' : tx.type === 'remboursement' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {tx.type}
+                                          </span>
+                                          <span className="text-xs font-semibold text-gray-900">{(tx.amount || 0).toLocaleString('fr-FR')} FCFA</span>
+                                          {tx.invoice_number && <span className="text-[10px] text-blue-600 font-mono">{tx.invoice_number}</span>}
+                                          {tx.status && <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${tx.status === 'paid' ? 'bg-green-100 text-green-700' : tx.status === 'sent' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{tx.status}</span>}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-0.5">{tx.description || '-'}</p>
+                                        <p className="text-[10px] text-gray-400 mt-0.5">{tx.created_at ? new Date(tx.created_at).toLocaleString('fr-FR') : '-'}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     )

@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { 
+import {
   Phone, Mail, User, MapPin, ArrowLeft, ArrowRight,
   CheckCircle, Loader, Eye, EyeOff, Calendar, Globe, ChevronDown
 } from 'lucide-react'
@@ -12,7 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 
 type UserType = 'client' | 'hote' | null
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
 // Liste des indicatifs téléphoniques
 const countryCodes = [
@@ -46,17 +46,13 @@ export default function RegisterNewPage() {
   const { signUp } = useAuth()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [userType, setUserType] = useState<UserType>(null)
-  
-  // Étape 1 : Téléphone + SMS
+
+  // Étape 1 : Informations personnelles + type utilisateur
   const [countryCode, setCountryCode] = useState('+223')
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const [phone, setPhone] = useState('')
-  const [phoneCode, setPhoneCode] = useState('')
-  const [sentPhoneCode, setSentPhoneCode] = useState('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
-  const [sendingPhone, setSendingPhone] = useState(false)
-  
-  // Étape 2 : Informations personnelles
+  const [referralCode, setReferralCode] = useState('')
+
   const [personalData, setPersonalData] = useState({
     firstName: '',
     lastName: '',
@@ -70,74 +66,20 @@ export default function RegisterNewPage() {
     confirmPassword: ''
   })
   const [showPassword, setShowPassword] = useState(false)
-  
-  // Étape 3 : Validation email
+
+  // Étape 2 : Validation email
   const [emailCode, setEmailCode] = useState('')
   const [sentEmailCode, setSentEmailCode] = useState('')
   const [emailVerified, setEmailVerified] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
-  
+
   const [isLoading, setIsLoading] = useState(false)
 
   const selectedCountry = countryCodes.find(c => c.code === countryCode) || countryCodes[0]
 
-  // ========== ÉTAPE 1 : VALIDATION TÉLÉPHONE ==========
-  const sendPhoneVerification = async () => {
-    if (!phone || phone.length < 6) {
-      alert('Veuillez entrer un numéro de téléphone valide')
-      return
-    }
-
-    setSendingPhone(true)
-    const code = Math.floor(1000 + Math.random() * 9000).toString()
-    const fullPhone = countryCode + phone.replace(/\s/g, '')
-    
-    try {
-      const response = await fetch('/api/send-sms-orange', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: fullPhone, code })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setSentPhoneCode(data.code || code)
-        localStorage.setItem(`phone_verification_${fullPhone}`, data.code || code)
-        
-        if (data.demo) {
-          alert(`📱 Mode démo - Code : ${data.code || code}`)
-        } else {
-          alert(`📱 SMS envoyé au ${fullPhone}`)
-        }
-      } else {
-        setSentPhoneCode(code)
-        localStorage.setItem(`phone_verification_${fullPhone}`, code)
-        alert(`📱 Code : ${code}`)
-      }
-    } catch (error) {
-      setSentPhoneCode(code)
-      localStorage.setItem(`phone_verification_${countryCode + phone}`, code)
-      alert(`📱 Code : ${code}`)
-    } finally {
-      setSendingPhone(false)
-    }
-  }
-
-  const verifyPhoneCode = () => {
-    const fullPhone = countryCode + phone.replace(/\s/g, '')
-    const savedCode = localStorage.getItem(`phone_verification_${fullPhone}`)
-    if (phoneCode === savedCode || phoneCode === sentPhoneCode) {
-      setPhoneVerified(true)
-    } else {
-      alert('Code incorrect')
-    }
-  }
-
-  const canGoToStep2 = phoneVerified && userType !== null
-
-  // ========== ÉTAPE 2 ==========
-  const canGoToStep3 = 
+  // ========== ÉTAPE 1 : VALIDATION ==========
+  const canGoToStep2 =
+    userType !== null &&
     personalData.firstName.trim() !== '' &&
     personalData.lastName.trim() !== '' &&
     personalData.email.trim() !== '' &&
@@ -145,7 +87,7 @@ export default function RegisterNewPage() {
     personalData.password.length >= 8 &&
     personalData.password === personalData.confirmPassword
 
-  // ========== ÉTAPE 3 ==========
+  // ========== ÉTAPE 2 : EMAIL ==========
   const sendEmailVerification = async () => {
     if (!personalData.email) return
 
@@ -164,12 +106,12 @@ export default function RegisterNewPage() {
 
     setSendingEmail(true)
     const code = Math.floor(100000 + Math.random() * 900000).toString()
-    
+
     try {
       const response = await fetch('/api/send-email-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           email: personalData.email,
           name: `${personalData.firstName} ${personalData.lastName}`,
           code
@@ -179,7 +121,7 @@ export default function RegisterNewPage() {
       const data = await response.json()
       setSentEmailCode(code)
       localStorage.setItem(`email_verification_${personalData.email}`, code)
-      
+
       if (data.success) {
         alert(`✉️ Email envoyé à ${personalData.email}`)
       } else {
@@ -313,14 +255,13 @@ export default function RegisterNewPage() {
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200">
               <div
                 className="h-full bg-primary-500 transition-all duration-500"
-                style={{ width: currentStep === 1 ? '0%' : currentStep === 2 ? '50%' : '100%' }}
+                style={{ width: currentStep === 1 ? '0%' : '100%' }}
               />
             </div>
 
             {[
-              { step: 1, icon: Phone, label: t('register.phone_number'), done: phoneVerified },
-              { step: 2, icon: User, label: 'Profil', done: currentStep > 2 },
-              { step: 3, icon: Mail, label: t('register.email'), done: emailVerified },
+              { step: 1, icon: User, label: 'Profil', done: currentStep > 1 },
+              { step: 2, icon: Mail, label: t('register.email'), done: emailVerified },
             ].map(({ step, icon: Icon, label, done }) => (
               <div key={step} className="relative flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all shadow-sm ${
@@ -336,15 +277,15 @@ export default function RegisterNewPage() {
           </div>
         </div>
 
-        {/* ÉTAPE 1 */}
+        {/* ÉTAPE 1 — Type utilisateur + Informations personnelles */}
         {currentStep === 1 && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div className="text-center lg:text-left">
               <h1 className="text-2xl font-bold text-gray-900">
                 {t('register.welcome')}
               </h1>
               <p className="mt-1 text-sm text-gray-600">
-                {t('register.verify_phone')}
+                {t('register.complete_profile')}
               </p>
             </div>
 
@@ -381,10 +322,138 @@ export default function RegisterNewPage() {
               </div>
             </div>
 
-            {/* Téléphone avec indicatif */}
+            {/* Nom / Prénom */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.first_name')} *</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.firstName}
+                  onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.last_name')} *</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.lastName}
+                  onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
-                {t('register.phone_number')}
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.email')} *</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="email"
+                  placeholder="vous@exemple.com"
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.email}
+                  onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Mot de passe */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.password')} *</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('register.min_8_chars')}
+                  className="w-full px-3 py-3 pr-12 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.password}
+                  onChange={(e) => setPersonalData({...personalData, password: e.target.value})}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Confirmer mot de passe */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.confirm_password')} *</label>
+              <input
+                type="password"
+                className={`w-full px-3 py-3 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                  personalData.confirmPassword && personalData.password !== personalData.confirmPassword
+                    ? 'border-red-300 bg-red-50'
+                    : 'border-gray-300'
+                }`}
+                value={personalData.confirmPassword}
+                onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
+              />
+            </div>
+
+            {/* Date de naissance */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.date_of_birth')}</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="date"
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.dateOfBirth}
+                  onChange={(e) => setPersonalData({...personalData, dateOfBirth: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Adresse */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.address')}</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rue, quartier..."
+                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.address}
+                  onChange={(e) => setPersonalData({...personalData, address: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Ville / Pays */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.city')}</label>
+                <input
+                  type="text"
+                  placeholder="Bamako"
+                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  value={personalData.city}
+                  onChange={(e) => setPersonalData({...personalData, city: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.country')}</label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    value={personalData.country}
+                    onChange={(e) => setPersonalData({...personalData, country: e.target.value})}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Téléphone (optionnel) */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t('register.phone_number')} <span className="text-gray-400">(optionnel)</span>
               </label>
               <div className="flex gap-2">
                 {/* Sélecteur indicatif */}
@@ -392,16 +461,13 @@ export default function RegisterNewPage() {
                   <button
                     type="button"
                     onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                    disabled={phoneVerified}
-                    className={`flex items-center gap-1.5 px-3 py-3.5 border rounded-xl transition-all min-w-[90px] ${
-                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'
-                    }`}
+                    className="flex items-center gap-1.5 px-3 py-3.5 border border-gray-300 hover:border-gray-400 rounded-xl transition-all min-w-[90px]"
                   >
                     <span className="text-lg">{selectedCountry.flag}</span>
                     <span className="text-sm font-medium text-gray-700">{countryCode}</span>
                     <ChevronDown className="h-4 w-4 text-gray-400" />
                   </button>
-                  
+
                   {showCountryDropdown && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowCountryDropdown(false)} />
@@ -429,230 +495,34 @@ export default function RegisterNewPage() {
                 </div>
 
                 {/* Numéro */}
-                <div className="relative flex-1">
-                  <input
-                    type="tel"
-                    placeholder="XX XX XX XX"
-                    className={`w-full px-4 py-3.5 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all ${
-                      phoneVerified ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                    }`}
-                    value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value)
-                      setPhoneVerified(false)
-                      setSentPhoneCode('')
-                    }}
-                    disabled={phoneVerified}
-                  />
-                  {phoneVerified && (
-                    <CheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-                  )}
-                </div>
+                <input
+                  type="tel"
+                  placeholder="XX XX XX XX"
+                  className="flex-1 px-4 py-3.5 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
             </div>
 
-            {/* Boutons */}
-            {!phoneVerified && phone.length >= 6 && !sentPhoneCode && (
-              <button
-                onClick={sendPhoneVerification}
-                disabled={sendingPhone}
-                className="w-full bg-gray-900 hover:bg-gray-800 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
-              >
-                {sendingPhone ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader className="h-5 w-5 animate-spin" />
-                    {t('general.loading')}
-                  </span>
-                ) : (
-                  t('register.receive_code')
-                )}
-              </button>
-            )}
-
-            {!phoneVerified && sentPhoneCode && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    {t('register.verification_code')}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="• • • •"
-                    className="w-full text-center text-2xl font-mono tracking-[0.5em] py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    maxLength={4}
-                    value={phoneCode}
-                    onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, ''))}
-                  />
-                </div>
-                <button
-                  onClick={verifyPhoneCode}
-                  disabled={phoneCode.length !== 4}
-                  className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all"
-                >
-                  {t('register.verify')}
-                </button>
-                <button
-                  onClick={sendPhoneVerification}
-                  className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
-                >
-                  {t('register.resend_code')}
-                </button>
-              </div>
-            )}
-
-            {phoneVerified && (
-              <button
-                onClick={() => canGoToStep2 && setCurrentStep(2)}
-                disabled={!canGoToStep2}
-                className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-              >
-                {t('register.continue')}
-                <ArrowRight className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ÉTAPE 2 */}
-        {currentStep === 2 && (
-          <div className="space-y-5">
+            {/* Code de parrainage (optionnel) */}
             <div>
-              <button 
-                onClick={() => setCurrentStep(1)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 text-sm"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                {t('register.back')}
-              </button>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t('register.complete_profile')}
-              </h1>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.first_name')} *</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.firstName}
-                  onChange={(e) => setPersonalData({...personalData, firstName: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.last_name')} *</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.lastName}
-                  onChange={(e) => setPersonalData({...personalData, lastName: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.date_of_birth')}</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="date"
-                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.dateOfBirth}
-                  onChange={(e) => setPersonalData({...personalData, dateOfBirth: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.address')}</label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rue, quartier..."
-                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.address}
-                  onChange={(e) => setPersonalData({...personalData, address: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.city')}</label>
-                <input
-                  type="text"
-                  placeholder="Bamako"
-                  className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.city}
-                  onChange={(e) => setPersonalData({...personalData, city: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.country')}</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value={personalData.country}
-                    onChange={(e) => setPersonalData({...personalData, country: e.target.value})}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.email')} *</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="vous@exemple.com"
-                  className="w-full pl-10 pr-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.email}
-                  onChange={(e) => setPersonalData({...personalData, email: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.password')} *</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder={t('register.min_8_chars')}
-                  className="w-full px-3 py-3 pr-12 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={personalData.password}
-                  onChange={(e) => setPersonalData({...personalData, password: e.target.value})}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">{t('register.confirm_password')} *</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Code de parrainage <span className="text-gray-400">(optionnel)</span>
+              </label>
               <input
-                type="password"
-                className={`w-full px-3 py-3 text-base border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
-                  personalData.confirmPassword && personalData.password !== personalData.confirmPassword
-                    ? 'border-red-300 bg-red-50'
-                    : 'border-gray-300'
-                }`}
-                value={personalData.confirmPassword}
-                onChange={(e) => setPersonalData({...personalData, confirmPassword: e.target.value})}
+                type="text"
+                placeholder="Entrez votre code de parrainage"
+                className="w-full px-3 py-3 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
               />
             </div>
 
+            {/* Bouton continuer */}
             <button
-              onClick={() => canGoToStep3 && setCurrentStep(3)}
-              disabled={!canGoToStep3}
+              onClick={() => canGoToStep2 && setCurrentStep(2)}
+              disabled={!canGoToStep2}
               className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
             >
               {t('register.continue')}
@@ -661,12 +531,12 @@ export default function RegisterNewPage() {
           </div>
         )}
 
-        {/* ÉTAPE 3 */}
-        {currentStep === 3 && (
+        {/* ÉTAPE 2 — Vérification email */}
+        {currentStep === 2 && (
           <div className="space-y-5">
             <div>
-              <button 
-                onClick={() => setCurrentStep(2)}
+              <button
+                onClick={() => setCurrentStep(1)}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3 text-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
