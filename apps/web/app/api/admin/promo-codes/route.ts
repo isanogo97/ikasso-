@@ -27,13 +27,20 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createAdminClient()
     const body = await req.json()
-    const { code, discount_percent, discount_amount, description, expires_at, max_uses } = body
+    const { code, discount_percent, discount_amount, description, expires_at, max_uses, target_type, target_emails } = body
 
     if (!code || (!discount_percent && !discount_amount)) {
       return NextResponse.json({ error: 'Code et reduction requis' }, { status: 400 })
     }
 
-    // Table should be created via migration 005_promo_codes.sql
+    // Parse target_emails: comma-separated string → array
+    let emailsArray: string[] | null = null
+    if (target_emails && typeof target_emails === 'string') {
+      emailsArray = target_emails.split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
+      if (emailsArray.length === 0) emailsArray = null
+    } else if (Array.isArray(target_emails) && target_emails.length > 0) {
+      emailsArray = target_emails.map((e: string) => e.trim().toLowerCase())
+    }
 
     const { data, error } = await supabase
       .from('promo_codes')
@@ -43,8 +50,10 @@ export async function POST(req: NextRequest) {
         discount_percent: discount_percent || null,
         discount_amount: discount_amount || null,
         expires_at: expires_at || null,
-        max_uses: max_uses || null,
+        max_uses: emailsArray ? emailsArray.length : (max_uses || null),
         is_active: true,
+        target_type: target_type || 'all',
+        target_emails: emailsArray,
       })
       .select()
       .single()

@@ -94,6 +94,23 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ valid: false, error: 'Ce code a expire' })
       }
 
+      // Check target_type (hote/client/all)
+      if (promoCode.target_type && promoCode.target_type !== 'all' && userId) {
+        const { data: userProfile } = await supabase.from('profiles').select('user_type').eq('id', userId).single()
+        if (userProfile && userProfile.user_type !== promoCode.target_type) {
+          const label = promoCode.target_type === 'hote' ? 'les hotes' : 'les clients'
+          return NextResponse.json({ valid: false, error: `Ce code est reserve aux ${label}` })
+        }
+      }
+
+      // Check target_emails (specific people only)
+      if (promoCode.target_emails && promoCode.target_emails.length > 0) {
+        const lowerEmail = (userEmail || '').toLowerCase()
+        if (!lowerEmail || !promoCode.target_emails.includes(lowerEmail)) {
+          return NextResponse.json({ valid: false, error: 'Ce code n\'est pas disponible pour votre compte' })
+        }
+      }
+
       // Increment usage
       await supabase.from('promo_codes').update({
         current_uses: (promoCode.current_uses || 0) + 1,

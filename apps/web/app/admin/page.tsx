@@ -118,6 +118,8 @@ interface PromoCode {
   expires_at?: string
   max_uses?: number
   current_uses: number
+  target_type?: 'all' | 'hote' | 'client'
+  target_emails?: string[]
   created_at: string
 }
 
@@ -217,6 +219,8 @@ export default function AdminPage() {
   const [newPromoAmount, setNewPromoAmount] = useState('')
   const [newPromoExpires, setNewPromoExpires] = useState('')
   const [newPromoMaxUses, setNewPromoMaxUses] = useState('')
+  const [newPromoTarget, setNewPromoTarget] = useState<'all' | 'hote' | 'client'>('all')
+  const [newPromoEmails, setNewPromoEmails] = useState('')
   const [promoError, setPromoError] = useState('')
 
   // Incidents
@@ -752,6 +756,8 @@ export default function AdminPage() {
           discount_amount: newPromoAmount ? parseInt(newPromoAmount) : null,
           expires_at: newPromoExpires || null,
           max_uses: newPromoMaxUses ? parseInt(newPromoMaxUses) : null,
+          target_type: newPromoTarget,
+          target_emails: newPromoEmails || null,
         }),
       })
       const json = await res.json()
@@ -764,6 +770,8 @@ export default function AdminPage() {
         setNewPromoAmount('')
         setNewPromoExpires('')
         setNewPromoMaxUses('')
+        setNewPromoTarget('all')
+        setNewPromoEmails('')
         setPromoError('')
         fetchPromoCodes()
       } else {
@@ -2266,6 +2274,31 @@ export default function AdminPage() {
                         placeholder="Illimite si vide"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Destinataires</label>
+                      <select
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoTarget}
+                        onChange={e => setNewPromoTarget(e.target.value as any)}
+                      >
+                        <option value="all">Tous (hotes + clients)</option>
+                        <option value="hote">Hotes uniquement</option>
+                        <option value="client">Clients uniquement</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Emails specifiques <span className="text-gray-400 font-normal">(optionnel - separes par des virgules)</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500"
+                        value={newPromoEmails}
+                        onChange={e => setNewPromoEmails(e.target.value)}
+                        placeholder="jean@email.com, marie@email.com (laissez vide pour tout le monde)"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Si rempli, seuls ces emails pourront utiliser ce code. Le nombre max d&apos;utilisations sera automatiquement ajuste.</p>
+                    </div>
                   </div>
 
                   {promoError && (
@@ -2318,6 +2351,16 @@ export default function AdminPage() {
                                 {pc.discount_percent ? `-${pc.discount_percent}%` : pc.discount_amount ? `-${pc.discount_amount.toLocaleString()} FCFA` : '-'}
                               </span>
                               {pc.max_uses && <span>{pc.current_uses}/{pc.max_uses} utilisations</span>}
+                              {pc.target_type && pc.target_type !== 'all' && (
+                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${pc.target_type === 'hote' ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                  {pc.target_type === 'hote' ? 'Hotes' : 'Clients'}
+                                </span>
+                              )}
+                              {pc.target_emails && pc.target_emails.length > 0 && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">
+                                  {pc.target_emails.length} personne(s)
+                                </span>
+                              )}
                               {pc.expires_at && <span>Expire le {new Date(pc.expires_at).toLocaleDateString('fr-FR')}</span>}
                               <span>Cree le {new Date(pc.created_at).toLocaleDateString('fr-FR')}</span>
                             </div>
