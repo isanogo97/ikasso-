@@ -420,6 +420,22 @@ export default function HomePage() {
         </section>
       </main>
 
+      {/* Promotion CTA */}
+      <section className="bg-gradient-to-r from-primary-600 to-primary-500 py-12 lg:py-16">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">Mettez votre bien en avant</h2>
+          <p className="text-primary-100 text-sm lg:text-base mb-6 max-w-xl mx-auto">
+            Hotel, maison d&apos;hotes ou appartement ? Boostez votre visibilite sur Ikasso et attirez plus de voyageurs.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-2 bg-white text-primary-700 font-semibold px-6 py-3 rounded-xl hover:bg-primary-50 transition-colors shadow-lg"
+          >
+            Nous contacter pour la publicite
+          </Link>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gray-100 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 lg:py-10">

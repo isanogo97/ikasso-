@@ -18,7 +18,7 @@ import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions' | 'incidents'
+type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions' | 'incidents' | 'publicite'
 type UserFilter = 'all' | 'clients' | 'hosts' | 'suspended' | 'verified'
 
 interface DashboardStats {
@@ -127,6 +127,7 @@ const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: 'verifications', label: 'Verifications', icon: FileCheck },
   { key: 'promotions', label: 'Promotions', icon: Tag },
   { key: 'incidents', label: 'Incidents', icon: AlertTriangle },
+  { key: 'publicite', label: 'Publicite', icon: Eye },
   { key: 'admins', label: 'Administrateurs', icon: UserCog },
 ]
 
@@ -137,7 +138,7 @@ function getTabFromUrl(): { tab: Tab; userId: string | null } {
   if (typeof window === 'undefined') return { tab: 'dashboard', userId: null }
   const params = new URLSearchParams(window.location.search)
   const raw = params.get('tab')
-  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins', 'promotions', 'incidents']
+  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins', 'promotions', 'incidents', 'publicite']
   const tab = validTabs.includes(raw as Tab) ? (raw as Tab) : 'dashboard'
   const userId = params.get('user') || null
   return { tab, userId }
@@ -228,6 +229,12 @@ export default function AdminPage() {
   const [incidentSendEmail, setIncidentSendEmail] = useState(true)
   const [userIncidents, setUserIncidents] = useState<any[]>([])
   const [userIncidentsLoading, setUserIncidentsLoading] = useState(false)
+  // Sponsors / Publicite
+  const [sponsors, setSponsors] = useState<any[]>([])
+  const [sponsorsLoading, setSponsorsLoading] = useState(false)
+  const [showAddSponsor, setShowAddSponsor] = useState(false)
+  const [sponsorForm, setSponsorForm] = useState({ business_name: '', contact_name: '', contact_email: '', contact_phone: '', plan: 'standard', amount_paid: '', payment_method: '', payment_reference: '', start_date: '', end_date: '', notes: '' })
+
   const [showAddHistory, setShowAddHistory] = useState(false)
   const [historySubject, setHistorySubject] = useState('')
   const [historyMessage, setHistoryMessage] = useState('')
@@ -349,63 +356,26 @@ export default function AdminPage() {
   const fetchStats = useCallback(async () => {
     setStatsLoading(true)
     try {
-      const sb = supabase()
-      if (sb) {
-        const now = new Date()
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-
-        const [usersRes, hostsRes, clientsRes, suspendedRes, activeRes, verifiedRes,
-               pendingVerifRes, approvedVerifRes, rejectedVerifRes,
-               activePropsRes, pendingPropsRes,
-               totalBookingsRes, paidBookingsRes, revenueRes, monthRevenueRes] = await Promise.all([
-          sb.from('profiles').select('id', { count: 'exact', head: true }),
-          sb.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'hote'),
-          sb.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'client'),
-          sb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'suspended'),
-          sb.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-          sb.from('profiles').select('id', { count: 'exact', head: true }).eq('identity_verified', true),
-          sb.from('identity_verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-          sb.from('identity_verifications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-          sb.from('identity_verifications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-          sb.from('properties').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-          sb.from('properties').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-          sb.from('bookings').select('id', { count: 'exact', head: true }),
-          sb.from('bookings').select('id', { count: 'exact', head: true }).eq('payment_status', 'paid'),
-          sb.from('bookings').select('total').eq('payment_status', 'paid'),
-          sb.from('bookings').select('total').eq('payment_status', 'paid').gte('created_at', monthStart),
-        ])
-
-        const totalRev = (revenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
-        const monthRev = (monthRevenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
-
+      // Use server-side API route for accurate stats (bypasses RLS)
+      const res = await fetch('/api/admin/stats')
+      if (res.ok) {
+        const data = await res.json()
         setStats({
-          totalUsers: usersRes.count ?? 0,
-          totalHosts: hostsRes.count ?? 0,
-          totalClients: clientsRes.count ?? 0,
-          pendingVerifications: pendingVerifRes.count ?? 0,
-          approvedVerifications: approvedVerifRes.count ?? 0,
-          rejectedVerifications: rejectedVerifRes.count ?? 0,
-          activeProperties: activePropsRes.count ?? 0,
-          pendingProperties: pendingPropsRes.count ?? 0,
-          suspendedUsers: suspendedRes.count ?? 0,
-          activeUsers: activeRes.count ?? 0,
-          verifiedUsers: verifiedRes.count ?? 0,
-          totalBookings: totalBookingsRes.count ?? 0,
-          paidBookings: paidBookingsRes.count ?? 0,
-          totalRevenue: totalRev,
-          monthRevenue: monthRev,
-        })
-      } else {
-        const allUsers = await getAllUsers()
-        setStats({
-          totalUsers: allUsers.length,
-          totalHosts: allUsers.filter((u: any) => u.user_type === 'hote' || u.user_type === 'host').length,
-          totalClients: allUsers.filter((u: any) => u.user_type === 'client').length,
-          pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0,
-          activeProperties: 0, pendingProperties: 0,
-          suspendedUsers: allUsers.filter((u: any) => u.status === 'suspended').length,
-          activeUsers: allUsers.filter((u: any) => u.status === 'active').length,
-          verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0,
+          totalUsers: data.totalUsers ?? 0,
+          totalHosts: data.totalHosts ?? 0,
+          totalClients: data.totalClients ?? 0,
+          pendingVerifications: data.pendingVerifications ?? 0,
+          approvedVerifications: data.approvedVerifications ?? 0,
+          rejectedVerifications: data.rejectedVerifications ?? 0,
+          activeProperties: data.activeProperties ?? 0,
+          pendingProperties: data.pendingProperties ?? 0,
+          suspendedUsers: data.suspendedUsers ?? 0,
+          activeUsers: data.activeUsers ?? 0,
+          verifiedUsers: data.verifiedUsers ?? 0,
+          totalBookings: data.totalBookings ?? 0,
+          paidBookings: data.paidBookings ?? 0,
+          totalRevenue: data.totalRevenue ?? 0,
+          monthRevenue: data.monthRevenue ?? 0,
         })
       }
     } catch {
@@ -413,7 +383,7 @@ export default function AdminPage() {
     } finally {
       setStatsLoading(false)
     }
-  }, [supabase, flash])
+  }, [flash])
 
   const fetchUsers = useCallback(async () => {
     setUsersLoading(true)
@@ -600,6 +570,53 @@ export default function AdminPage() {
     } catch { flash('error', 'Erreur') }
   }
 
+  const fetchSponsors = useCallback(async () => {
+    setSponsorsLoading(true)
+    try {
+      const res = await fetch('/api/admin/sponsors')
+      const json = await res.json()
+      setSponsors(json.sponsors || [])
+    } catch {
+      flash('error', 'Impossible de charger les sponsors')
+    } finally {
+      setSponsorsLoading(false)
+    }
+  }, [flash])
+
+  const createSponsor = async () => {
+    if (!sponsorForm.business_name || !sponsorForm.start_date || !sponsorForm.end_date) {
+      flash('error', 'Nom, date debut et date fin requis')
+      return
+    }
+    try {
+      const res = await fetch('/api/admin/sponsors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...sponsorForm, amount_paid: parseInt(sponsorForm.amount_paid) || 0, created_by: currentAdmin?.name }),
+      })
+      if (res.ok) {
+        flash('success', 'Sponsor ajoute')
+        setShowAddSponsor(false)
+        setSponsorForm({ business_name: '', contact_name: '', contact_email: '', contact_phone: '', plan: 'standard', amount_paid: '', payment_method: '', payment_reference: '', start_date: '', end_date: '', notes: '' })
+        fetchSponsors()
+      } else {
+        const json = await res.json()
+        flash('error', json.error || 'Erreur creation')
+      }
+    } catch { flash('error', 'Erreur creation') }
+  }
+
+  const toggleSponsor = async (id: string, isActive: boolean) => {
+    await fetch('/api/admin/sponsors', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
+    fetchSponsors()
+  }
+
+  const deleteSponsor = async (id: string) => {
+    await fetch('/api/admin/sponsors', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    flash('success', 'Sponsor supprime')
+    fetchSponsors()
+  }
+
   const sendAdminEmail = async () => {
     if (!emailTo || !emailSubject || !emailMessage) {
       flash('error', 'Remplissez tous les champs')
@@ -712,7 +729,8 @@ export default function AdminPage() {
     if (activeTab === 'admins') fetchAdmins()
     if (activeTab === 'promotions') fetchPromoCodes()
     if (activeTab === 'incidents') fetchIncidents()
-  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents])
+    if (activeTab === 'publicite') fetchSponsors()
+  }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents, fetchSponsors])
 
   // Load user docs when a user is selected
   useEffect(() => {
@@ -2244,6 +2262,164 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =============== PUBLICITE TAB =============== */}
+          {activeTab === 'publicite' && (
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Publicite &amp; Sponsors</h1>
+                  <p className="text-gray-500 text-sm mt-1">Gerez les annonceurs et mises en avant</p>
+                </div>
+                <button onClick={() => setShowAddSponsor(!showAddSponsor)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors shadow-sm">
+                  <Plus className="h-4 w-4" /> Nouveau sponsor
+                </button>
+              </div>
+
+              {/* Add sponsor form */}
+              {showAddSponsor && (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un sponsor</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Nom de l&apos;entreprise / Hotel *</label>
+                      <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.business_name} onChange={e => setSponsorForm(p => ({ ...p, business_name: e.target.value }))} placeholder="Hotel Bamako Palace" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Nom du contact</label>
+                      <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.contact_name} onChange={e => setSponsorForm(p => ({ ...p, contact_name: e.target.value }))} placeholder="Amadou Diallo" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                      <input type="email" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.contact_email} onChange={e => setSponsorForm(p => ({ ...p, contact_email: e.target.value }))} placeholder="contact@hotel.ml" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Telephone</label>
+                      <input type="tel" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.contact_phone} onChange={e => setSponsorForm(p => ({ ...p, contact_phone: e.target.value }))} placeholder="+223 XX XX XX XX" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Formule</label>
+                      <select className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.plan} onChange={e => setSponsorForm(p => ({ ...p, plan: e.target.value }))}>
+                        <option value="standard">Standard - Mise en avant basique</option>
+                        <option value="premium">Premium - Top de liste + badge</option>
+                        <option value="elite">Elite - Banniere + top + badge + newsletter</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Montant paye (FCFA)</label>
+                      <input type="number" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.amount_paid} onChange={e => setSponsorForm(p => ({ ...p, amount_paid: e.target.value }))} placeholder="50000" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Mode de paiement</label>
+                      <select className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.payment_method} onChange={e => setSponsorForm(p => ({ ...p, payment_method: e.target.value }))}>
+                        <option value="">-- Choisir --</option>
+                        <option value="orange_money">Orange Money</option>
+                        <option value="virement">Virement bancaire</option>
+                        <option value="especes">Especes</option>
+                        <option value="carte">Carte bancaire</option>
+                        <option value="autre">Autre</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Reference paiement</label>
+                      <input type="text" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.payment_reference} onChange={e => setSponsorForm(p => ({ ...p, payment_reference: e.target.value }))} placeholder="REF-XXXX" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Date debut *</label>
+                      <input type="date" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.start_date} onChange={e => setSponsorForm(p => ({ ...p, start_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Date fin *</label>
+                      <input type="date" className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500" value={sponsorForm.end_date} onChange={e => setSponsorForm(p => ({ ...p, end_date: e.target.value }))} />
+                    </div>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                      <textarea rows={2} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-primary-500 resize-none" value={sponsorForm.notes} onChange={e => setSponsorForm(p => ({ ...p, notes: e.target.value }))} placeholder="Notes internes..." />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={createSponsor} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 transition-colors">Enregistrer</button>
+                    <button onClick={() => setShowAddSponsor(false)} className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">Annuler</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Stats cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                {[
+                  { label: 'Sponsors actifs', value: sponsors.filter(s => s.is_active).length, color: 'text-green-600 bg-green-100' },
+                  { label: 'Sponsors inactifs', value: sponsors.filter(s => !s.is_active).length, color: 'text-gray-600 bg-gray-100' },
+                  { label: 'Revenus pub total', value: sponsors.reduce((sum, s) => sum + (s.amount_paid || 0), 0).toLocaleString('fr-FR') + ' FCFA', color: 'text-primary-600 bg-primary-100' },
+                  { label: 'En cours', value: sponsors.filter(s => s.is_active && new Date(s.end_date) >= new Date()).length, color: 'text-blue-600 bg-blue-100' },
+                ].map((card, i) => (
+                  <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                    <p className="text-xs text-gray-500 mt-1">{card.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sponsors list */}
+              {sponsorsLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+              ) : sponsors.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  <Eye className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Aucun sponsor</p>
+                  <p className="text-gray-400 text-sm mt-1">Ajoutez votre premier annonceur</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sponsors.map(s => {
+                    const isExpired = new Date(s.end_date) < new Date()
+                    const daysLeft = Math.ceil((new Date(s.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                    return (
+                      <div key={s.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${!s.is_active || isExpired ? 'opacity-60 border-gray-100' : 'border-gray-200'}`}>
+                        <div className="p-5">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                            <div className="flex items-start gap-3">
+                              <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${s.plan === 'elite' ? 'bg-purple-100' : s.plan === 'premium' ? 'bg-amber-100' : 'bg-blue-100'}`}>
+                                <Eye className={`h-6 w-6 ${s.plan === 'elite' ? 'text-purple-600' : s.plan === 'premium' ? 'text-amber-600' : 'text-blue-600'}`} />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <p className="font-semibold text-gray-900">{s.business_name}</p>
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${s.plan === 'elite' ? 'bg-purple-100 text-purple-700' : s.plan === 'premium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                                    {s.plan}
+                                  </span>
+                                  {s.is_active && !isExpired ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">Actif</span>
+                                  ) : isExpired ? (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700">Expire</span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">Inactif</span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-0.5">{s.contact_name || '-'} | {s.contact_email || '-'} | {s.contact_phone || '-'}</p>
+                                <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
+                                  <span><strong className="text-primary-600">{(s.amount_paid || 0).toLocaleString('fr-FR')} FCFA</strong></span>
+                                  <span>{s.payment_method || '-'} {s.payment_reference ? `(${s.payment_reference})` : ''}</span>
+                                  <span>Du {new Date(s.start_date).toLocaleDateString('fr-FR')} au {new Date(s.end_date).toLocaleDateString('fr-FR')}</span>
+                                  {!isExpired && s.is_active && <span className="font-medium text-green-600">{daysLeft}j restants</span>}
+                                </div>
+                                {s.notes && <p className="text-xs text-gray-400 mt-1 italic">{s.notes}</p>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <button onClick={() => toggleSponsor(s.id, s.is_active)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${s.is_active ? 'text-amber-700 bg-amber-50 hover:bg-amber-100' : 'text-green-700 bg-green-50 hover:bg-green-100'}`}>
+                                {s.is_active ? 'Desactiver' : 'Reactiver'}
+                              </button>
+                              <button onClick={() => deleteSponsor(s.id)} className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors"><Trash2 className="h-4 w-4" /></button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
