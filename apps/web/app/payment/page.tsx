@@ -148,24 +148,22 @@ export default function PaymentPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Orange Money */}
-          <div 
-            className={`bg-white rounded-lg shadow-md p-6 cursor-pointer transition-all ${
-              selectedMethod === 'orange-money' ? 'ring-2 ring-orange-500 shadow-lg' : 'hover:shadow-lg'
-            }`}
-            onClick={() => setSelectedMethod('orange-money')}
+          {/* Orange Money — Temporairement désactivé */}
+          <div
+            className="bg-white rounded-lg shadow-md p-6 opacity-50 cursor-not-allowed relative"
           >
+            <div className="absolute top-3 right-3 bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-1 rounded-full">Bientot disponible</div>
             <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
+              <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center mr-4">
                 <Smartphone className="h-6 w-6 text-white" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Orange Money</h3>
-                <p className="text-sm text-gray-600">Paiement mobile instantané</p>
+                <p className="text-sm text-gray-500">Paiement mobile - disponible prochainement</p>
               </div>
             </div>
 
-            {selectedMethod === 'orange-money' && (
+            {false && selectedMethod === 'orange-money' && (
               <div className="mt-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
