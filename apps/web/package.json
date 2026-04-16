@@ -24,7 +24,7 @@
     "lucide-react": "^0.294.0",
     "next": "^14.0.4",
     "next-auth": "^4.24.13",
-    "nodemailer": "^7.0.10",
+    "nodemailer": "^8.0.5",
     "otplib": "^13.4.0",
     "qrcode": "^1.5.4",
     "react": "^18",
