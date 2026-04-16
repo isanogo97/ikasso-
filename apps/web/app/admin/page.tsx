@@ -55,6 +55,7 @@ interface Verification {
   id: string
   user_id: string
   document_type: string
+  document_type_label?: string
   status: string
   submitted_at?: string
   created_at?: string
@@ -64,7 +65,12 @@ interface Verification {
   face_left_url?: string
   face_right_url?: string
   rejection_reason?: string
+  user_name?: string
+  user_email?: string
+  user_phone?: string
+  user_type?: string
   profiles?: { first_name?: string; last_name?: string; email?: string } | null
+  [key: string]: any
 }
 
 interface NewAdminForm {
@@ -1006,7 +1012,7 @@ export default function AdminPage() {
           {activeTab === 'verifications' && (
             <div>
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Verifications d'identite</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Verifications d&apos;identite</h1>
                 <p className="text-gray-500 text-sm mt-1">{verifications.length} verification(s) en attente</p>
               </div>
 
@@ -1018,97 +1024,111 @@ export default function AdminPage() {
                   <p className="text-gray-500">Aucune verification en attente</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {verifications.map(v => {
-                    const userName = v.profiles ? `${v.profiles.first_name || ''} ${v.profiles.last_name || ''}`.trim() : v.user_id
-                    const docLabels: { key: keyof Verification; label: string }[] = [
-                      { key: 'document_front_url', label: 'Document Recto' },
-                      { key: 'document_back_url', label: 'Document Verso' },
-                      { key: 'face_front_url', label: 'Visage Face' },
-                      { key: 'face_left_url', label: 'Visage Gauche' },
-                      { key: 'face_right_url', label: 'Visage Droite' },
-                    ]
-                    return (
-                      <div key={v.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{userName}</p>
-                              <p className="text-xs text-gray-500">{v.profiles?.email || '-'}</p>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                                <span>Type: <strong className="text-gray-700">{v.document_type}</strong></span>
-                                <span>Soumis le: <strong className="text-gray-700">{v.submitted_at || v.created_at ? new Date(v.submitted_at || v.created_at!).toLocaleDateString('fr-FR') : '-'}</strong></span>
-                              </div>
+                <div className="space-y-6">
+                  {verifications.map(v => (
+                    <div key={v.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                      {/* Header with user info */}
+                      <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-bold text-primary-600">
+                                {(v.user_name || '?')[0].toUpperCase()}
+                              </span>
                             </div>
-
-                            <div className="flex flex-wrap items-center gap-2">
-                              <button
-                                onClick={() => approveVerification(v)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
-                              >
-                                <CheckCircle className="h-4 w-4" /> Approuver
-                              </button>
-                              {rejectingId === v.id ? (
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="text"
-                                    placeholder="Motif du rejet..."
-                                    className="w-48 px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:ring-primary-500"
-                                    value={rejectionReason}
-                                    onChange={e => setRejectionReason(e.target.value)}
-                                    autoFocus
-                                  />
-                                  <button onClick={() => rejectVerification(v)} className="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
-                                    Confirmer
-                                  </button>
-                                  <button onClick={() => { setRejectingId(null); setRejectionReason('') }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500">
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setRejectingId(v.id)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
-                                >
-                                  <XCircle className="h-4 w-4" /> Rejeter
-                                </button>
-                              )}
-                              {v.profiles?.email && (
-                                <a href={`mailto:${v.profiles.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors" title="Contacter l'utilisateur">
-                                  <Mail className="h-4 w-4" /> Contacter
-                                </a>
-                              )}
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">{v.user_name || 'Utilisateur inconnu'}</p>
+                              <p className="text-xs text-gray-500">{v.user_email || '-'}{v.user_phone ? ` | ${v.user_phone}` : ''}</p>
                             </div>
                           </div>
-
-                          {/* Document & Face Photos Grid */}
-                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                            {docLabels.map(({ key, label }) => {
-                              const url = v[key] as string | undefined
-                              return (
-                                <div key={key} className="text-center">
-                                  <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
-                                  {url ? (
-                                    <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-                                      <img
-                                        src={url}
-                                        alt={label}
-                                        className="w-full h-24 object-cover rounded-lg border border-gray-200 hover:border-primary-400 transition-colors cursor-pointer"
-                                      />
-                                    </a>
-                                  ) : (
-                                    <div className="w-full h-24 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
-                                      <span className="text-xs text-gray-400">Manquant</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span className="px-2 py-1 rounded-lg bg-blue-50 text-blue-700 font-medium">{v.user_type === 'hote' ? 'Hote' : 'Client'}</span>
+                            <span className="px-2 py-1 rounded-lg bg-amber-50 text-amber-700 font-medium">{v.document_type_label || v.document_type}</span>
+                            <span>Soumis le {v.submitted_at || v.created_at ? new Date(v.submitted_at || v.created_at!).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
                           </div>
                         </div>
                       </div>
-                    )
-                  })}
+
+                      {/* Documents grid */}
+                      <div className="px-5 py-4">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Documents soumis</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                          {[
+                            { key: 'document_front_url', label: 'Document Recto' },
+                            { key: 'document_back_url', label: 'Document Verso' },
+                            { key: 'face_front_url', label: 'Visage Face' },
+                            { key: 'face_left_url', label: 'Visage Gauche' },
+                            { key: 'face_right_url', label: 'Visage Droite' },
+                          ].map(({ key, label }) => {
+                            const url = v[key] as string | undefined
+                            return (
+                              <div key={key} className="text-center">
+                                <p className="text-xs font-medium text-gray-500 mb-1.5">{label}</p>
+                                {url ? (
+                                  <a href={url} target="_blank" rel="noopener noreferrer" className="block group">
+                                    <div className="relative w-full h-28 rounded-lg border border-gray-200 group-hover:border-primary-400 overflow-hidden transition-colors">
+                                      <img
+                                        src={url}
+                                        alt={label}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="flex items-center justify-center h-full text-xs text-red-400">Erreur chargement</span>' }}
+                                      />
+                                    </div>
+                                  </a>
+                                ) : (
+                                  <div className="w-full h-28 rounded-lg border border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                                    <span className="text-xs text-gray-400">Manquant</span>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="bg-gray-50 border-t border-gray-200 px-5 py-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            onClick={() => approveVerification(v)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-sm"
+                          >
+                            <CheckCircle className="h-4 w-4" /> Approuver
+                          </button>
+                          {rejectingId === v.id ? (
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="text"
+                                placeholder="Motif du rejet..."
+                                className="flex-1 min-w-[150px] px-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-red-500 focus:ring-red-500"
+                                value={rejectionReason}
+                                onChange={e => setRejectionReason(e.target.value)}
+                                autoFocus
+                              />
+                              <button onClick={() => rejectVerification(v)} className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors">
+                                Confirmer le rejet
+                              </button>
+                              <button onClick={() => { setRejectingId(null); setRejectionReason('') }} className="p-2 rounded-lg hover:bg-gray-200 text-gray-500">
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setRejectingId(v.id)}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm"
+                            >
+                              <XCircle className="h-4 w-4" /> Rejeter
+                            </button>
+                          )}
+                          {v.user_email && v.user_email !== '-' && (
+                            <a href={`mailto:${v.user_email}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors ml-auto" title="Contacter l'utilisateur">
+                              <Mail className="h-4 w-4" /> Contacter
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

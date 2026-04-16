@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
 
+const DOC_TYPE_LABELS: Record<string, string> = {
+  nina: 'NINA',
+  passport: 'Passeport',
+  id_card: "Carte d'identite",
+  driver_license: 'Permis de conduire',
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = createAdminClient()
 
-    // Fetch pending verifications with user profile info
+    // Fetch pending verifications
     const { data, error } = await supabase
       .from('identity_verifications')
-      .select(`
-        id,
-        user_id,
-        document_type,
-        document_front_url,
-        document_back_url,
-        face_front_url,
-        face_left_url,
-        face_right_url,
-        status,
-        rejection_reason,
-        submitted_at,
-        created_at
-      `)
+      .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
 
@@ -32,12 +26,13 @@ export async function GET(req: NextRequest) {
 
     // Fetch profile info for each user
     const userIds = Array.from(new Set((data || []).map((v: any) => v.user_id)))
-    let profiles: Record<string, any> = {}
+    const profiles: Record<string, any> = {}
 
     if (userIds.length > 0) {
+      // Get from profiles table
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email')
+        .select('id, first_name, last_name, email, phone, user_type')
         .in('id', userIds)
 
       if (profileData) {
@@ -45,40 +40,82 @@ export async function GET(req: NextRequest) {
           profiles[p.id] = p
         }
       }
+
+      // Also get email from auth.users for users missing email in profiles
+      for (const uid of userIds) {
+        if (!profiles[uid]?.email) {
+          const { data: authUser } = await supabase.auth.admin.getUserById(uid)
+          if (authUser?.user?.email) {
+            if (!profiles[uid]) profiles[uid] = { id: uid }
+            profiles[uid].email = authUser.user.email
+            // Also grab name from user_metadata if missing
+            if (!profiles[uid].first_name) {
+              profiles[uid].first_name = authUser.user.user_metadata?.first_name || authUser.user.user_metadata?.name || ''
+            }
+            if (!profiles[uid].last_name) {
+              profiles[uid].last_name = authUser.user.user_metadata?.last_name || ''
+            }
+          }
+        }
+      }
     }
 
-    // Generate signed URLs for documents
+    // Re-generate fresh signed URLs for all documents
     const enriched = await Promise.all(
       (data || []).map(async (v: any) => {
-        const urls: Record<string, string | null> = {}
+        const freshUrls: Record<string, string | null> = {}
+        const urlFields = ['document_front_url', 'document_back_url', 'face_front_url', 'face_left_url', 'face_right_url']
 
-        for (const field of ['document_front_url', 'document_back_url', 'face_front_url', 'face_left_url', 'face_right_url']) {
+        for (const field of urlFields) {
           const storedValue = v[field]
-          if (storedValue) {
-            // If it's already a signed URL, use it; otherwise generate one
-            if (storedValue.startsWith('http')) {
-              urls[field] = storedValue
-            } else {
-              // It's a storage path, generate signed URL
-              const { data: signedData } = await supabase.storage
-                .from('identity-docs')
-                .createSignedUrl(storedValue, 60 * 60 * 24) // 24h
-              urls[field] = signedData?.signedUrl || null
+          if (!storedValue) {
+            freshUrls[field] = null
+            continue
+          }
+
+          // Extract the storage path from the URL or use it directly
+          let storagePath: string | null = null
+
+          if (storedValue.startsWith('http')) {
+            // Extract path from signed URL: /object/sign/bucket/path?token=...
+            const match = storedValue.match(/\/identity-docs\/(.+?)(?:\?|$)/)
+            if (match) {
+              storagePath = match[1]
             }
           } else {
-            urls[field] = null
+            storagePath = storedValue
+          }
+
+          if (storagePath) {
+            // Generate a fresh signed URL (24h)
+            const { data: signedData } = await supabase.storage
+              .from('identity-docs')
+              .createSignedUrl(storagePath, 60 * 60 * 24)
+            freshUrls[field] = signedData?.signedUrl || storedValue
+          } else {
+            freshUrls[field] = storedValue
           }
         }
 
         const profile = profiles[v.user_id]
+        const fullName = profile
+          ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+          : null
+
         return {
-          ...v,
-          ...urls,
-          profiles: profile ? {
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            email: profile.email,
-          } : null,
+          id: v.id,
+          user_id: v.user_id,
+          document_type: v.document_type,
+          document_type_label: DOC_TYPE_LABELS[v.document_type] || v.document_type,
+          status: v.status,
+          rejection_reason: v.rejection_reason,
+          submitted_at: v.submitted_at,
+          created_at: v.created_at,
+          ...freshUrls,
+          user_name: fullName || 'Utilisateur inconnu',
+          user_email: profile?.email || '-',
+          user_phone: profile?.phone || null,
+          user_type: profile?.user_type || 'client',
         }
       })
     )
