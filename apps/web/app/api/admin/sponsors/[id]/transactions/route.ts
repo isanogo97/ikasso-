@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/admin'
+import { requireAdmin } from '../../../../../lib/api-auth'
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const { data, error } = await supabase
@@ -21,6 +25,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()

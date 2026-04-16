@@ -269,6 +269,21 @@ export default function AdminPage() {
     setTimeout(() => setActionMsg(null), 4000)
   }, [])
 
+  // Authenticated fetch helper: sends Supabase token with every admin API call
+  const adminFetch = useCallback(async (url: string, options?: RequestInit) => {
+    const headers: Record<string, string> = { ...(options?.headers as Record<string, string> || {}) }
+    try {
+      const sb = isSupabaseConfigured() ? createClient() : null
+      if (sb) {
+        const { data: { session } } = await sb.auth.getSession()
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`
+        }
+      }
+    } catch {}
+    return fetch(url, { ...options, headers })
+  }, [])
+
   const supabase = useCallback(() => {
     if (!isSupabaseConfigured()) return null
     return createClient()
@@ -374,7 +389,7 @@ export default function AdminPage() {
     setStatsLoading(true)
     try {
       // Use server-side API route for accurate stats (bypasses RLS)
-      const res = await fetch('/api/admin/stats')
+      const res = await adminFetch('/api/admin/stats')
       if (res.ok) {
         const data = await res.json()
         setStats({
@@ -420,7 +435,7 @@ export default function AdminPage() {
   const fetchVerifications = useCallback(async () => {
     setVerificationsLoading(true)
     try {
-      const res = await fetch('/api/admin/verifications')
+      const res = await adminFetch('/api/admin/verifications')
       const json = await res.json()
       if (res.ok && json.verifications) {
         setVerifications(json.verifications)
@@ -450,7 +465,7 @@ export default function AdminPage() {
   const fetchPromoCodes = useCallback(async () => {
     setPromosLoading(true)
     try {
-      const res = await fetch('/api/admin/promo-codes')
+      const res = await adminFetch('/api/admin/promo-codes')
       const json = await res.json()
       setPromoCodes(json.codes || [])
     } catch {
@@ -463,7 +478,7 @@ export default function AdminPage() {
   const fetchIncidents = useCallback(async () => {
     setIncidentsLoading(true)
     try {
-      const res = await fetch('/api/admin/incidents?status=' + incidentFilter)
+      const res = await adminFetch('/api/admin/incidents?status=' + incidentFilter)
       const json = await res.json()
       setIncidents(json.incidents || [])
     } catch {
@@ -475,7 +490,7 @@ export default function AdminPage() {
 
   const loadIncidentDetail = async (incidentId: string) => {
     try {
-      const res = await fetch('/api/admin/incidents/' + incidentId)
+      const res = await adminFetch('/api/admin/incidents/' + incidentId)
       const json = await res.json()
       if (res.ok) {
         setSelectedIncident(json.incident)
@@ -486,7 +501,7 @@ export default function AdminPage() {
 
   const updateIncidentStatus = async (incidentId: string, status: string) => {
     try {
-      await fetch('/api/admin/incidents/' + incidentId, {
+      await adminFetch('/api/admin/incidents/' + incidentId, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, adminName: currentAdmin?.name }),
@@ -500,7 +515,7 @@ export default function AdminPage() {
   const sendIncidentReply = async () => {
     if (!incidentReply.trim() || !selectedIncident) return
     try {
-      const res = await fetch('/api/admin/incidents/' + selectedIncident.id, {
+      const res = await adminFetch('/api/admin/incidents/' + selectedIncident.id, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -521,7 +536,7 @@ export default function AdminPage() {
 
   const createIncidentFromUser = async (userId: string, userEmail: string, subject: string, message: string) => {
     try {
-      const res = await fetch('/api/admin/incidents', {
+      const res = await adminFetch('/api/admin/incidents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -543,7 +558,7 @@ export default function AdminPage() {
   const fetchUserIncidents = async (userId: string) => {
     setUserIncidentsLoading(true)
     try {
-      const res = await fetch('/api/admin/incidents?userId=' + userId)
+      const res = await adminFetch('/api/admin/incidents?userId=' + userId)
       const json = await res.json()
       setUserIncidents(json.incidents || [])
     } catch {
@@ -556,7 +571,7 @@ export default function AdminPage() {
   const addHistoryEntry = async () => {
     if (!historySubject.trim() || !selectedUserId) return
     try {
-      const res = await fetch('/api/admin/incidents', {
+      const res = await adminFetch('/api/admin/incidents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -572,7 +587,7 @@ export default function AdminPage() {
         if (historyStatus !== 'open') {
           const json = await res.json()
           if (json.incident?.id) {
-            await fetch('/api/admin/incidents/' + json.incident.id, {
+            await adminFetch('/api/admin/incidents/' + json.incident.id, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: historyStatus, adminName: currentAdmin?.name }),
@@ -593,7 +608,7 @@ export default function AdminPage() {
   const fetchSponsors = useCallback(async () => {
     setSponsorsLoading(true)
     try {
-      const res = await fetch('/api/admin/sponsors')
+      const res = await adminFetch('/api/admin/sponsors')
       const json = await res.json()
       setSponsors(json.sponsors || [])
     } catch {
@@ -609,7 +624,7 @@ export default function AdminPage() {
       return
     }
     try {
-      const res = await fetch('/api/admin/sponsors', {
+      const res = await adminFetch('/api/admin/sponsors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...sponsorForm, amount_paid: parseInt(sponsorForm.amount_paid) || 0, created_by: currentAdmin?.name }),
@@ -627,19 +642,19 @@ export default function AdminPage() {
   }
 
   const toggleSponsor = async (id: string, isActive: boolean) => {
-    await fetch('/api/admin/sponsors', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
+    await adminFetch('/api/admin/sponsors', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
     fetchSponsors()
   }
 
   const deleteSponsor = async (id: string) => {
-    await fetch('/api/admin/sponsors', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await adminFetch('/api/admin/sponsors', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
     flash('success', 'Sponsor supprime')
     fetchSponsors()
   }
 
   const loadSponsorTransactions = async (sponsorId: string) => {
     try {
-      const res = await fetch('/api/admin/sponsors/' + sponsorId + '/transactions')
+      const res = await adminFetch('/api/admin/sponsors/' + sponsorId + '/transactions')
       const json = await res.json()
       setSponsorTransactions(prev => ({ ...prev, [sponsorId]: json.transactions || [] }))
     } catch {}
@@ -647,7 +662,7 @@ export default function AdminPage() {
 
   const addSponsorTransaction = async (sponsorId: string, type: string, amount: number, desc: string, payMethod?: string, payRef?: string) => {
     try {
-      await fetch('/api/admin/sponsors/' + sponsorId + '/transactions', {
+      await adminFetch('/api/admin/sponsors/' + sponsorId + '/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type, amount, description: desc, payment_method: payMethod, payment_reference: payRef, created_by: currentAdmin?.name }),
@@ -660,7 +675,7 @@ export default function AdminPage() {
 
   const sendSponsorInvoice = async (sponsorId: string) => {
     try {
-      const res = await fetch('/api/admin/sponsors/' + sponsorId + '/invoice', {
+      const res = await adminFetch('/api/admin/sponsors/' + sponsorId + '/invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ created_by: currentAdmin?.name }),
@@ -676,7 +691,7 @@ export default function AdminPage() {
   const fetchReferrals = useCallback(async () => {
     setReferralsLoading(true)
     try {
-      const res = await fetch('/api/admin/referrals')
+      const res = await adminFetch('/api/admin/referrals')
       const json = await res.json()
       setReferralCodes(json.codes || [])
       setAllReferrals(json.referrals || [])
@@ -687,7 +702,7 @@ export default function AdminPage() {
   const createReferralCode = async () => {
     if (!referralHostId) { flash('error', 'Selectionnez un hote'); return }
     try {
-      const res = await fetch('/api/admin/referrals', {
+      const res = await adminFetch('/api/admin/referrals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ host_id: referralHostId, reward_months: parseInt(referralRewardMonths) || 3, max_referrals: parseInt(referralMaxUses) || 10 }),
@@ -703,7 +718,7 @@ export default function AdminPage() {
   }
 
   const toggleReferralCode = async (id: string, isActive: boolean) => {
-    await fetch('/api/admin/referrals', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
+    await adminFetch('/api/admin/referrals', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_active: !isActive }) })
     fetchReferrals()
   }
 
@@ -714,7 +729,7 @@ export default function AdminPage() {
     }
     setEmailSending(true)
     try {
-      const res = await fetch('/api/admin/send-email', {
+      const res = await adminFetch('/api/admin/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -752,7 +767,7 @@ export default function AdminPage() {
       return
     }
     try {
-      const res = await fetch('/api/admin/promo-codes', {
+      const res = await adminFetch('/api/admin/promo-codes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -793,7 +808,7 @@ export default function AdminPage() {
 
   const togglePromoCode = async (id: string, isActive: boolean) => {
     try {
-      await fetch('/api/admin/promo-codes', {
+      await adminFetch('/api/admin/promo-codes', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, is_active: !isActive }),
@@ -804,7 +819,7 @@ export default function AdminPage() {
 
   const deletePromoCode = async (id: string) => {
     try {
-      await fetch('/api/admin/promo-codes', {
+      await adminFetch('/api/admin/promo-codes', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -876,7 +891,7 @@ export default function AdminPage() {
 
   const loadUserDocs = async (userId: string) => {
     try {
-      const res = await fetch('/api/admin/users?docs=' + userId)
+      const res = await adminFetch('/api/admin/users?docs=' + userId)
       const json = await res.json()
       if (res.ok) {
         setUserDocs(prev => ({ ...prev, [userId]: json.verifications || json.docs || [] }))
@@ -911,13 +926,13 @@ export default function AdminPage() {
   const approveVerification = async (v: Verification) => {
     try {
       // Use API routes to bypass RLS
-      const res1 = await fetch('/api/admin/users/' + v.user_id, {
+      const res1 = await adminFetch('/api/admin/users/' + v.user_id, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identity_verified: true }),
       })
       // Update verification status via admin API
-      const res2 = await fetch('/api/admin/verifications', {
+      const res2 = await adminFetch('/api/admin/verifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: v.id, status: 'approved' }),
@@ -941,7 +956,7 @@ export default function AdminPage() {
   const rejectVerification = async (v: Verification) => {
     if (!rejectionReason.trim()) return
     try {
-      const res = await fetch('/api/admin/verifications', {
+      const res = await adminFetch('/api/admin/verifications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: v.id, status: 'rejected', rejection_reason: rejectionReason }),

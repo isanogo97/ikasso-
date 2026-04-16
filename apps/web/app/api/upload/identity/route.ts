@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAuth } from '../../../lib/api-auth'
 
 const BUCKET = 'identity-docs'
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 
 export async function POST(req: NextRequest) {
+  const { user, error: authError } = await requireAuth(req)
+  if (authError) return authError
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -17,6 +21,11 @@ export async function POST(req: NextRequest) {
         { error: 'Champs requis manquants' },
         { status: 400 }
       )
+    }
+
+    // Verify the userId matches the authenticated user to prevent impersonation
+    if (userId !== user.id) {
+      return NextResponse.json({ error: 'Non autorise' }, { status: 403 })
     }
 
     if (file.size > MAX_SIZE) {

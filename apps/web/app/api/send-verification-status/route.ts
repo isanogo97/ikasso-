@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
@@ -26,19 +27,19 @@ export async function POST(request: NextRequest) {
       rejected: {
         subject: 'Verification de votre compte Ikasso',
         title: 'Verification refusee',
-        message: `Votre demande de verification a ete refusee.${reason ? `<br/><br/><strong>Motif :</strong> ${reason}` : ''}<br/><br/>Vous pouvez soumettre une nouvelle demande avec des documents valides.`,
+        message: `Votre demande de verification a ete refusee.${reason ? `<br/><br/><strong>Motif :</strong> ${escapeHtml(reason)}` : ''}<br/><br/>Vous pouvez soumettre une nouvelle demande avec des documents valides.`,
         color: '#dc2626',
       },
       pending: {
         subject: 'Verification en cours - Ikasso',
         title: 'Verification en cours',
-        message: `Votre demande de verification est en cours d'examen.${reason ? `<br/><br/><strong>Note :</strong> ${reason}` : ''}<br/><br/>Vous recevrez un email lorsque la verification sera terminee (delai 48h maximum).`,
+        message: `Votre demande de verification est en cours d'examen.${reason ? `<br/><br/><strong>Note :</strong> ${escapeHtml(reason)}` : ''}<br/><br/>Vous recevrez un email lorsque la verification sera terminee (delai 48h maximum).`,
         color: '#d97706',
       },
       suspended: {
         subject: 'Information importante - Ikasso',
         title: 'Compte suspendu',
-        message: `Votre compte Ikasso a ete temporairement suspendu.${reason ? `<br/><br/><strong>Motif :</strong> ${reason}` : ''}<br/><br/>Pour toute question, contactez-nous a support@ikasso.ml.`,
+        message: `Votre compte Ikasso a ete temporairement suspendu.${reason ? `<br/><br/><strong>Motif :</strong> ${escapeHtml(reason)}` : ''}<br/><br/>Pour toute question, contactez-nous a support@ikasso.ml.`,
         color: '#dc2626',
       },
       reactivated: {
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       </div>
     </div>
     <h1 style="margin:0 0 16px;font-size:22px;color:${config.color};text-align:center;">${config.title}</h1>
-    <p style="margin:0 0 24px;color:#444;font-size:15px;line-height:1.7;">Bonjour <strong>${name || ''}</strong>,</p>
+    <p style="margin:0 0 24px;color:#444;font-size:15px;line-height:1.7;">Bonjour <strong>${escapeHtml(name || '')}</strong>,</p>
     <p style="margin:0 0 24px;color:#444;font-size:15px;line-height:1.7;">${config.message}</p>
     <div style="text-align:center;margin:32px 0;">
       <a href="https://ikasso.ml/dashboard" style="display:inline-block;background:linear-gradient(135deg,#E85D04,#F77F00);color:#fff;padding:14px 36px;text-decoration:none;border-radius:10px;font-weight:600;font-size:15px;">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
             <h1>Réinitialisation de mot de passe</h1>
           </div>
           <div class="content">
-            <p style="font-size: 16px;">Bonjour <strong>${name || 'Cher utilisateur'}</strong>,</p>
+            <p style="font-size: 16px;">Bonjour <strong>${escapeHtml(name || 'Cher utilisateur')}</strong>,</p>
             
             <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte <strong>Ikasso</strong>.</p>
             

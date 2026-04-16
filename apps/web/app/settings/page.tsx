@@ -6,6 +6,7 @@ import Image from "next/image"
 import { User, Mail, Phone, Lock, Bell, Globe, CreditCard, Shield, Eye, EyeOff, Save, ArrowLeft, Camera, MapPin, Tag, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import Logo from '../components/Logo'
 import { useAuth } from "../contexts/AuthContext"
+import { authFetch } from "../lib/auth-fetch"
 
 function PromoCodeSection({ userId }: { userId?: string }) {
   const [code, setCode] = useState('')
@@ -339,7 +340,7 @@ export default function SettingsPage() {
                         formData.append('file', file)
                         formData.append('userId', authUser?.id || '')
 
-                        const res = await fetch('/api/upload/avatar', {
+                        const res = await authFetch('/api/upload/avatar', {
                           method: 'POST',
                           body: formData,
                         })

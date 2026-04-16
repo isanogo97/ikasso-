@@ -45,24 +45,24 @@ export const SEED_PROPERTIES: Record<string, SeedProperty> = {}
 
 export const SEED_PROPERTIES_LIST = Object.values(SEED_PROPERTIES)
 
-// Test accounts for Apple Review
-export const TEST_ACCOUNTS = [
-  {
-    email: 'test@ikasso.ml',
-    password: 'Test1234',
-    firstName: 'Test',
-    lastName: 'Apple',
-    userType: 'client' as const,
-    phone: '+33600000000',
-    verified: true,
-  },
-  {
-    email: 'host@ikasso.ml',
-    password: 'Host1234',
-    firstName: 'Host',
-    lastName: 'Test',
-    userType: 'hote' as const,
-    phone: '+33600000001',
-    verified: true,
-  },
-]
+// Test accounts for Apple Review — only available in development
+export const TEST_ACCOUNTS = process.env.NODE_ENV === 'development'
+  ? [
+      {
+        email: 'test@ikasso.ml',
+        firstName: 'Test',
+        lastName: 'Apple',
+        userType: 'client' as const,
+        phone: '+33600000000',
+        verified: true,
+      },
+      {
+        email: 'host@ikasso.ml',
+        firstName: 'Host',
+        lastName: 'Test',
+        userType: 'hote' as const,
+        phone: '+33600000001',
+        verified: true,
+      },
+    ]
+  : []

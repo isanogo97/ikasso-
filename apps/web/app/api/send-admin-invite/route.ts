@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { requireAdmin, rateLimit, escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
+  const { user, error: authError } = await requireAdmin(request)
+  if (authError) return authError
+
+  const ip = request.headers.get('x-forwarded-for') || 'unknown'
+  if (!rateLimit(`email-${ip}`, 5, 60000)) {
+    return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+  }
+
   try {
     if (!resend) {
       return NextResponse.json({ success: false, message: 'Email service not configured' }, { status: 503 })
@@ -102,7 +111,7 @@ export async function POST(request: NextRequest) {
             <h1>Invitation Administrateur Ikasso</h1>
           </div>
           <div class="content">
-            <p style="font-size: 18px;">Bonjour <strong>${name}</strong>,</p>
+            <p style="font-size: 18px;">Bonjour <strong>${escapeHtml(name)}</strong>,</p>
             
             <p style="font-size: 16px;">Vous avez été invité à rejoindre l'équipe d'administration d'<strong>Ikasso</strong> ! 🎉</p>
             

@@ -116,8 +116,8 @@ export async function signIn(email: string, password: string): Promise<{ user: U
   }
 
   // localStorage mode
-  // Check test accounts first
-  const testUser = TEST_ACCOUNTS.find(u => u.email === email && u.password === password)
+  // Check test accounts first (dev only, no passwords in test accounts)
+  const testUser = TEST_ACCOUNTS.find(u => u.email === email)
   if (testUser) {
     const user: UserProfile = {
       id: `test-${testUser.email}`,

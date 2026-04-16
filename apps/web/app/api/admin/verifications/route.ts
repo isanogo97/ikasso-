@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAdmin } from '../../../lib/api-auth'
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   nina: 'NINA',
@@ -9,6 +10,9 @@ const DOC_TYPE_LABELS: Record<string, string> = {
 }
 
 export async function GET(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
 
@@ -128,6 +132,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const { id, status, rejection_reason } = await req.json()

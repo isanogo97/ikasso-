@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../lib/supabase/admin'
+import { requireAdmin } from '../../../../lib/api-auth'
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const userId = params.id
     if (!userId) {
@@ -53,6 +57,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const userId = params.id
     const body = await req.json()

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../lib/supabase/admin'
+import { requireAdmin, escapeHtml } from '../../../../lib/api-auth'
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const incidentId = params.id
@@ -57,6 +61,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const incidentId = params.id
@@ -101,6 +108,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const incidentId = params.id
@@ -145,7 +155,7 @@ export async function POST(
                   <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
                 </div>
                 <div style="padding:32px;">
-                  <div style="color:#374151;font-size:15px;line-height:1.7;white-space:pre-wrap;">${message}</div>
+                  <div style="color:#374151;font-size:15px;line-height:1.7;white-space:pre-wrap;">${escapeHtml(message)}</div>
                   <p style="margin-top:24px;color:#6b7280;font-size:13px;">Pour repondre, contactez-nous a support@ikasso.ml</p>
                 </div>
                 <div style="padding:16px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">

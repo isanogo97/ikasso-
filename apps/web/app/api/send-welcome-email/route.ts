@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '../../lib/supabase/admin'
+import { escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
   <!-- Header -->
   <tr><td style="background:linear-gradient(135deg,#E85D04,#F77F00);padding:48px 40px 36px;text-align:center;">
     <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
-    <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Bienvenue, ${name} !</h1>
+    <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;">Bienvenue, ${escapeHtml(name)} !</h1>
     <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">Votre compte a bien ete cree</p>
   </td></tr>
   <!-- Content -->

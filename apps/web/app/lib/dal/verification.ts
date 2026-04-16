@@ -104,8 +104,20 @@ async function uploadFileViaAPI(
     formData.append('fileKey', fileKey)
     formData.append('timestamp', timestamp)
 
+    // Add auth token for the upload
+    let headers: Record<string, string> = {}
+    try {
+      const { isSupabaseConfigured, createClient } = await import('../supabase/client')
+      if (isSupabaseConfigured()) {
+        const sb = createClient()
+        const { data: { session } } = await sb.auth.getSession()
+        if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } catch {}
+
     const response = await fetch('/api/upload/identity', {
       method: 'POST',
+      headers,
       body: formData,
     })
 

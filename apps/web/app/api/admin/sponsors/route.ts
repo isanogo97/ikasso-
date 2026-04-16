@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAdmin } from '../../../lib/api-auth'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const { data, error } = await supabase
@@ -44,6 +48,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()
@@ -82,6 +89,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()
@@ -100,6 +110,9 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const { id } = await req.json()

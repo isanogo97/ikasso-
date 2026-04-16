@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAuth } from '../../../lib/api-auth'
 
 const BUCKET = 'avatars'
 const MAX_SIZE = 5 * 1024 * 1024
 
 export async function POST(req: NextRequest) {
+  const { user, error: authError } = await requireAuth(req)
+  if (authError) return authError
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -12,6 +16,11 @@ export async function POST(req: NextRequest) {
 
     if (!file || !userId) {
       return NextResponse.json({ error: 'Fichier et userId requis' }, { status: 400 })
+    }
+
+    // Verify the userId matches the authenticated user to prevent impersonation
+    if (userId !== user.id) {
+      return NextResponse.json({ error: 'Non autorise' }, { status: 403 })
     }
 
     if (file.size > MAX_SIZE) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAdmin } from '../../../lib/api-auth'
 
 function generateCode(name: string): string {
   const prefix = name.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'REF'
@@ -7,7 +8,10 @@ function generateCode(name: string): string {
   return `${prefix}-${suffix}`
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
 
@@ -68,6 +72,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()
@@ -100,6 +107,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const { id, is_active } = await req.json()

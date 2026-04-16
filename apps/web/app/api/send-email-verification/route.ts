@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { rateLimit, escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for') || 'unknown'
+  if (!rateLimit(`email-${ip}`, 5, 60000)) {
+    return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+  }
+
   try {
     if (!resend) {
       return NextResponse.json({ success: false, message: 'Email service not configured' }, { status: 503 })
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
   <!-- Content -->
   <tr><td style="padding:40px;">
     <h1 style="margin:0 0 8px;font-size:22px;color:#1a1a1a;">Code de verification</h1>
-    <p style="margin:0 0 24px;color:#666;font-size:15px;">Bonjour <strong>${name || ''}</strong>, voici votre code pour verifier votre adresse email :</p>
+    <p style="margin:0 0 24px;color:#666;font-size:15px;">Bonjour <strong>${escapeHtml(name || '')}</strong>, voici votre code pour verifier votre adresse email :</p>
 
     <div style="background:#FFF7ED;border:2px solid #E85D04;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
       <div style="font-size:38px;font-weight:bold;letter-spacing:10px;color:#E85D04;font-family:'Courier New',monospace;">${code}</div>

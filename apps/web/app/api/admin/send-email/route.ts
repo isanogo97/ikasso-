@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { requireAdmin, rateLimit, escapeHtml } from '../../../lib/api-auth'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(req: NextRequest) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
+  const ip = req.headers.get('x-forwarded-for') || 'unknown'
+  if (!rateLimit(`email-${ip}`, 5, 60000)) {
+    return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+  }
+
   try {
     if (!resend) {
       return NextResponse.json({ error: 'Service email non configure' }, { status: 500 })
@@ -25,12 +34,12 @@ export async function POST(req: NextRequest) {
             <span style="font-size:24px;font-weight:700;color:#fff;">Ikasso</span>
           </div>
           <div style="padding:32px;">
-            <h2 style="color:#111827;font-size:20px;margin:0 0 16px;">${subject}</h2>
-            <div style="color:#374151;font-size:15px;line-height:1.7;white-space:pre-wrap;">${message}</div>
+            <h2 style="color:#111827;font-size:20px;margin:0 0 16px;">${escapeHtml(subject)}</h2>
+            <div style="color:#374151;font-size:15px;line-height:1.7;white-space:pre-wrap;">${escapeHtml(message)}</div>
           </div>
           <div style="padding:20px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
             <p style="color:#9ca3af;font-size:12px;margin:0;">
-              ${senderName ? `Envoye par ${senderName} - ` : ''}Equipe Ikasso<br/>
+              ${senderName ? `Envoye par ${escapeHtml(senderName)} - ` : ''}Equipe Ikasso<br/>
               <a href="https://ikasso.ml" style="color:#c2410c;text-decoration:none;">ikasso.ml</a>
             </p>
           </div>

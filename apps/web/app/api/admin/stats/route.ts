@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
+import { requireAdmin } from '../../../lib/api-auth'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { user, error } = await requireAdmin(req)
+  if (error) return error
+
   try {
     const supabase = createAdminClient()
     const now = new Date()

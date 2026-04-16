@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { escapeHtml } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
             <h1>✅ Réservation confirmée !</h1>
           </div>
           <div class="content">
-            <p style="font-size: 18px;">Bonjour <strong>${name}</strong>,</p>
+            <p style="font-size: 18px;">Bonjour <strong>${escapeHtml(name)}</strong>,</p>
             
             <p style="font-size: 16px;">Votre réservation a été confirmée avec succès ! 🎉</p>
             
@@ -136,20 +137,20 @@ export async function POST(request: NextRequest) {
               
               <div class="booking-detail">
                 <span><strong>🏠 Logement</strong></span>
-                <span>${propertyName || 'Non spécifié'}</span>
+                <span>${escapeHtml(propertyName || 'Non spécifié')}</span>
               </div>
               
               ${hostName ? `
                 <div class="booking-detail">
                   <span><strong>👤 Hôte</strong></span>
-                  <span>${hostName}</span>
+                  <span>${escapeHtml(hostName)}</span>
                 </div>
               ` : ''}
               
               ${propertyAddress ? `
                 <div class="booking-detail">
                   <span><strong>📍 Adresse</strong></span>
-                  <span>${propertyAddress}</span>
+                  <span>${escapeHtml(propertyAddress)}</span>
                 </div>
               ` : ''}
               

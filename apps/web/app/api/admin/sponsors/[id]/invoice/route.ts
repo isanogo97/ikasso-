@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/admin'
+import { requireAdmin, escapeHtml } from '../../../../../lib/api-auth'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const { user, error: authError } = await requireAdmin(req)
+  if (authError) return authError
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()
@@ -52,11 +56,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
                   <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
                     <tr style="background:#f9fafb;">
                       <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;font-weight:600;">Client</td>
-                      <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;">${sponsor.business_name}</td>
+                      <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;">${escapeHtml(sponsor.business_name)}</td>
                     </tr>
                     <tr>
                       <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;font-weight:600;">Contact</td>
-                      <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;">${sponsor.contact_name || '-'}</td>
+                      <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;">${escapeHtml(sponsor.contact_name || '-')}</td>
                     </tr>
                     <tr style="background:#f9fafb;">
                       <td style="padding:12px;border:1px solid #e5e7eb;font-size:14px;font-weight:600;">Formule</td>

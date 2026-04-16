@@ -93,29 +93,11 @@ export default function AdminManagementPage() {
     // Charger les administrateurs
     const storedAdmins = JSON.parse(localStorage.getItem('ikasso_admins') || '[]')
     
-    // Si aucun admin, créer le super admin par défaut
+    // If no admins exist, redirect to the admin login page
+    // Admin accounts are managed via the proper admin auth flow
     if (storedAdmins.length === 0) {
-      const superAdmin: AdminUser = {
-        id: '1',
-        name: 'Super Administrateur',
-        email: 'admin@ikasso.ml',
-        password: 'Admin@2024',
-        role: 'super_admin',
-        permissions: defaultPermissions.super_admin,
-        createdAt: new Date().toISOString(),
-        status: 'active',
-        isActivated: true
-      }
-      storedAdmins.push(superAdmin)
-      localStorage.setItem('ikasso_admins', JSON.stringify(storedAdmins))
-    } else {
-      // Vérifier et activer le super admin s'il existe mais n'est pas activé
-      const superAdminIndex = storedAdmins.findIndex((a: AdminUser) => a.email === 'admin@ikasso.ml')
-      if (superAdminIndex !== -1 && !storedAdmins[superAdminIndex].isActivated) {
-        storedAdmins[superAdminIndex].isActivated = true
-        storedAdmins[superAdminIndex].password = 'Admin@2024'
-        localStorage.setItem('ikasso_admins', JSON.stringify(storedAdmins))
-      }
+      window.location.href = '/admin'
+      return
     }
     
     setAdmins(storedAdmins)
