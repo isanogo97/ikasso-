@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/admin'
-import { requireAdmin } from '../../../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../../../lib/api-auth'
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { user, error: authError } = await requireAdmin(req)
@@ -16,11 +16,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     if (error) {
       if (error.message.includes('does not exist')) return NextResponse.json({ transactions: [] })
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
     return NextResponse.json({ transactions: data || [] })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: safeError(error) }, { status: 500 })
 
     // If payment registered, activate the sponsor
     if (body.type === 'paiement') {
@@ -65,6 +65,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ success: true, transaction: data })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

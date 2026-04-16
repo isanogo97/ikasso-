@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { escapeHtml } from '../../lib/api-auth'
+import { escapeHtml, safeError } from '../../lib/api-auth'
 import { logSecurityEvent } from '../../lib/security-log'
 
 export const runtime = 'nodejs'
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      return NextResponse.json({ success: false, message: error.message }, { status: 400 })
+      return NextResponse.json({ success: false, message: safeError(error) }, { status: 400 })
     }
 
     logSecurityEvent({
@@ -107,6 +107,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, messageId: data?.id })
   } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, message: safeError(error) }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../lib/api-auth'
 
 export async function GET(req: NextRequest) {
   const { user, error } = await requireAdmin(req)
@@ -62,6 +62,6 @@ export async function GET(req: NextRequest) {
       deletedUsers: (deletedUsersRes as any).count ?? 0,
     })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

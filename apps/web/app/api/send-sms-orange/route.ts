@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { safeError } from '../../lib/api-auth'
 
 // Configuration Orange API SMS Mali
 const ORANGE_CLIENT_ID = process.env.ORANGE_CLIENT_ID || 'GexB8PAJh2wrvh7wlAOVsQv2h8vbAd22'
@@ -154,7 +155,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         message: 'Erreur serveur',
-        error: error instanceof Error ? error.message : 'Erreur inconnue'
+        error: safeError(error)
       },
       { status: 500 }
     )

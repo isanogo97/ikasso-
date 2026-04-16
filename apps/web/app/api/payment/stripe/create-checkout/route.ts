@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getStripe, isStripeConfigured } from '../../../../lib/stripe'
 import { rateLimit, getClientIp } from '../../../../lib/rate-limit'
+import { safeError } from '../../../../lib/api-auth'
 
 const schema = z.object({
   amount: z.number().positive(),
@@ -68,6 +69,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Donnees invalides', details: error.issues }, { status: 400 })
     }
     console.error('Stripe checkout error:', error)
-    return NextResponse.json({ error: error.message || 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: safeError(error) }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { safeError } from '../../lib/api-auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         message: 'Erreur lors de l\'envoi du SMS',
-        error: error.message 
+        error: safeError(error)
       },
       { status: 500 }
     )

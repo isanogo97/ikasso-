@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { escapeHtml } from '../../lib/api-auth'
+import { escapeHtml, safeError } from '../../lib/api-auth'
 
 export const runtime = 'nodejs'
 
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('❌ Erreur Resend:', error)
         return NextResponse.json(
-          { success: false, message: error.message },
+          { success: false, message: safeError(error) },
           { status: 400 }
         )
       }
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
     } catch (resendError: any) {
       console.error('❌ Erreur Resend:', resendError)
       return NextResponse.json(
-        { success: false, message: resendError.message },
+        { success: false, message: safeError(resendError) },
         { status: 500 }
       )
     }
@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         message: 'Erreur lors de l\'envoi',
-        error: error.message 
+        error: safeError(error)
       },
       { status: 500 }
     )

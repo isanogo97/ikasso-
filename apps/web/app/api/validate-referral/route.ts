@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../lib/supabase/admin'
+import { safeError } from '../../lib/api-auth'
 
 export async function POST(req: NextRequest) {
   try {
@@ -142,6 +143,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ valid: false, error: 'Code invalide' })
   } catch (err: any) {
-    return NextResponse.json({ valid: false, error: err.message })
+    return NextResponse.json({ valid: false, error: safeError(err) })
   }
 }

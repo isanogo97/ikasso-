@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { rateLimit, escapeHtml } from '../../lib/api-auth'
+import { escapeHtml, safeError } from '../../lib/api-auth'
+import { emailRateLimit } from '../../lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -8,8 +9,9 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown'
-  if (!rateLimit(`email-${ip}`, 5, 60000)) {
-    return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+  const { success } = await emailRateLimit(ip)
+  if (!success) {
+    return NextResponse.json({ error: 'Trop de requetes, reessayez plus tard' }, { status: 429 })
   }
 
   try {
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('❌ Erreur Resend:', error)
         return NextResponse.json(
-          { success: false, message: error.message },
+          { success: false, message: safeError(error) },
           { status: 400 }
         )
       }
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
     } catch (resendError: any) {
       console.error('❌ Erreur Resend:', resendError)
       return NextResponse.json(
-        { success: false, message: resendError.message },
+        { success: false, message: safeError(resendError) },
         { status: 500 }
       )
     }
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         message: 'Erreur lors de l\'envoi',
-        error: error.message 
+        error: safeError(error)
       },
       { status: 500 }
     )

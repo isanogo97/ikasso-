@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../lib/supabase/admin'
-import { requireAdmin, escapeHtml } from '../../../../lib/api-auth'
+import { requireAdmin, escapeHtml, safeError } from '../../../../lib/api-auth'
 
 export async function GET(
   req: NextRequest,
@@ -53,7 +53,7 @@ export async function GET(
       messages: messages || [],
     })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -80,7 +80,7 @@ export async function PATCH(
       .eq('id', incidentId)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Add system message for status change
@@ -100,7 +100,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -130,7 +130,7 @@ export async function POST(
     })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Update incident timestamp
@@ -170,6 +170,6 @@ export async function POST(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

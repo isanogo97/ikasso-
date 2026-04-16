@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../lib/api-auth'
 
 export async function GET(req: NextRequest) {
   const { user, error: authError } = await requireAdmin(req)
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       if (error.message.includes('does not exist')) {
         return NextResponse.json({ sponsors: [], needsMigration: true })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Enrich with user info
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ sponsors: enriched })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -79,12 +79,12 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, sponsor: data })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -102,10 +102,10 @@ export async function PATCH(req: NextRequest) {
     updates.updated_at = new Date().toISOString()
     const { error } = await supabase.from('sponsors').update(updates).eq('id', id)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: safeError(error) }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -120,9 +120,9 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID requis' }, { status: 400 })
 
     const { error } = await supabase.from('sponsors').delete().eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: safeError(error) }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../lib/api-auth'
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   nina: 'NINA',
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Fetch verifications error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Fetch profile info for each user
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ verifications: enriched })
   } catch (err: any) {
     console.error('Admin verifications error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -156,11 +156,11 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       console.error('Update verification error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

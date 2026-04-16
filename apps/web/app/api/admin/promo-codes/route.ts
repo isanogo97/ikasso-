@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../lib/api-auth'
 
 export async function GET(req: NextRequest) {
   const { user, error: authError } = await requireAdmin(req)
@@ -18,12 +18,12 @@ export async function GET(req: NextRequest) {
       if (error.message.includes('does not exist')) {
         return NextResponse.json({ codes: [], needsMigration: true })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ codes: data || [] })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -88,12 +88,12 @@ export async function POST(req: NextRequest) {
       if (error.message.includes('unique') || error.message.includes('duplicate')) {
         return NextResponse.json({ error: 'Ce code existe deja' }, { status: 409 })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, code: data })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -115,12 +115,12 @@ export async function PATCH(req: NextRequest) {
       .eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -142,11 +142,11 @@ export async function DELETE(req: NextRequest) {
       .eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

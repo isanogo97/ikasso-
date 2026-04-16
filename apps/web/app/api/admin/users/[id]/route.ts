@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../lib/supabase/admin'
-import { requireAdmin } from '../../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../../lib/api-auth'
 
 export async function DELETE(
   req: NextRequest,
@@ -31,7 +31,7 @@ export async function DELETE(
 
     if (error) {
       console.error('Delete user error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Log deletion in audit table
@@ -49,7 +49,7 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (err: any) {
     console.error('Delete user error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -76,7 +76,7 @@ export async function PATCH(
       .eq('id', userId)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Ban/unban at Supabase Auth level to force session invalidation
@@ -88,6 +88,6 @@ export async function PATCH(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

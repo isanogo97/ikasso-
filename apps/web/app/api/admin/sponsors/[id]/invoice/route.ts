@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../../../lib/supabase/admin'
-import { requireAdmin, escapeHtml } from '../../../../../lib/api-auth'
+import { requireAdmin, escapeHtml, safeError } from '../../../../../lib/api-auth'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const { user, error: authError } = await requireAdmin(req)
@@ -89,6 +89,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ success: true, invoiceNumber })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { requireAdmin, rateLimit, escapeHtml } from '../../../lib/api-auth'
+import { z } from 'zod'
+import { requireAdmin, rateLimit, escapeHtml, safeError } from '../../../lib/api-auth'
+
+const sendEmailSchema = z.object({
+  to: z.union([z.string().email(), z.array(z.string().email())]),
+  subject: z.string().min(1).max(500),
+  message: z.string().min(1).max(10000),
+  senderName: z.string().max(200).optional(),
+})
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -18,11 +26,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Service email non configure' }, { status: 500 })
     }
 
-    const { to, subject, message, senderName } = await req.json()
+    const body = await req.json()
 
-    if (!to || !subject || !message) {
-      return NextResponse.json({ error: 'Destinataire, sujet et message requis' }, { status: 400 })
+    const parsed = sendEmailSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues?.[0]?.message || 'Donnees invalides' }, { status: 400 })
     }
+    const { to, subject, message, senderName } = parsed.data
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -57,12 +67,12 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Send email error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
     console.error('Admin send email error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

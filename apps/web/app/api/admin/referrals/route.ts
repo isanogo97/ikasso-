@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, safeError } from '../../../lib/api-auth'
 
 function generateCode(name: string): string {
   const prefix = name.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase() || 'REF'
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       if (error.message.includes('does not exist')) return NextResponse.json({ codes: [], referrals: [] })
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Get host names
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ codes: enrichedCodes, referrals: enrichedReferrals })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -99,10 +99,10 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: safeError(error) }, { status: 500 })
     return NextResponse.json({ success: true, referralCode: data })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -116,9 +116,9 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID requis' }, { status: 400 })
 
     const { error } = await supabase.from('referral_codes').update({ is_active }).eq('id', id)
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) return NextResponse.json({ error: safeError(error) }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

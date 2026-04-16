@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { safeError } from '../../../../lib/api-auth'
 import { getStripe, isStripeConfigured } from '../../../../lib/stripe'
 
 export async function POST(request: Request) {
@@ -48,6 +49,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   } catch (err: any) {
     console.error('Webhook error:', err.message)
-    return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 })
+    return NextResponse.json({ error: safeError(err, 'Webhook Error') }, { status: 400 })
   }
 }

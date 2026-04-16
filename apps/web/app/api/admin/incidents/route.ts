@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAdmin, escapeHtml } from '../../../lib/api-auth'
+import { requireAdmin, escapeHtml, safeError } from '../../../lib/api-auth'
+
+const createIncidentSchema = z.object({
+  userId: z.string().uuid(),
+  subject: z.string().min(1).max(500),
+  message: z.string().max(5000).optional(),
+  adminName: z.string().max(200).optional(),
+  sendEmail: z.boolean().optional(),
+  userEmail: z.string().email().optional(),
+})
 
 export async function GET(req: NextRequest) {
   const { user, error: authError } = await requireAdmin(req)
@@ -29,7 +39,7 @@ export async function GET(req: NextRequest) {
       if (error.message.includes('does not exist')) {
         return NextResponse.json({ incidents: [], needsMigration: true })
       }
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(error) }, { status: 500 })
     }
 
     // Enrich with user info
@@ -87,7 +97,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ incidents: enriched })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }
 
@@ -97,11 +107,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createAdminClient()
-    const { userId, subject, message, adminName, sendEmail, userEmail } = await req.json()
+    const body = await req.json()
 
-    if (!userId || !subject) {
-      return NextResponse.json({ error: 'Utilisateur et sujet requis' }, { status: 400 })
+    const parsed = createIncidentSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues?.[0]?.message || 'Donnees invalides' }, { status: 400 })
     }
+    const { userId, subject, message, adminName, sendEmail, userEmail } = parsed.data
 
     // Create incident
     const { data: incident, error: incErr } = await supabase
@@ -116,7 +128,7 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (incErr) {
-      return NextResponse.json({ error: incErr.message }, { status: 500 })
+      return NextResponse.json({ error: safeError(incErr) }, { status: 500 })
     }
 
     // Add first message
@@ -162,6 +174,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, incident })
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
 }

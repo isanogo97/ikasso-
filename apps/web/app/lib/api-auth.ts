@@ -147,3 +147,18 @@ export function rateLimit(key: string, maxRequests: number = 10, windowMs: numbe
   record.count++
   return true
 }
+
+/**
+ * Safe error response - never leak internal details in production
+ */
+export function safeError(err: any, fallbackMessage: string = 'Erreur serveur'): string {
+  if (process.env.NODE_ENV === 'development') return err?.message || fallbackMessage
+  // In production, only return safe messages
+  const msg = err?.message || ''
+  // Allow known safe Supabase messages
+  if (msg.includes('unique') || msg.includes('duplicate')) return 'Cette donnee existe deja'
+  if (msg.includes('not found') || msg.includes('no rows')) return 'Ressource non trouvee'
+  if (msg.includes('violates check')) return 'Donnees invalides'
+  if (msg.includes('permission') || msg.includes('denied')) return 'Acces refuse'
+  return fallbackMessage
+}

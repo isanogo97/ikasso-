@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { requireAuth } from '../../../lib/api-auth'
+import { requireAuth, safeError } from '../../../lib/api-auth'
+import { uploadRateLimit } from '../../../lib/rate-limit'
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 
@@ -11,6 +12,12 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 export async function POST(req: NextRequest) {
   const { user, error: authError } = await requireAuth(req)
   if (authError) return authError
+
+  const ip = req.headers.get('x-forwarded-for') || 'unknown'
+  const { success } = await uploadRateLimit(ip)
+  if (!success) {
+    return NextResponse.json({ error: 'Trop de requetes, reessayez plus tard' }, { status: 429 })
+  }
 
   try {
     const formData = await req.formData()
@@ -83,7 +90,7 @@ export async function POST(req: NextRequest) {
     if (uploadError) {
       console.error(`Upload error for ${path}:`, uploadError)
       return NextResponse.json(
-        { error: `Echec upload: ${uploadError.message}` },
+        { error: safeError(uploadError, 'Echec upload') },
         { status: 500 }
       )
     }
@@ -99,7 +106,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error('Upload identity error:', err)
     return NextResponse.json(
-      { error: err.message || 'Erreur serveur' },
+      { error: safeError(err) },
       { status: 500 }
     )
   }
