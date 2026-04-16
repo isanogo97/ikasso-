@@ -7,7 +7,7 @@ import {
   CheckCircle, CheckCircle2, XCircle, AlertTriangle, Mail, Eye, UserCheck, UserX,
   Flag, RefreshCw, Plus, Trash2, LayoutDashboard, FileCheck, UserCog,
   Loader2, Home, X, CreditCard, Calendar, Clock, Menu, ArrowLeft, Tag, Send, Percent,
-  MessageSquare, Gift, FileText, DollarSign, ChevronRight
+  MessageSquare, Gift, FileText, DollarSign, ChevronRight, Lock
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
@@ -2915,6 +2915,115 @@ export default function AdminPage() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Backup & Security section */}
+              {currentAdmin?.role === 'super_admin' && (
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">Sauvegarde &amp; Securite</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Backup */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-5">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-green-600" />
+                        Sauvegardes
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-4">Exportez toutes les donnees de la plateforme en JSON. Recommande : 1x par semaine minimum.</p>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={async () => {
+                            flash('success', 'Telechargement en cours...')
+                            try {
+                              const res = await adminFetch('/api/admin/backup?format=download')
+                              if (res.ok) {
+                                const blob = await res.blob()
+                                const url = URL.createObjectURL(blob)
+                                const a = document.createElement('a')
+                                a.href = url
+                                a.download = `ikasso_backup_${new Date().toISOString().split('T')[0]}.json`
+                                a.click()
+                                URL.revokeObjectURL(url)
+                                flash('success', 'Backup telecharge !')
+                              } else flash('error', 'Erreur backup')
+                            } catch { flash('error', 'Erreur backup') }
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition-colors"
+                        >
+                          <Shield className="h-4 w-4" /> Telecharger le backup complet
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await adminFetch('/api/admin/backup')
+                              const json = await res.json()
+                              if (json.summary) {
+                                const summary = Object.entries(json.summary).map(([t, c]) => `${t}: ${c}`).join('\n')
+                                alert(`Statistiques backup:\n\nTotal: ${json.metadata?.totalRecords} enregistrements\n\n${summary}`)
+                              }
+                            } catch { flash('error', 'Erreur') }
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                        >
+                          Verifier les donnees
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 2FA */}
+                    <div className="bg-white rounded-xl border border-gray-200 p-5">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-purple-600" />
+                        Authentification 2FA
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-4">Securisez votre compte admin avec Google Authenticator ou une app TOTP compatible.</p>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await adminFetch('/api/admin/2fa')
+                            const json = await res.json()
+                            if (json.enabled) {
+                              const code = prompt('2FA actif. Entrez un code pour desactiver :')
+                              if (code) {
+                                const res2 = await adminFetch('/api/admin/2fa', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code, action: 'disable' }),
+                                })
+                                const json2 = await res2.json()
+                                flash(json2.success ? 'success' : 'error', json2.message || json2.error || 'Erreur')
+                              }
+                            } else if (json.qrCode) {
+                              // Show QR code in a new window
+                              const w = window.open('', '_blank', 'width=400,height=500')
+                              if (w) {
+                                w.document.write(`<html><head><title>Ikasso 2FA</title></head><body style="font-family:sans-serif;text-align:center;padding:20px;">
+                                  <h2>Scanner ce QR code</h2>
+                                  <p style="color:#666;">Avec Google Authenticator ou Authy</p>
+                                  <img src="${json.qrCode}" style="width:250px;margin:20px auto;" />
+                                  <p style="font-size:12px;color:#999;">Code secret : ${json.secret}</p>
+                                  <p style="margin-top:20px;">Entrez le code affiche dans l'app pour activer.</p>
+                                </body></html>`)
+                              }
+                              const code = prompt('Entrez le code a 6 chiffres affiche dans votre app :')
+                              if (code) {
+                                const res2 = await adminFetch('/api/admin/2fa', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code, action: 'enable' }),
+                                })
+                                const json2 = await res2.json()
+                                flash(json2.success ? 'success' : 'error', json2.message || json2.error || 'Erreur')
+                              }
+                            }
+                          } catch { flash('error', 'Erreur 2FA') }
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors"
+                      >
+                        <Lock className="h-4 w-4" /> Configurer 2FA
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
