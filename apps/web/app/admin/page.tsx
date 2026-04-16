@@ -39,6 +39,7 @@ interface DashboardStats {
   monthRevenue: number
   openIncidents: number
   activeSponsors: number
+  deletedUsers: number
 }
 
 interface UserRow {
@@ -177,7 +178,7 @@ export default function AdminPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
 
   // Dashboard
-  const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, totalHosts: 0, totalClients: 0, pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0, activeProperties: 0, pendingProperties: 0, suspendedUsers: 0, activeUsers: 0, verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0, openIncidents: 0, activeSponsors: 0 })
+  const [stats, setStats] = useState<DashboardStats>({ totalUsers: 0, totalHosts: 0, totalClients: 0, pendingVerifications: 0, approvedVerifications: 0, rejectedVerifications: 0, activeProperties: 0, pendingProperties: 0, suspendedUsers: 0, activeUsers: 0, verifiedUsers: 0, totalBookings: 0, paidBookings: 0, totalRevenue: 0, monthRevenue: 0, openIncidents: 0, activeSponsors: 0, deletedUsers: 0 })
   const [statsLoading, setStatsLoading] = useState(false)
 
   // Users
@@ -394,6 +395,7 @@ export default function AdminPage() {
           monthRevenue: data.monthRevenue ?? 0,
           openIncidents: data.openIncidents ?? 0,
           activeSponsors: data.activeSponsors ?? 0,
+          deletedUsers: data.deletedUsers ?? 0,
         })
       }
     } catch {
@@ -1234,6 +1236,7 @@ export default function AdminPage() {
                     { label: 'Hotes', value: stats.totalHosts, icon: Home, bg: 'bg-purple-100', fg: 'text-purple-600' },
                     { label: 'Comptes verifies', value: stats.verifiedUsers, icon: Shield, bg: 'bg-emerald-100', fg: 'text-emerald-600' },
                     { label: 'Comptes bloques', value: stats.suspendedUsers, icon: AlertTriangle, bg: 'bg-red-100', fg: 'text-red-600' },
+                    { label: 'Comptes supprimes', value: stats.deletedUsers, icon: Trash2, bg: 'bg-gray-100', fg: 'text-gray-600' },
                   ].map((card, i) => (
                     <div
                       key={i}

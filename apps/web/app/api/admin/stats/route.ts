@@ -12,7 +12,7 @@ export async function GET() {
       pendingVerifRes, approvedVerifRes, rejectedVerifRes,
       activePropsRes, pendingPropsRes,
       totalBookingsRes, paidBookingsRes, revenueRes, monthRevenueRes,
-      openIncidentsRes, sponsorsRes,
+      openIncidentsRes, sponsorsRes, deletedUsersRes,
     ] = await Promise.all([
       supabase.from('profiles').select('id', { count: 'exact', head: true }),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'hote'),
@@ -31,6 +31,7 @@ export async function GET() {
       supabase.from('bookings').select('total').eq('payment_status', 'paid').gte('created_at', monthStart),
       supabase.from('incidents').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       supabase.from('sponsors').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('audit_log').select('id', { count: 'exact', head: true }).eq('action', 'user_deleted'),
     ])
 
     const totalRev = (revenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
@@ -54,6 +55,7 @@ export async function GET() {
       monthRevenue: monthRev,
       openIncidents: (openIncidentsRes as any).count ?? 0,
       activeSponsors: (sponsorsRes as any).count ?? 0,
+      deletedUsers: (deletedUsersRes as any).count ?? 0,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

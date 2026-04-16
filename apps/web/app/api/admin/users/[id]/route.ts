@@ -12,6 +12,10 @@ export async function DELETE(
     }
 
     const supabase = createAdminClient()
+    const body = await req.json().catch(() => ({}))
+
+    // Save user info before deletion for audit log
+    const { data: profile } = await supabase.from('profiles').select('first_name, last_name, email').eq('id', userId).single()
 
     // First: ban the user to invalidate all their sessions immediately
     try {
@@ -25,6 +29,18 @@ export async function DELETE(
       console.error('Delete user error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Log deletion in audit table
+    try {
+      await supabase.from('audit_log').insert({
+        action: 'user_deleted',
+        target_type: 'user',
+        target_id: userId,
+        target_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : null,
+        target_email: profile?.email || null,
+        performed_by: (body as any)?.adminName || 'Admin',
+      })
+    } catch {}
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
