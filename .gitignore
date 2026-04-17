@@ -32,3 +32,5 @@ pnpm-debug.log*
 # Exclure des dépôts Git imbriqués non suivis
 IKASSO-PROJECT/
 IKASSO/
+@ibahima__ikasso.jks
+*.jks
