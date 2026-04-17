@@ -25,7 +25,7 @@
         "foregroundImage": "./apps/web/public/icons/1024x1024.png",
         "backgroundColor": "#E85D04"
       },
-      "package": "ml.ikasso.app"
+      "package": "ml.ikasso.android"
     },
     "extra": {
       "eas": {
