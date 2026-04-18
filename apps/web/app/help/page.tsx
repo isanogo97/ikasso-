@@ -1,13 +1,278 @@
 ﻿'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { 
-  Search, MessageCircle, Phone, Mail, ChevronDown, ChevronRight, 
+import {
+  Search, MessageCircle, Phone, Mail, ChevronDown, ChevronRight,
   ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield, Book,
-  Globe, Menu, X
+  Globe, Menu, X, Send, Minimize2
 } from 'lucide-react'
 import Logo from '../components/Logo'
+import { useAuth } from '../contexts/AuthContext'
+import { authFetch } from '../lib/auth-fetch'
+
+/* ------------------------------------------------------------------ */
+/*  Live Chat Widget (floating bottom-right)                          */
+/* ------------------------------------------------------------------ */
+function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+  const { isAuthenticated } = useAuth()
+  const [messages, setMessages] = useState<any[]>([])
+  const [incidentId, setIncidentId] = useState<string | null>(null)
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [anonName, setAnonName] = useState('')
+  const [anonEmail, setAnonEmail] = useState('')
+  const [anonMessage, setAnonMessage] = useState('')
+  const [anonSent, setAnonSent] = useState(false)
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Fetch chat history
+  const fetchHistory = useCallback(async () => {
+    if (!isAuthenticated) return
+    try {
+      const res = await authFetch('/api/live-chat')
+      const data = await res.json()
+      if (data.messages) setMessages(data.messages)
+      if (data.incidentId) setIncidentId(data.incidentId)
+    } catch {}
+  }, [isAuthenticated])
+
+  // Load history on open & poll every 5s
+  useEffect(() => {
+    if (!open) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      return
+    }
+    if (isAuthenticated) {
+      setLoadingHistory(true)
+      fetchHistory().finally(() => setLoadingHistory(false))
+      intervalRef.current = setInterval(fetchHistory, 5000)
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [open, isAuthenticated, fetchHistory])
+
+  // Send message (authenticated)
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || sending) return
+    setSending(true)
+    try {
+      const res = await authFetch('/api/live-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, incidentId }),
+      })
+      const data = await res.json()
+      if (data.messages) setMessages(data.messages)
+      if (data.incidentId) setIncidentId(data.incidentId)
+      setInput('')
+    } catch {}
+    setSending(false)
+  }
+
+  // Send message (anonymous)
+  const handleAnonSend = async () => {
+    const text = anonMessage.trim()
+    if (!text || sending) return
+    setSending(true)
+    try {
+      await fetch('/api/live-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, name: anonName, email: anonEmail }),
+      })
+      setAnonSent(true)
+    } catch {}
+    setSending(false)
+  }
+
+  const formatTime = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    } catch { return '' }
+  }
+
+  return (
+    <>
+      {/* Floating button */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-primary-500 to-primary-700 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform"
+          aria-label="Ouvrir le chat"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Chat panel */}
+      {open && (
+        <div className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              <div>
+                <p className="font-semibold text-sm">Chat en direct</p>
+                <p className="text-[10px] opacity-80">Ikasso Support</p>
+              </div>
+            </div>
+            <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-lg p-1 transition-colors">
+              <Minimize2 className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Body */}
+          {isAuthenticated ? (
+            /* --- Authenticated chat --- */
+            <>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                {loadingHistory && messages.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm py-8">Chargement...</p>
+                )}
+                {!loadingHistory && messages.length === 0 && (
+                  <div className="text-center py-8">
+                    <MessageCircle className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">Bienvenue ! Posez votre question.</p>
+                  </div>
+                )}
+                {messages.map((msg: any) => {
+                  const isUser = msg.sender_type === 'user'
+                  return (
+                    <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                        isUser
+                          ? 'bg-primary-600 text-white rounded-br-sm'
+                          : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                      }`}>
+                        {!isUser && (
+                          <p className="text-[10px] font-semibold text-primary-600 mb-1">
+                            {msg.sender_name || 'Support'}
+                          </p>
+                        )}
+                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        <p className={`text-[10px] mt-1 ${isUser ? 'text-white/60' : 'text-gray-400'}`}>
+                          {formatTime(msg.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+                <div ref={bottomRef} />
+              </div>
+
+              {/* Input */}
+              <div className="border-t border-gray-200 p-3 flex gap-2 flex-shrink-0 bg-white">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+                  placeholder="Tapez votre message..."
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  disabled={sending}
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={sending || !input.trim()}
+                  className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            /* --- Anonymous / not logged in --- */
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+              {anonSent ? (
+                <div className="text-center py-8 px-4">
+                  <div className="bg-green-100 text-green-700 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <p className="font-semibold text-gray-900 mb-2">Message envoy&eacute; !</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Pour un suivi en temps r&eacute;el, contactez-nous &agrave;{' '}
+                    <a href="mailto:support@ikasso.ml" className="text-primary-600 font-medium underline">
+                      support@ikasso.ml
+                    </a>{' '}
+                    ou cr&eacute;ez un compte.
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    className="inline-block bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                  >
+                    Connectez-vous pour un suivi en temps r&eacute;el
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 text-sm text-primary-800">
+                    <p className="font-medium mb-1">Vous n&apos;&ecirc;tes pas connect&eacute;</p>
+                    <p className="text-xs">
+                      <Link href="/auth/login" className="underline font-medium">Connectez-vous</Link>{' '}
+                      pour un suivi en temps r&eacute;el de vos conversations.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Nom</label>
+                    <input
+                      type="text"
+                      value={anonName}
+                      onChange={(e) => setAnonName(e.target.value)}
+                      placeholder="Votre nom"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={anonEmail}
+                      onChange={(e) => setAnonEmail(e.target.value)}
+                      placeholder="votre@email.com"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Message</label>
+                    <textarea
+                      value={anonMessage}
+                      onChange={(e) => setAnonMessage(e.target.value)}
+                      placeholder="Comment pouvons-nous vous aider ?"
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                    />
+                  </div>
+                  <button
+                    onClick={handleAnonSend}
+                    disabled={sending || !anonMessage.trim()}
+                    className="w-full bg-primary-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    Envoyer
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Help Page                                                         */
+/* ------------------------------------------------------------------ */
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -15,6 +280,7 @@ export default function HelpPage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
 
   const categories = [
     { id: 'all', name: 'Toutes les catégories', icon: Book },
@@ -194,8 +460,8 @@ export default function HelpPage() {
             <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Réponse sous 24h</p>
           </a>
 
-          <button 
-            onClick={() => alert('💬 Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider ?')}
+          <button
+            onClick={() => setChatOpen(true)}
             className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all text-left sm:col-span-2 lg:col-span-1"
           >
             <div className="flex items-center mb-4 sm:mb-6">
@@ -317,7 +583,7 @@ export default function HelpPage() {
                   Contacter le support
                 </a>
                 <button
-                  onClick={() => alert('💬 Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider aujourd\'hui ?')}
+                  onClick={() => setChatOpen(true)}
                   className="border-2 border-primary-600 text-primary-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-primary-600 hover:text-white transition-all"
                 >
                   Chat en direct
@@ -335,6 +601,9 @@ export default function HelpPage() {
           </Link>
         </div>
       </div>
+
+      {/* Live Chat Widget */}
+      <LiveChatWidget open={chatOpen} setOpen={setChatOpen} />
     </div>
   )
 }

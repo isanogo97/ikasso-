@@ -360,7 +360,7 @@ export async function updateProfile(updates: Partial<ProfileUpdateInput>): Promi
     if (updates.firstName !== undefined) dbUpdates.first_name = updates.firstName
     if (updates.lastName !== undefined) dbUpdates.last_name = updates.lastName
     if (updates.phone !== undefined) dbUpdates.phone = updates.phone
-    if (updates.dateOfBirth !== undefined) dbUpdates.date_of_birth = updates.dateOfBirth
+    if (updates.dateOfBirth !== undefined) dbUpdates.date_of_birth = updates.dateOfBirth || null
     if (updates.address !== undefined) dbUpdates.address = updates.address
     if (updates.postalCode !== undefined) dbUpdates.postal_code = updates.postalCode
     if (updates.city !== undefined) dbUpdates.city = updates.city

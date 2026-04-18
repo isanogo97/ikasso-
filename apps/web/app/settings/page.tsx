@@ -219,10 +219,10 @@ export default function SettingsPage() {
       const result = await updateProfile({
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        phone: profileData.phone,
-        dateOfBirth: profileData.dateOfBirth,
-        bio: profileData.bio,
-        city: profileData.location.split(',')[0]?.trim() || '',
+        phone: profileData.phone || undefined,
+        dateOfBirth: profileData.dateOfBirth || undefined,
+        bio: profileData.bio || undefined,
+        city: profileData.location.split(',')[0]?.trim() || undefined,
         country: profileData.location.split(',')[1]?.trim() || 'Mali',
       })
       if (result.error) {
