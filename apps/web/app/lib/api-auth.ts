@@ -76,7 +76,7 @@ export async function requireAdmin(req: NextRequest): Promise<{ user: any; error
 
   const { data: adminRecord } = await supabase
     .from('admin_users')
-    .select('id, role, is_activated')
+    .select('id, role, permissions, is_activated, email')
     .eq('user_id', user.id)
     .eq('is_activated', true)
     .single()
@@ -92,7 +92,60 @@ export async function requireAdmin(req: NextRequest): Promise<{ user: any; error
     return { user, error: NextResponse.json({ error: 'Acces refuse' }, { status: 403 }) }
   }
 
-  return { user: { ...user, adminRole: adminRecord.role } }
+  return {
+    user: {
+      ...user,
+      adminRole: adminRecord.role,
+      adminPermissions: adminRecord.permissions || {},
+      adminEmail: adminRecord.email,
+    }
+  }
+}
+
+/**
+ * Verify that the request comes from a super admin.
+ */
+export async function requireSuperAdmin(req: NextRequest): Promise<{ user: any; error?: NextResponse }> {
+  const result = await requireAdmin(req)
+  if (result.error) return result
+
+  if (result.user.adminRole !== 'super_admin') {
+    logSecurityEvent({
+      action: 'unauthorized_access',
+      userId: result.user.id,
+      ip: req.headers.get('x-forwarded-for') || undefined,
+      path: req.nextUrl.pathname,
+      details: 'non-super_admin attempted super admin access',
+    })
+    return { user: result.user, error: NextResponse.json({ error: 'Acces reserve au super admin' }, { status: 403 }) }
+  }
+
+  return result
+}
+
+/**
+ * Verify that the admin has a specific permission.
+ */
+export async function requirePermission(req: NextRequest, permission: string): Promise<{ user: any; error?: NextResponse }> {
+  const result = await requireAdmin(req)
+  if (result.error) return result
+
+  // Super admin bypasses all permission checks
+  if (result.user.adminRole === 'super_admin') return result
+
+  const perms = result.user.adminPermissions || {}
+  if (!perms[permission]) {
+    logSecurityEvent({
+      action: 'unauthorized_access',
+      userId: result.user.id,
+      ip: req.headers.get('x-forwarded-for') || undefined,
+      path: req.nextUrl.pathname,
+      details: `missing permission: ${permission}`,
+    })
+    return { user: result.user, error: NextResponse.json({ error: `Permission requise: ${permission}` }, { status: 403 }) }
+  }
+
+  return result
 }
 
 /**

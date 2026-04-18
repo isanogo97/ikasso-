@@ -14,11 +14,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { getAllUsers, getAdminUsers, adminSignIn, getCurrentAdmin } from '../lib/dal'
 import type { AdminUser } from '../lib/dal'
 import { createClient, isSupabaseConfigured } from '../lib/supabase/client'
+import { useRealtimeIncidents } from '../lib/hooks/useRealtimeIncidents'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions' | 'incidents' | 'publicite'
+type Tab = 'dashboard' | 'users' | 'verifications' | 'admins' | 'promotions' | 'incidents' | 'publicite' | 'chiffre_affaires' | 'activite_admins'
 type UserFilter = 'all' | 'clients' | 'hosts' | 'suspended' | 'verified'
 
 interface DashboardStats {
@@ -126,13 +127,15 @@ interface PromoCode {
   created_at: string
 }
 
-const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
+const TAB_ITEMS: { key: Tab; label: string; icon: React.ElementType; superOnly?: boolean }[] = [
   { key: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { key: 'users', label: 'Utilisateurs', icon: Users },
   { key: 'verifications', label: 'Verifications', icon: FileCheck },
   { key: 'promotions', label: 'Promotions', icon: Tag },
   { key: 'incidents', label: 'Incidents', icon: AlertTriangle },
   { key: 'publicite', label: 'Publicite', icon: Eye },
+  { key: 'chiffre_affaires', label: 'Chiffre d\'affaires', icon: DollarSign, superOnly: true },
+  { key: 'activite_admins', label: 'Activite admins', icon: Clock, superOnly: true },
   { key: 'admins', label: 'Administrateurs', icon: UserCog },
 ]
 
@@ -143,7 +146,7 @@ function getTabFromUrl(): { tab: Tab; userId: string | null } {
   if (typeof window === 'undefined') return { tab: 'dashboard', userId: null }
   const params = new URLSearchParams(window.location.search)
   const raw = params.get('tab')
-  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins', 'promotions', 'incidents', 'publicite']
+  const validTabs: Tab[] = ['dashboard', 'users', 'verifications', 'admins', 'promotions', 'incidents', 'publicite', 'chiffre_affaires', 'activite_admins']
   const tab = validTabs.includes(raw as Tab) ? (raw as Tab) : 'dashboard'
   const userId = params.get('user') || null
   return { tab, userId }
@@ -257,6 +260,33 @@ export default function AdminPage() {
   const [historyMessage, setHistoryMessage] = useState('')
   const [historyChannel, setHistoryChannel] = useState<'email' | 'phone' | 'other'>('email')
   const [historyStatus, setHistoryStatus] = useState<'open' | 'pending' | 'closed'>('open')
+
+  // Finance (super admin)
+  const [financeData, setFinanceData] = useState<any>(null)
+  const [auditLog, setAuditLog] = useState<any[]>([])
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([])
+
+  // Realtime incidents
+  const isSuperAdmin = currentAdmin?.role === 'super_admin'
+  const { newIncidentCount, newMessageIncidentIds, resetCounts: resetIncidentCounts } = useRealtimeIncidents(
+    useCallback((incidentId: string) => {
+      // If viewing this incident, refetch messages
+      if (selectedIncident?.id === incidentId) {
+        adminFetch('/api/admin/incidents/' + incidentId).then(r => r.json()).then(data => {
+          if (data.messages) setIncidentMessages(data.messages)
+        }).catch(() => {})
+      }
+    }, [selectedIncident?.id]),
+    useCallback(() => {
+      // Refetch incident list when new incident created
+      if (activeTab === 'incidents') {
+        adminFetch('/api/admin/incidents?status=' + incidentFilter).then(r => r.json()).then(data => {
+          if (data.incidents) setIncidents(data.incidents)
+        }).catch(() => {})
+      }
+    }, [activeTab, incidentFilter])
+  )
+  const totalIncidentBadge = newIncidentCount + newMessageIncidentIds.size
 
   // Action feedback
   const [actionMsg, setActionMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -412,6 +442,10 @@ export default function AdminPage() {
           activeSponsors: data.activeSponsors ?? 0,
           deletedUsers: data.deletedUsers ?? 0,
         })
+        // Super admin finance data
+        if (data.finance) setFinanceData(data.finance)
+        if (data.auditLog) setAuditLog(data.auditLog)
+        if (data.recentTransactions) setRecentTransactions(data.recentTransactions)
       }
     } catch {
       flash('error', 'Impossible de charger les statistiques')
@@ -832,12 +866,12 @@ export default function AdminPage() {
   // Fetch data when tab changes
   useEffect(() => {
     if (!isAdmin) return
-    if (activeTab === 'dashboard') fetchStats()
+    if (activeTab === 'dashboard' || activeTab === 'chiffre_affaires' || activeTab === 'activite_admins') fetchStats()
     if (activeTab === 'users') fetchUsers()
     if (activeTab === 'verifications') fetchVerifications()
     if (activeTab === 'admins') fetchAdmins()
     if (activeTab === 'promotions') { fetchPromoCodes(); fetchReferrals() }
-    if (activeTab === 'incidents') fetchIncidents()
+    if (activeTab === 'incidents') { fetchIncidents(); resetIncidentCounts() }
     if (activeTab === 'publicite') fetchSponsors()
   }, [activeTab, isAdmin, fetchStats, fetchUsers, fetchVerifications, fetchAdmins, fetchPromoCodes, fetchIncidents, fetchSponsors, fetchReferrals])
 
@@ -1174,14 +1208,19 @@ export default function AdminPage() {
         </div>
 
         <nav className="flex-1 py-4 space-y-1 px-3">
-          {TAB_ITEMS.map(({ key, label, icon: Icon }) => (
+          {TAB_ITEMS.filter(t => !t.superOnly || isSuperAdmin).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => navigateToTab(key)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === key ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${activeTab === key ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
               {label}
+              {key === 'incidents' && totalIncidentBadge > 0 && activeTab !== 'incidents' && (
+                <span className="ml-auto min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                  {totalIncidentBadge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -3023,6 +3062,181 @@ export default function AdminPage() {
                         <Lock className="h-4 w-4" /> Configurer 2FA
                       </button>
                     </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {/* =============== CHIFFRE D'AFFAIRES TAB (super admin) =============== */}
+          {activeTab === 'chiffre_affaires' && isSuperAdmin && (
+            <div>
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Chiffre d'affaires</h1>
+                <p className="text-sm text-gray-500 mt-1">Vue detaillee des revenus : commissions et sponsors</p>
+              </div>
+
+              {statsLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+              ) : financeData ? (
+                <>
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-5 text-white">
+                      <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">CA Total</p>
+                      <p className="text-2xl font-black mt-1">{(financeData.caTotal || 0).toLocaleString('fr-FR')} <span className="text-sm font-normal">FCFA</span></p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ce mois</p>
+                      <p className="text-2xl font-black text-gray-900 mt-1">{(financeData.caMonth || 0).toLocaleString('fr-FR')} <span className="text-sm font-normal text-gray-500">FCFA</span></p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                      <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Commissions ({Math.round(financeData.commissionRate * 100)}%)</p>
+                      <p className="text-2xl font-black text-gray-900 mt-1">{(financeData.commissionsTotal || 0).toLocaleString('fr-FR')} <span className="text-sm font-normal text-gray-500">FCFA</span></p>
+                      <p className="text-xs text-gray-500 mt-1">Ce mois : {(financeData.commissionsMonth || 0).toLocaleString('fr-FR')} FCFA</p>
+                    </div>
+                    <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+                      <p className="text-xs font-semibold text-violet-600 uppercase tracking-wider">Sponsors / Pub</p>
+                      <p className="text-2xl font-black text-gray-900 mt-1">{(financeData.sponsorsTotal || 0).toLocaleString('fr-FR')} <span className="text-sm font-normal text-gray-500">FCFA</span></p>
+                      <p className="text-xs text-gray-500 mt-1">Ce mois : {(financeData.sponsorsMonth || 0).toLocaleString('fr-FR')} FCFA</p>
+                    </div>
+                  </div>
+
+                  {/* Monthly Evolution Chart (text-based) */}
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-8">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4">Evolution mensuelle (12 derniers mois)</h2>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 uppercase">Mois</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-emerald-600 uppercase">Commissions</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-violet-600 uppercase">Sponsors</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-gray-900 uppercase">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(financeData.monthlyEvolution || []).map((m: any, i: number) => (
+                            <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                              <td className="py-2.5 px-3 font-medium text-gray-900">{m.month}</td>
+                              <td className="py-2.5 px-3 text-right text-emerald-700">{(m.commissions || 0).toLocaleString('fr-FR')} FCFA</td>
+                              <td className="py-2.5 px-3 text-right text-violet-700">{(m.sponsors || 0).toLocaleString('fr-FR')} FCFA</td>
+                              <td className="py-2.5 px-3 text-right font-bold text-gray-900">{((m.commissions || 0) + (m.sponsors || 0)).toLocaleString('fr-FR')} FCFA</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    {/* Top Cities */}
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                      <h2 className="text-lg font-bold text-gray-900 mb-4">Top villes par reservations</h2>
+                      {(financeData.topCities || []).length === 0 ? (
+                        <p className="text-sm text-gray-500">Aucune donnee</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {(financeData.topCities || []).map((c: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                                <span className="text-sm font-medium text-gray-900">{c.city}</span>
+                              </div>
+                              <span className="text-sm font-bold text-gray-700">{c.count} reservations</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recent Transactions */}
+                    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                      <h2 className="text-lg font-bold text-gray-900 mb-4">Transactions recentes (sponsors)</h2>
+                      {recentTransactions.length === 0 ? (
+                        <p className="text-sm text-gray-500">Aucune transaction</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {recentTransactions.slice(0, 10).map((t: any) => (
+                            <div key={t.id} className="flex items-center justify-between py-2 border-b border-gray-50">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{t.sponsors?.business_name || 'Sponsor'}</p>
+                                <p className="text-xs text-gray-500">{t.type} — {new Date(t.created_at).toLocaleDateString('fr-FR')}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-bold text-gray-900">{(t.amount || 0).toLocaleString('fr-FR')} FCFA</p>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${t.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {t.status === 'paid' ? 'Paye' : 'En attente'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-gray-500 text-sm">Aucune donnee financiere disponible.</p>
+              )}
+            </div>
+          )}
+
+          {/* =============== ACTIVITE ADMINS TAB (super admin) =============== */}
+          {activeTab === 'activite_admins' && isSuperAdmin && (
+            <div>
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Activite des administrateurs</h1>
+                <p className="text-sm text-gray-500 mt-1">Journal de toutes les actions effectuees par les admins</p>
+              </div>
+
+              {statsLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary-500" /></div>
+              ) : auditLog.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                  <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="font-semibold text-gray-900 mb-2">Aucune activite enregistree</h3>
+                  <p className="text-sm text-gray-500">Les actions des administrateurs apparaitront ici.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Admin</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Action</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Cible</th>
+                          <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {auditLog.map((log: any) => (
+                          <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50">
+                            <td className="py-3 px-4 text-gray-600 whitespace-nowrap">
+                              {new Date(log.created_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="py-3 px-4 font-medium text-gray-900">{log.performed_by || 'Systeme'}</td>
+                            <td className="py-3 px-4">
+                              <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                                log.action === 'user_deleted' ? 'bg-red-100 text-red-700' :
+                                log.action === 'user_suspended' ? 'bg-amber-100 text-amber-700' :
+                                log.action === 'verification_approved' ? 'bg-green-100 text-green-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {log.action.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-gray-700">
+                              {log.target_name || log.target_email || log.target_id || '-'}
+                            </td>
+                            <td className="py-3 px-4 text-gray-500 text-xs max-w-[200px] truncate">
+                              {log.details ? JSON.stringify(log.details).substring(0, 80) : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}

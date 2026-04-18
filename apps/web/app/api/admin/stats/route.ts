@@ -10,6 +10,8 @@ export async function GET(req: NextRequest) {
     const supabase = createAdminClient()
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const weekStart = new Date(now.getTime() - 7 * 86400000).toISOString()
+    const isSuperAdmin = user.adminRole === 'super_admin'
 
     const [
       usersRes, hostsRes, clientsRes, suspendedRes, activeRes, verifiedRes,
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest) {
     const totalRev = (revenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
     const monthRev = (monthRevenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
 
-    return NextResponse.json({
+    const baseStats = {
       totalUsers: usersRes.count ?? 0,
       totalHosts: hostsRes.count ?? 0,
       totalClients: clientsRes.count ?? 0,
@@ -60,7 +62,108 @@ export async function GET(req: NextRequest) {
       openIncidents: (openIncidentsRes as any).count ?? 0,
       activeSponsors: (sponsorsRes as any).count ?? 0,
       deletedUsers: (deletedUsersRes as any).count ?? 0,
-    })
+    }
+
+    // Super admin gets detailed financial data
+    if (isSuperAdmin) {
+      const commissionRate = 0.08 // 8%
+
+      // Weekly revenue from bookings
+      const weekRevenueRes = await supabase
+        .from('bookings')
+        .select('total')
+        .eq('payment_status', 'paid')
+        .gte('created_at', weekStart)
+      const weekRev = (weekRevenueRes.data || []).reduce((sum: number, b: any) => sum + (b.total || 0), 0)
+
+      // Sponsor revenues
+      const [sponsorTotalRes, sponsorMonthRes, sponsorWeekRes] = await Promise.all([
+        supabase.from('ad_transactions').select('amount').eq('status', 'paid'),
+        supabase.from('ad_transactions').select('amount').eq('status', 'paid').gte('created_at', monthStart),
+        supabase.from('ad_transactions').select('amount').eq('status', 'paid').gte('created_at', weekStart),
+      ])
+
+      const sponsorTotal = (sponsorTotalRes.data || []).reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+      const sponsorMonth = (sponsorMonthRes.data || []).reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+      const sponsorWeek = (sponsorWeekRes.data || []).reduce((sum: number, t: any) => sum + (t.amount || 0), 0)
+
+      // Monthly evolution (last 12 months)
+      const monthlyData = []
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const mStart = d.toISOString()
+        const mEnd = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString()
+
+        const [bookingsM, sponsorsM] = await Promise.all([
+          supabase.from('bookings').select('total').eq('payment_status', 'paid')
+            .gte('created_at', mStart).lt('created_at', mEnd),
+          supabase.from('ad_transactions').select('amount').eq('status', 'paid')
+            .gte('created_at', mStart).lt('created_at', mEnd),
+        ])
+
+        const bookingRev = (bookingsM.data || []).reduce((s: number, b: any) => s + (b.total || 0), 0)
+        const sponsorRev = (sponsorsM.data || []).reduce((s: number, t: any) => s + (t.amount || 0), 0)
+
+        monthlyData.push({
+          month: d.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+          commissions: Math.round(bookingRev * commissionRate),
+          sponsors: sponsorRev,
+          bookingsTotal: bookingRev,
+        })
+      }
+
+      // Top cities by bookings
+      const topCitiesRes = await supabase
+        .from('bookings')
+        .select('property_id, properties(city)')
+        .eq('payment_status', 'paid')
+        .limit(500)
+      const cityCounts: Record<string, number> = {}
+      for (const b of (topCitiesRes.data || []) as any[]) {
+        const city = b.properties?.city || 'Inconnu'
+        cityCounts[city] = (cityCounts[city] || 0) + 1
+      }
+      const topCities = Object.entries(cityCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([city, count]) => ({ city, count }))
+
+      // Recent audit log (super admin only)
+      const auditRes = await supabase
+        .from('audit_log')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      // Recent transactions
+      const recentTransRes = await supabase
+        .from('ad_transactions')
+        .select('*, sponsors(business_name)')
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      return NextResponse.json({
+        ...baseStats,
+        finance: {
+          commissionRate,
+          commissionsTotal: Math.round(totalRev * commissionRate),
+          commissionsMonth: Math.round(monthRev * commissionRate),
+          commissionsWeek: Math.round(weekRev * commissionRate),
+          sponsorsTotal: sponsorTotal,
+          sponsorsMonth: sponsorMonth,
+          sponsorsWeek: sponsorWeek,
+          caTotal: Math.round(totalRev * commissionRate) + sponsorTotal,
+          caMonth: Math.round(monthRev * commissionRate) + sponsorMonth,
+          caWeek: Math.round(weekRev * commissionRate) + sponsorWeek,
+          monthlyEvolution: monthlyData,
+          topCities,
+        },
+        auditLog: auditRes.data || [],
+        recentTransactions: recentTransRes.data || [],
+      })
+    }
+
+    return NextResponse.json(baseStats)
   } catch (err: any) {
     return NextResponse.json({ error: safeError(err) }, { status: 500 })
   }
