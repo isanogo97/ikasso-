@@ -2094,17 +2094,17 @@ export default function AdminPage() {
                       <p className="text-sm text-gray-400 italic text-center py-4">Aucun message</p>
                     ) : (
                       incidentMessages.map((msg: any, i: number) => (
-                        <div key={i} className={`flex ${msg.sender === 'admin' ? 'justify-end' : msg.sender === 'system' ? 'justify-center' : 'justify-start'}`}>
+                        <div key={i} className={`flex ${(msg.sender_type || 'user') === 'admin' ? 'justify-end' : (msg.sender_type || 'user') === 'system' ? 'justify-center' : 'justify-start'}`}>
                           <div className={`max-w-[75%] rounded-xl px-4 py-3 ${
-                            msg.sender === 'admin' ? 'bg-blue-500 text-white' :
-                            msg.sender === 'system' ? 'bg-gray-100 text-gray-500 italic text-center' :
+                            (msg.sender_type || 'user') === 'admin' ? 'bg-blue-500 text-white' :
+                            (msg.sender_type || 'user') === 'system' ? 'bg-gray-100 text-gray-500 italic text-center' :
                             'bg-white border border-gray-200 text-gray-900'
                           }`}>
-                            {msg.sender === 'admin' && msg.admin_name && (
-                              <p className="text-xs font-medium mb-1 opacity-80">{msg.admin_name}</p>
+                            {msg.sender_name && (
+                              <p className={`text-xs font-medium mb-1 ${(msg.sender_type || 'user') === 'admin' ? 'opacity-80' : 'text-primary-600'}`}>{msg.sender_name}</p>
                             )}
-                            <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                            <p className={`text-xs mt-1 ${msg.sender === 'admin' ? 'text-blue-200' : 'text-gray-400'}`}>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content || ''}</p>
+                            <p className={`text-xs mt-1 ${(msg.sender_type || 'user') === 'admin' ? 'text-blue-200' : 'text-gray-400'}`}>
                               {msg.created_at ? new Date(msg.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                             </p>
                           </div>
