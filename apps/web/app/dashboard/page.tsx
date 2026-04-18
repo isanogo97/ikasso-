@@ -12,6 +12,7 @@ import VerificationBanner from '../components/VerificationBanner'
 import { useAuth } from '../contexts/AuthContext'
 import { getUserBookings } from '../lib/dal'
 import type { Booking } from '../lib/dal'
+import { useUnreadCount } from '../lib/hooks/useUnreadCount'
 
 // ---------------------------------------------------------------------------
 // Avatar helper
@@ -62,6 +63,7 @@ function StatusBadge({ status }: { status: string }) {
 // ===========================================================================
 export default function TravelerDashboard() {
   const { user, isLoading, signOut } = useAuth()
+  const totalUnread = useUnreadCount(user?.id)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [loadingBookings, setLoadingBookings] = useState(true)
@@ -125,7 +127,14 @@ export default function TravelerDashboard() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/search" className="hover:text-primary-500 transition-colors">Explorer</Link>
-            <Link href="/messages" className="hover:text-primary-500 transition-colors">Messages</Link>
+            <Link href="/messages" className="hover:text-primary-500 transition-colors relative">
+              Messages
+              {totalUnread > 0 && (
+                <span className="absolute -top-2 -right-4 min-w-[18px] h-[18px] px-1 bg-primary-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
+            </Link>
           </nav>
 
           {/* Right side */}
@@ -136,6 +145,11 @@ export default function TravelerDashboard() {
               title="Notifications"
             >
               <Bell className="h-5 w-5 text-gray-500" />
+              {totalUnread > 0 && (
+                <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
             </Link>
 
             {/* Desktop user menu */}
@@ -181,7 +195,13 @@ export default function TravelerDashboard() {
               <User className="h-4 w-4 text-gray-400" /> Mon profil
             </Link>
             <Link href="/messages" className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 text-sm text-gray-700" onClick={() => setMobileMenuOpen(false)}>
-              <MessageCircle className="h-4 w-4 text-gray-400" /> Messages
+              <MessageCircle className="h-4 w-4 text-gray-400" />
+              Messages
+              {totalUnread > 0 && (
+                <span className="ml-auto min-w-[20px] h-5 px-1.5 bg-primary-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
             </Link>
             <hr className="border-gray-100" />
             <button onClick={() => { signOut(); setMobileMenuOpen(false) }} className="flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 text-sm text-red-600 w-full">
@@ -359,11 +379,16 @@ export default function TravelerDashboard() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg transition-colors relative ${
                 active ? 'text-primary-500' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               <Icon className="h-5 w-5" />
+              {label === 'Messages' && totalUnread > 0 && (
+                <span className="absolute -top-0.5 right-0 min-w-[16px] h-4 px-1 bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {totalUnread}
+                </span>
+              )}
               <span className="text-[10px] font-medium">{label}</span>
             </Link>
           ))}

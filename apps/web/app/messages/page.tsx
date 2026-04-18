@@ -17,8 +17,11 @@ import {
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
-import { getConversations, getMessages, sendMessage } from '../lib/dal'
+import { getConversations, getMessages, sendMessage, markAsRead } from '../lib/dal'
 import type { Conversation, Message } from '../lib/dal'
+import { useRealtimeMessages } from '../lib/hooks/useRealtimeMessages'
+import { useRealtimeConversations } from '../lib/hooks/useRealtimeConversations'
+import { usePresence } from '../lib/hooks/usePresence'
 
 export default function MessagesPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -32,7 +35,10 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  // Load conversations
+  // Presence for typing indicators and online status
+  const { isOtherOnline, isOtherTyping, setTyping } = usePresence(selectedId, user?.id)
+
+  // Load conversations initially
   useEffect(() => {
     if (!user) return
     getConversations(user.id).then(c => {
@@ -41,29 +47,20 @@ export default function MessagesPage() {
     })
   }, [user])
 
-  // Poll conversation list every 15 seconds
-  useEffect(() => {
-    if (!user) return
-    const interval = setInterval(() => {
-      getConversations(user.id).then(setConversations)
-    }, 15000)
-    return () => clearInterval(interval)
-  }, [user])
+  // Realtime subscription for conversation list updates
+  useRealtimeConversations(user?.id, setConversations)
 
-  // Load messages when conversation selected
+  // Load messages when conversation selected + mark as read
   useEffect(() => {
-    if (!selectedId) return
-    getMessages(selectedId).then(setMessages)
-  }, [selectedId])
+    if (!selectedId || !user) return
+    getMessages(selectedId).then(msgs => {
+      setMessages(msgs)
+      markAsRead(selectedId, user.id)
+    })
+  }, [selectedId, user])
 
-  // Poll messages every 5 seconds when conversation selected
-  useEffect(() => {
-    if (!selectedId) return
-    const interval = setInterval(() => {
-      getMessages(selectedId).then(setMessages)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [selectedId])
+  // Realtime subscription for new messages
+  useRealtimeMessages(selectedId, user?.id, setMessages)
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -72,11 +69,12 @@ export default function MessagesPage() {
 
   const handleSend = useCallback(async () => {
     if (!newMessage.trim() || !selectedId) return
-    await sendMessage(selectedId, newMessage.trim())
+    const content = newMessage.trim()
     setNewMessage('')
-    const updated = await getMessages(selectedId)
-    setMessages(updated)
-  }, [newMessage, selectedId])
+    setTyping(false)
+    await sendMessage(selectedId, content)
+    // No manual refetch — Realtime subscription delivers the new message
+  }, [newMessage, selectedId, setTyping])
 
   const handleSelectConversation = useCallback((id: string) => {
     setSelectedId(id)
@@ -298,7 +296,7 @@ export default function MessagesPage() {
                         {getInitials(conv.participantName)}
                       </div>
                       {/* Online indicator */}
-                      {isSupport && (
+                      {(selectedId === conv.id ? isOtherOnline : false) && (
                         <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full" />
                       )}
                     </div>
@@ -361,8 +359,7 @@ export default function MessagesPage() {
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-semibold text-xs">
                       {getInitials(selectedConv.participantName)}
                     </div>
-                    {(selectedConv.participantName?.toLowerCase().includes('support') ||
-                      selectedConv.participantName?.toLowerCase().includes('ikasso')) && (
+                    {isOtherOnline && (
                       <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
                     )}
                   </div>
@@ -371,7 +368,9 @@ export default function MessagesPage() {
                     <p className="font-semibold text-sm text-gray-900 truncate">
                       {selectedConv.participantName}
                     </p>
-                    <p className="text-xs text-green-600 font-medium">En ligne</p>
+                    <p className={`text-xs font-medium ${isOtherOnline ? 'text-green-600' : 'text-gray-400'}`}>
+                      {isOtherOnline ? 'En ligne' : 'Hors ligne'}
+                    </p>
                   </div>
                 </div>
 
@@ -461,8 +460,8 @@ export default function MessagesPage() {
                       </div>
                     ))}
 
-                    {/* Typing indicator (decorative) */}
-                    {false && (
+                    {/* Typing indicator */}
+                    {isOtherTyping && (
                       <div className="flex justify-start mt-2">
                         <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
                           <div className="flex items-center gap-1">
@@ -491,7 +490,10 @@ export default function MessagesPage() {
                       type="text"
                       placeholder="Ecrire un message..."
                       value={newMessage}
-                      onChange={e => setNewMessage(e.target.value)}
+                      onChange={e => {
+                        setNewMessage(e.target.value)
+                        if (e.target.value.trim()) setTyping(true)
+                      }}
                       onKeyDown={e => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault()

@@ -7,7 +7,7 @@ export { createBooking, getUserBookings, getPropertyBookings, updateBookingStatu
 export type { Booking, CreateBookingData } from './bookings'
 export { getPropertyReviews, createReview } from './reviews'
 export type { Review } from './reviews'
-export { getConversations, getMessages, sendMessage } from './messages'
+export { getConversations, getMessages, sendMessage, startConversation, markAsRead } from './messages'
 export type { Conversation, Message } from './messages'
 export { adminSignIn, getAdminUsers, getAllUsers, getCurrentAdmin } from './admin'
 export type { AdminUser } from './admin'

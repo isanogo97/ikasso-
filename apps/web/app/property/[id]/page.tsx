@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
-import { 
-  MapPin, Star, Heart, Users, Bed, Bath, Wifi, Car, 
+import { useParams, useRouter } from 'next/navigation'
+import {
+  MapPin, Star, Heart, Users, Bed, Bath, Wifi, Car,
   Waves, Utensils, Calendar, ArrowLeft, Share, Flag,
   ChevronDown, Filter, MessageCircle, Phone, Mail,
-  Copy, Facebook, Twitter, ExternalLink, Camera
+  Copy, Facebook, Twitter, ExternalLink, Camera, Loader2
 } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { startConversation } from '../../lib/dal'
 
 // Sample property data (in a real app, this would come from an API)
 const propertyData = {
@@ -32,6 +34,7 @@ const propertyData = {
     amenities: ['WiFi', 'Climatisation', 'Piscine', 'Parking', 'Cuisine équipée', 'Terrasse'],
     description: 'Magnifique villa moderne située dans le quartier prisé du Fleuve à Bamako. Cette propriété offre tout le confort moderne avec une piscine privée, une terrasse spacieuse et une vue imprenable sur le fleuve Niger. Parfait pour les familles ou les groupes d\'amis souhaitant découvrir Bamako dans le confort.',
     host: {
+      id: 'demo-host-1',
       name: 'Aminata Traoré',
       avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100',
       joinedDate: 'Janvier 2023',
@@ -135,6 +138,7 @@ const propertyData = {
     amenities: ['WiFi', 'Restaurant', 'Spa', 'Salle de sport', 'Climatisation', 'Service de chambre'],
     description: 'Hôtel moderne au cœur de Sikasso, offrant tout le confort d\'un établissement 4 étoiles. Idéal pour les voyageurs d\'affaires et les touristes souhaitant explorer la région de Sikasso et ses environs.',
     host: {
+      id: 'demo-host-2',
       name: 'Sekou Konaté',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100',
       joinedDate: 'Mars 2022',
@@ -211,6 +215,7 @@ const propertyData = {
     amenities: ['Vue panoramique', 'Cuisine équipée', 'Terrasse', 'Artisanat local', 'Guide culturel'],
     description: 'Découvrez l\'authentique culture Dogon dans cette maison traditionnelle avec vue imprenable sur les falaises. Une expérience unique au cœur du patrimoine malien.',
     host: {
+      id: 'demo-host-3',
       name: 'Amadou Dolo',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
       joinedDate: 'Juin 2021',
@@ -271,9 +276,11 @@ const propertyData = {
 
 export default function PropertyDetailPage() {
   const params = useParams()
+  const router = useRouter()
+  const { user } = useAuth()
   const propertyId = params.id as string
   const property = propertyData[propertyId as keyof typeof propertyData]
-  
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [checkIn, setCheckIn] = useState('')
   const [checkOut, setCheckOut] = useState('')
@@ -285,6 +292,43 @@ export default function PropertyDetailPage() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [bookingErrors, setBookingErrors] = useState<string[]>([])
   const [isBookingLoading, setIsBookingLoading] = useState(false)
+  const [contactMessage, setContactMessage] = useState('')
+  const [contactSending, setContactSending] = useState(false)
+  const [contactSuccess, setContactSuccess] = useState(false)
+
+  const handleContactHost = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!contactMessage.trim()) return
+
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    if (!property.host.id) return
+
+    setContactSending(true)
+    const { conversationId, error } = await startConversation(
+      user.id,
+      property.host.id,
+      propertyId,
+      contactMessage.trim()
+    )
+    setContactSending(false)
+
+    if (error) {
+      alert('Erreur lors de l\'envoi du message. Veuillez reessayer.')
+      return
+    }
+
+    setContactSuccess(true)
+    setTimeout(() => {
+      setShowContactModal(false)
+      setContactMessage('')
+      setContactSuccess(false)
+      router.push('/messages')
+    }, 1500)
+  }
 
   if (!property) {
     return (
@@ -935,34 +979,53 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
 
-              <form className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Votre message
-                  </label>
-                  <textarea
-                    className="input-field"
-                    rows={4}
-                    placeholder="Bonjour, j'aimerais en savoir plus sur votre hébergement..."
-                  />
+              {!user ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-gray-600 mb-4">Connectez-vous pour envoyer un message a l'hote.</p>
+                  <a href="/auth/login" className="btn-primary inline-block">Se connecter</a>
                 </div>
-                
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowContactModal(false)}
-                    className="flex-1 btn-secondary"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 btn-primary"
-                  >
-                    Envoyer
-                  </button>
+              ) : contactSuccess ? (
+                <div className="text-center py-6">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                    <MessageCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <p className="text-sm font-medium text-green-700">Message envoye ! Redirection...</p>
                 </div>
-              </form>
+              ) : (
+                <form onSubmit={handleContactHost} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Votre message
+                    </label>
+                    <textarea
+                      className="input-field"
+                      rows={4}
+                      placeholder="Bonjour, j'aimerais en savoir plus sur votre hébergement..."
+                      value={contactMessage}
+                      onChange={e => setContactMessage(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowContactModal(false)}
+                      className="flex-1 btn-secondary"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={contactSending || !contactMessage.trim()}
+                      className="flex-1 btn-primary disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {contactSending && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {contactSending ? 'Envoi...' : 'Envoyer'}
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="mt-6 pt-6 border-t">
                 <p className="text-sm text-gray-600 mb-3">Autres moyens de contact :</p>
