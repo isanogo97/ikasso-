@@ -1,18 +1,19 @@
-﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Search, MessageCircle, Phone, Mail, ChevronDown, ChevronRight,
   ArrowLeft, HelpCircle, Users, CreditCard, Home, Shield, Book,
-  Globe, Menu, X, Send, Minimize2
+  Send, Minimize2, X, Headphones, Clock, CheckCircle2, Star,
+  MapPin, Key, AlertCircle
 } from 'lucide-react'
 import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
 import { authFetch } from '../lib/auth-fetch'
 
 /* ------------------------------------------------------------------ */
-/*  Live Chat Widget (floating bottom-right)                          */
+/*  Live Chat Widget                                                   */
 /* ------------------------------------------------------------------ */
 function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
   const { isAuthenticated } = useAuth()
@@ -25,26 +26,34 @@ function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean
   const [anonMessage, setAnonMessage] = useState('')
   const [anonSent, setAnonSent] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(false)
+  const [adminTyping, setAdminTyping] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const prevMsgCountRef = useRef(0)
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [messages, adminTyping])
 
-  // Fetch chat history
   const fetchHistory = useCallback(async () => {
     if (!isAuthenticated) return
     try {
       const res = await authFetch('/api/live-chat')
       const data = await res.json()
-      if (data.messages) setMessages(data.messages)
+      if (data.messages) {
+        // Detect if admin just sent a new message (typing indicator)
+        const newCount = data.messages.length
+        const lastMsg = data.messages[newCount - 1]
+        if (newCount > prevMsgCountRef.current && lastMsg?.sender_type === 'admin') {
+          setAdminTyping(false)
+        }
+        prevMsgCountRef.current = newCount
+        setMessages(data.messages)
+      }
       if (data.incidentId) setIncidentId(data.incidentId)
     } catch {}
   }, [isAuthenticated])
 
-  // Load history on open & poll every 5s
   useEffect(() => {
     if (!open) {
       if (intervalRef.current) clearInterval(intervalRef.current)
@@ -60,11 +69,13 @@ function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean
     }
   }, [open, isAuthenticated, fetchHistory])
 
-  // Send message (authenticated)
   const handleSend = async () => {
     const text = input.trim()
     if (!text || sending) return
     setSending(true)
+    setInput('')
+    // Show admin typing after user sends a message
+    setAdminTyping(true)
     try {
       const res = await authFetch('/api/live-chat', {
         method: 'POST',
@@ -72,14 +83,17 @@ function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean
         body: JSON.stringify({ message: text, incidentId }),
       })
       const data = await res.json()
-      if (data.messages) setMessages(data.messages)
+      if (data.messages) {
+        setMessages(data.messages)
+        prevMsgCountRef.current = data.messages.length
+      }
       if (data.incidentId) setIncidentId(data.incidentId)
-      setInput('')
     } catch {}
     setSending(false)
+    // Auto-hide typing after 10s if no admin response
+    setTimeout(() => setAdminTyping(false), 10000)
   }
 
-  // Send message (anonymous)
   const handleAnonSend = async () => {
     const text = anonMessage.trim()
     if (!text || sending) return
@@ -103,162 +117,188 @@ function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean
 
   return (
     <>
-      {/* Floating button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-primary-500 to-primary-700 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform"
+          className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-primary-500 to-primary-700 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform animate-bounce-slow"
           aria-label="Ouvrir le chat"
         >
           <MessageCircle className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
         </button>
       )}
 
-      {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-4 right-4 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[500px] max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+        <div className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-5 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <Headphones className="h-5 w-5" />
+                </div>
+                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-primary-600" />
+              </div>
               <div>
-                <p className="font-semibold text-sm">Chat en direct</p>
-                <p className="text-[10px] opacity-80">Ikasso Support</p>
+                <p className="font-bold text-sm">Support Ikasso</p>
+                <p className="text-[11px] text-white/80 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+                  En ligne - Repond en ~5 min
+                </p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-lg p-1 transition-colors">
-              <Minimize2 className="h-4 w-4" />
+            <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors">
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Body */}
           {isAuthenticated ? (
-            /* --- Authenticated chat --- */
             <>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-white">
                 {loadingHistory && messages.length === 0 && (
-                  <p className="text-center text-gray-400 text-sm py-8">Chargement...</p>
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-[3px] border-gray-200 border-t-primary-500" />
+                  </div>
                 )}
                 {!loadingHistory && messages.length === 0 && (
-                  <div className="text-center py-8">
-                    <MessageCircle className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                    <p className="text-gray-500 text-sm">Bienvenue ! Posez votre question.</p>
+                  <div className="text-center py-8 px-2">
+                    <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="h-8 w-8 text-primary-500" />
+                    </div>
+                    <p className="font-semibold text-gray-900 mb-1">Bienvenue !</p>
+                    <p className="text-sm text-gray-500">Comment pouvons-nous vous aider aujourd'hui ?</p>
                   </div>
                 )}
                 {messages.map((msg: any) => {
                   const isUser = msg.sender_type === 'user'
                   return (
                     <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${
+                      {!isUser && (
+                        <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                          <Headphones className="h-3.5 w-3.5 text-primary-600" />
+                        </div>
+                      )}
+                      <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${
                         isUser
-                          ? 'bg-primary-600 text-white rounded-br-sm'
-                          : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                          ? 'bg-primary-600 text-white rounded-br-md'
+                          : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md shadow-sm'
                       }`}>
                         {!isUser && (
-                          <p className="text-[10px] font-semibold text-primary-600 mb-1">
+                          <p className="text-[10px] font-bold text-primary-600 mb-1">
                             {msg.sender_name || 'Support'}
                           </p>
                         )}
                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                        <p className={`text-[10px] mt-1 ${isUser ? 'text-white/60' : 'text-gray-400'}`}>
+                        <p className={`text-[10px] mt-1.5 text-right ${isUser ? 'text-white/60' : 'text-gray-400'}`}>
                           {formatTime(msg.created_at)}
                         </p>
                       </div>
                     </div>
                   )
                 })}
+
+                {/* Typing indicator - 3 dots */}
+                {adminTyping && (
+                  <div className="flex justify-start">
+                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
+                      <Headphones className="h-3.5 w-3.5 text-primary-600" />
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div ref={bottomRef} />
               </div>
 
-              {/* Input */}
-              <div className="border-t border-gray-200 p-3 flex gap-2 flex-shrink-0 bg-white">
+              <div className="border-t border-gray-100 p-3 flex gap-2 flex-shrink-0 bg-white">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
                   placeholder="Tapez votre message..."
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none bg-gray-50 focus:bg-white transition-all"
                   disabled={sending}
                 />
                 <button
                   onClick={handleSend}
                   disabled={sending || !input.trim()}
-                  className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-primary-600 text-white p-2.5 rounded-xl hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="h-4 w-4" />
                 </button>
               </div>
             </>
           ) : (
-            /* --- Anonymous / not logged in --- */
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-gray-50 to-white">
               {anonSent ? (
                 <div className="text-center py-8 px-4">
-                  <div className="bg-green-100 text-green-700 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                    <MessageCircle className="h-6 w-6" />
+                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="h-7 w-7 text-green-600" />
                   </div>
-                  <p className="font-semibold text-gray-900 mb-2">Message envoy&eacute; !</p>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Pour un suivi en temps r&eacute;el, contactez-nous &agrave;{' '}
-                    <a href="mailto:support@ikasso.ml" className="text-primary-600 font-medium underline">
-                      support@ikasso.ml
-                    </a>{' '}
-                    ou cr&eacute;ez un compte.
+                  <p className="font-bold text-gray-900 mb-2 text-lg">Message envoye !</p>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Nous vous repondrons par email. Pour un suivi en temps reel, connectez-vous.
                   </p>
                   <Link
                     href="/auth/login"
-                    className="inline-block bg-primary-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                    className="inline-block bg-primary-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors"
                   >
-                    Connectez-vous pour un suivi en temps r&eacute;el
+                    Se connecter
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-3 text-sm text-primary-800">
-                    <p className="font-medium mb-1">Vous n&apos;&ecirc;tes pas connect&eacute;</p>
-                    <p className="text-xs">
-                      <Link href="/auth/login" className="underline font-medium">Connectez-vous</Link>{' '}
-                      pour un suivi en temps r&eacute;el de vos conversations.
+                <div className="space-y-4">
+                  <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-primary-900 mb-1">Pas encore connecte ?</p>
+                    <p className="text-xs text-primary-700">
+                      <Link href="/auth/login" className="underline font-semibold">Connectez-vous</Link>{' '}
+                      pour un suivi en temps reel de vos conversations.
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Nom</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Nom</label>
                     <input
                       type="text"
                       value={anonName}
                       onChange={(e) => setAnonName(e.target.value)}
                       placeholder="Votre nom"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email</label>
                     <input
                       type="email"
                       value={anonEmail}
                       onChange={(e) => setAnonEmail(e.target.value)}
                       placeholder="votre@email.com"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Message</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1.5">Message</label>
                     <textarea
                       value={anonMessage}
                       onChange={(e) => setAnonMessage(e.target.value)}
-                      placeholder="Comment pouvons-nous vous aider ?"
+                      placeholder="Decrivez votre probleme..."
                       rows={3}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none resize-none"
                     />
                   </div>
                   <button
                     onClick={handleAnonSend}
                     disabled={sending || !anonMessage.trim()}
-                    className="w-full bg-primary-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-primary-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                   >
                     <Send className="h-4 w-4" />
-                    Envoyer
+                    Envoyer le message
                   </button>
                 </div>
               )}
@@ -271,338 +311,290 @@ function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean
 }
 
 /* ------------------------------------------------------------------ */
-/*  Help Page                                                         */
+/*  Help Page                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
 
   const categories = [
-    { id: 'all', name: 'Toutes les catégories', icon: Book },
-    { id: 'booking', name: 'Réservations', icon: Home },
-    { id: 'payment', name: 'Paiements', icon: CreditCard },
-    { id: 'account', name: 'Compte', icon: Users },
-    { id: 'safety', name: 'Sécurité', icon: Shield },
-    { id: 'host', name: 'Hôtes', icon: HelpCircle }
+    { id: 'all', name: 'Tout', icon: Book, color: 'from-gray-500 to-gray-700' },
+    { id: 'booking', name: 'Reservations', icon: Home, color: 'from-blue-500 to-blue-700' },
+    { id: 'payment', name: 'Paiements', icon: CreditCard, color: 'from-emerald-500 to-emerald-700' },
+    { id: 'account', name: 'Compte', icon: Users, color: 'from-violet-500 to-violet-700' },
+    { id: 'safety', name: 'Securite', icon: Shield, color: 'from-amber-500 to-amber-700' },
+    { id: 'host', name: 'Hotes', icon: Key, color: 'from-rose-500 to-rose-700' }
   ]
 
   const faqs = [
     {
-      id: 1,
-      category: 'booking',
-      question: 'Comment réserver un hébergement sur Ikasso ?',
-      answer: 'Pour réserver un hébergement : 1) Utilisez la barre de recherche pour sélectionner votre destination et vos dates. 2) Parcourez les résultats et cliquez sur l\'hébergement qui vous intéresse. 3) Vérifiez les détails, les photos et les avis. 4) Cliquez sur "Réserver" et suivez les étapes de paiement. 5) Vous recevrez une confirmation par email et SMS.'
+      id: 1, category: 'booking',
+      question: 'Comment reserver un hebergement sur Ikasso ?',
+      answer: 'Utilisez la barre de recherche pour choisir votre destination et vos dates. Parcourez les resultats, cliquez sur un logement, verifiez les details et les avis, puis cliquez sur "Reserver" et suivez les etapes de paiement. Vous recevrez une confirmation par email.'
     },
     {
-      id: 2,
-      category: 'payment',
+      id: 2, category: 'payment',
       question: 'Quels moyens de paiement acceptez-vous ?',
-      answer: 'Nous acceptons plusieurs moyens de paiement pour votre commodité : Orange Money (recommandé au Mali), cartes bancaires Visa/Mastercard, PayPal, et Klarna. Orange Money est notre méthode privilégiée car elle est largement utilisée au Mali et offre des transactions sécurisées.'
+      answer: 'Nous acceptons Orange Money (recommande au Mali), les cartes bancaires Visa/Mastercard, PayPal et Stripe. Orange Money est notre methode privilegiee car elle est largement utilisee au Mali et offre des transactions securisees.'
     },
     {
-      id: 3,
-      category: 'booking',
-      question: 'Puis-je annuler ma réservation ?',
-      answer: 'Oui, vous pouvez annuler votre réservation selon la politique d\'annulation de l\'hôte. Les politiques varient : Flexible (annulation gratuite 24h avant), Modérée (annulation gratuite 5 jours avant), ou Stricte (remboursement de 50% si annulation 7 jours avant). Consultez les détails lors de la réservation.'
+      id: 3, category: 'booking',
+      question: 'Puis-je annuler ma reservation ?',
+      answer: 'Oui, selon la politique de l\'hote. Flexible : annulation gratuite 24h avant. Moderee : annulation gratuite 5 jours avant. Stricte : remboursement de 50% si annulation 7 jours avant. Consultez les details lors de la reservation.'
     },
     {
-      id: 4,
-      category: 'account',
-      question: 'Comment créer un compte sur Ikasso ?',
-      answer: 'Créer un compte est simple : 1) Cliquez sur "S\'inscrire" en haut de la page. 2) Choisissez si vous voulez voyager ou devenir hôte. 3) Remplissez vos informations (nom, email, téléphone). 4) Créez un mot de passe sécurisé. 5) Acceptez nos conditions. Vous pouvez aussi vous inscrire avec Google ou Apple.'
+      id: 4, category: 'account',
+      question: 'Comment creer un compte sur Ikasso ?',
+      answer: 'Cliquez sur "S\'inscrire", choisissez voyageur ou hote, remplissez vos informations (nom, email, telephone), creez un mot de passe securise. Vous pouvez aussi vous inscrire avec Google ou Apple.'
     },
     {
-      id: 5,
-      category: 'host',
-      question: 'Comment devenir hôte sur Ikasso ?',
-      answer: 'Pour devenir hôte : 1) Créez un compte en sélectionnant "Devenir hôte". 2) Ajoutez votre propriété avec photos de qualité. 3) Rédigez une description attrayante. 4) Fixez vos tarifs et disponibilités. 5) Définissez vos règles de maison. 6) Attendez la validation (24-48h). 7) Commencez à recevoir des réservations !'
+      id: 5, category: 'host',
+      question: 'Comment devenir hote sur Ikasso ?',
+      answer: 'Creez un compte "Hote", ajoutez votre propriete avec des photos de qualite, redigez une description attrayante, fixez vos tarifs et disponibilites, definissez vos regles. Validation en 24-48h, puis vous commencez a recevoir des reservations.'
     },
     {
-      id: 6,
-      category: 'payment',
+      id: 6, category: 'payment',
       question: 'Comment fonctionne Orange Money sur Ikasso ?',
-      answer: 'Orange Money est intégré de manière sécurisée : 1) Sélectionnez Orange Money au moment du paiement. 2) Entrez votre numéro Orange Money. 3) Vous recevrez un SMS avec un code de confirmation. 4) Entrez le code pour valider le paiement. 5) Votre réservation est confirmée instantanément.'
+      answer: 'Selectionnez Orange Money au moment du paiement, entrez votre numero, recevez un SMS de confirmation, entrez le code pour valider. Votre reservation est confirmee instantanement.'
     },
     {
-      id: 7,
-      category: 'safety',
-      question: 'Comment Ikasso assure-t-il ma sécurité ?',
-      answer: 'Votre sécurité est notre priorité : Vérification d\'identité obligatoire, système d\'avis bidirectionnel, support client 24/7, assurance incluse, paiements sécurisés, photos vérifiées des propriétés, et équipe de modération active. Nous vérifions tous les hôtes et propriétés avant publication.'
+      id: 7, category: 'safety',
+      question: 'Comment Ikasso assure-t-il ma securite ?',
+      answer: 'Verification d\'identite obligatoire (NINA), systeme d\'avis bidirectionnel, support client disponible, paiements securises, photos verifiees des proprietes et equipe de moderation active. Tous les hotes sont verifies.'
     },
     {
-      id: 8,
-      category: 'booking',
-      question: 'Que faire si j\'ai un problème avec mon hébergement ?',
-      answer: 'En cas de problème : 1) Contactez d\'abord votre hôte via la messagerie Ikasso. 2) Si pas de réponse, contactez notre support 24/7. 3) Nous médierons entre vous et l\'hôte. 4) Si nécessaire, nous vous aiderons à trouver un hébergement alternatif. 5) Notre garantie client vous protège en cas de problème majeur.'
+      id: 8, category: 'booking',
+      question: 'Que faire si j\'ai un probleme avec mon hebergement ?',
+      answer: 'Contactez d\'abord votre hote via la messagerie Ikasso. Si pas de reponse, contactez notre support via le chat. Nous medierons entre vous et l\'hote. Notre garantie client vous protege en cas de probleme majeur.'
     },
     {
-      id: 9,
-      category: 'host',
+      id: 9, category: 'host',
       question: 'Quelles sont les commissions d\'Ikasso ?',
-      answer: 'Nos commissions sont transparentes : 8% pour les particuliers et 10% pour les entreprises/hôtels. Ces frais couvrent le marketing, le support client, les paiements sécurisés, et la plateforme. Vous recevez vos paiements 24h après le check-in de vos invités via Orange Money ou virement bancaire.'
+      answer: '8% pour les particuliers et 10% pour les entreprises/hotels. Ces frais couvrent le marketing, le support client, les paiements securises et la plateforme. Paiements recus 24h apres le check-in via Orange Money ou virement bancaire.'
     },
     {
-      id: 10,
-      category: 'account',
+      id: 10, category: 'account',
       question: 'Comment modifier mes informations personnelles ?',
-      answer: 'Pour modifier vos informations : 1) Connectez-vous à votre compte. 2) Allez dans "Paramètres" depuis votre tableau de bord. 3) Cliquez sur "Informations personnelles". 4) Modifiez les champs souhaités. 5) Sauvegardez les changements. Certaines modifications (email, téléphone) nécessitent une vérification.'
+      answer: 'Connectez-vous, allez dans "Parametres" depuis votre tableau de bord, modifiez les champs souhaites et sauvegardez. Certaines modifications (email, telephone) necessitent une verification.'
     }
   ]
 
   const filteredFaqs = faqs.filter(faq => {
     const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
   })
 
-  const toggleFaq = (id: number) => {
-    setExpandedFaq(expandedFaq === id ? null : id)
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header - Responsive */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <Link href="/" className="flex items-center">
-              <Logo size="md" />
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center gap-2">
+              <Logo size="sm" />
             </Link>
-            
-            {/* Desktop nav */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Link href="/help" className="text-primary-600 font-medium">Centre d'aide</Link>
-              <Link href="/auth/login" className="text-gray-600 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register-new" className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 text-sm font-medium">
-                Inscription
-              </Link>
-            </div>
-
-            {/* Mobile menu button */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          {/* Mobile menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-100 py-4 space-y-2">
-              <Link href="/auth/login" className="block px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Link href="/auth/login" className="text-sm text-gray-600 hover:text-primary-600 font-medium hidden sm:block">
                 Connexion
               </Link>
-              <Link href="/auth/register-new" className="block px-4 py-3 bg-primary-500 text-white rounded-lg text-center font-medium">
-                Inscription
+              <Link href="/auth/register-new" className="bg-primary-500 text-white px-4 py-2 rounded-xl hover:bg-primary-600 text-sm font-semibold transition-colors">
+                S'inscrire
               </Link>
             </div>
-          )}
+          </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        {/* Header Section - Responsive */}
-        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-          <div className="inline-block mb-3 sm:mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-primary-100 text-primary-700 rounded-full text-xs sm:text-sm font-bold">
-            💬 Support 24/7
+      {/* Hero */}
+      <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            <Headphones className="h-4 w-4" />
+            Support disponible 24h/7j
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4 sm:mb-6 leading-tight">
-            Centre d'aide <span className="text-primary-600">Ikasso</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 leading-tight">
+            Comment pouvons-nous<br className="hidden sm:block" /> vous aider ?
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-4">
-            Trouvez rapidement des réponses à vos questions ou contactez notre équipe support
+          <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-8">
+            Trouvez des reponses ou contactez notre equipe
           </p>
-        </div>
 
-        {/* Search Bar - Responsive */}
-        <div className="max-w-2xl mx-auto mb-8 sm:mb-12 px-2">
-          <div className="relative">
+          {/* Search */}
+          <div className="max-w-xl mx-auto relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher dans l'aide..."
-              className="w-full pl-12 pr-4 py-3 sm:py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-base sm:text-lg"
+              placeholder="Rechercher une question..."
+              className="w-full pl-12 pr-4 py-4 bg-white text-gray-900 rounded-2xl text-base shadow-xl focus:ring-4 focus:ring-primary-300/30 outline-none placeholder:text-gray-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
+      </div>
 
-        {/* Quick Actions - Responsive Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12 lg:mb-16">
-          <a href="tel:+22320224567" className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all">
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="bg-gradient-to-br from-primary-500 to-primary-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
-                <Phone className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Nous appeler</h3>
-            </div>
-            <p className="text-gray-600 text-base sm:text-lg font-semibold">+223 20 22 45 67</p>
-            <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Lun-Ven 8h-18h, Sam 9h-15h</p>
-          </a>
-
-          <a href="mailto:support@ikasso.ml" className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all">
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="bg-gradient-to-br from-secondary-500 to-secondary-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
-                <Mail className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Email</h3>
-            </div>
-            <p className="text-gray-600 text-base sm:text-lg font-semibold break-all">support@ikasso.ml</p>
-            <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Réponse sous 24h</p>
-          </a>
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        {/* Quick Contact Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 -mt-8 mb-12 relative z-10">
           <button
             onClick={() => setChatOpen(true)}
-            className="group bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 hover:shadow-xl transition-all text-left sm:col-span-2 lg:col-span-1"
+            className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100 group text-left"
           >
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="bg-gradient-to-br from-green-500 to-green-700 p-3 sm:p-4 rounded-xl mr-3 sm:mr-4 shadow-lg">
-                <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Chat en direct</h3>
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <MessageCircle className="h-6 w-6 text-white" />
             </div>
-            <p className="text-gray-600 text-base sm:text-lg">Aide immédiate</p>
-            <p className="text-green-600 text-xs sm:text-sm mt-1 sm:mt-2 font-medium">● En ligne maintenant</p>
+            <h3 className="font-bold text-gray-900 mb-1">Chat en direct</h3>
+            <p className="text-sm text-gray-500">Reponse immediate</p>
+            <div className="flex items-center gap-1.5 mt-3">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-xs text-green-600 font-semibold">En ligne</span>
+            </div>
           </button>
+
+          <a href="mailto:support@ikasso.ml" className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100 group">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Mail className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-1">Email</h3>
+            <p className="text-sm text-gray-500">support@ikasso.ml</p>
+            <div className="flex items-center gap-1.5 mt-3">
+              <Clock className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-xs text-gray-500">Reponse sous 24h</span>
+            </div>
+          </a>
+
+          <a href="tel:+22320224567" className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-gray-100 group">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Phone className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="font-bold text-gray-900 mb-1">Telephone</h3>
+            <p className="text-sm text-gray-500">+223 20 22 45 67</p>
+            <div className="flex items-center gap-1.5 mt-3">
+              <Clock className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-xs text-gray-500">Lun-Ven 8h-18h</span>
+            </div>
+          </a>
         </div>
 
-        {/* Main Content - Responsive Layout */}
-        <div className="grid lg:grid-cols-4 gap-6 sm:gap-8">
-          {/* Categories Sidebar - Mobile Collapsible */}
-          <div className="lg:col-span-1">
-            {/* Mobile Categories Toggle */}
-            <button
-              onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
-              className="lg:hidden w-full flex items-center justify-between bg-white rounded-xl shadow-lg p-4 mb-4"
-            >
-              <span className="font-semibold text-gray-900">Catégories</span>
-              <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${mobileCategoriesOpen ? 'rotate-180' : ''}`} />
-            </button>
+        {/* Category Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-hide">
+          {categories.map((cat) => {
+            const Icon = cat.icon
+            const isActive = selectedCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {cat.name}
+              </button>
+            )
+          })}
+        </div>
 
-            {/* Categories List */}
-            <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:sticky lg:top-24 ${
-              mobileCategoriesOpen ? 'block' : 'hidden lg:block'
-            }`}>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 hidden lg:block">Catégories</h2>
-              <div className="space-y-1 sm:space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon
-                  return (
+        {/* FAQ */}
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Questions frequentes
+            {selectedCategory !== 'all' && (
+              <span className="text-lg font-normal text-gray-500 ml-2">
+                — {categories.find(c => c.id === selectedCategory)?.name}
+              </span>
+            )}
+          </h2>
+
+          {filteredFaqs.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+              <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Aucun resultat</h3>
+              <p className="text-sm text-gray-500">Essayez un autre terme ou contactez le support.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredFaqs.map((faq) => {
+                const isOpen = expandedFaq === faq.id
+                return (
+                  <div
+                    key={faq.id}
+                    className={`bg-white rounded-xl border transition-all ${
+                      isOpen ? 'border-primary-200 shadow-lg shadow-primary-500/5' : 'border-gray-100 hover:border-gray-200'
+                    }`}
+                  >
                     <button
-                      key={category.id}
-                      onClick={() => {
-                        setSelectedCategory(category.id)
-                        setMobileCategoriesOpen(false)
-                      }}
-                      className={`w-full flex items-center px-3 py-2.5 sm:py-2 rounded-lg text-left transition-colors text-sm sm:text-base ${
-                        selectedCategory === category.id
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
+                      onClick={() => setExpandedFaq(isOpen ? null : faq.id)}
+                      className="w-full flex items-center justify-between p-5 text-left"
                     >
-                      <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                      <span className="truncate">{category.name}</span>
+                      <h3 className="font-semibold text-gray-900 pr-4 text-[15px]">{faq.question}</h3>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all ${
+                        isOpen ? 'bg-primary-100 text-primary-600 rotate-180' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
                     </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* FAQ Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
-                Questions fréquentes
-                {selectedCategory !== 'all' && (
-                  <span className="block sm:inline text-base sm:text-lg font-normal text-gray-600 sm:ml-2 mt-1 sm:mt-0">
-                    - {categories.find(c => c.id === selectedCategory)?.name}
-                  </span>
-                )}
-              </h2>
-
-              {filteredFaqs.length === 0 ? (
-                <div className="text-center py-8 sm:py-12">
-                  <HelpCircle className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Aucun résultat trouvé</h3>
-                  <p className="text-sm sm:text-base text-gray-600">Essayez de modifier votre recherche ou contactez notre support.</p>
-                </div>
-              ) : (
-                <div className="space-y-3 sm:space-y-4">
-                  {filteredFaqs.map((faq) => (
-                    <div key={faq.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => toggleFaq(faq.id)}
-                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-gray-50 transition-colors"
-                      >
-                        <h3 className="font-medium text-gray-900 pr-4 text-sm sm:text-base">{faq.question}</h3>
-                        {expandedFaq === faq.id ? (
-                          <ChevronDown className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-500 flex-shrink-0" />
-                        )}
-                      </button>
-                      {expandedFaq === faq.id && (
-                        <div className="px-3 sm:px-4 pb-3 sm:pb-4">
-                          <div className="pt-2 border-t border-gray-100">
-                            <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{faq.answer}</p>
-                          </div>
+                    {isOpen && (
+                      <div className="px-5 pb-5">
+                        <div className="pt-3 border-t border-gray-100">
+                          <p className="text-gray-600 leading-relaxed text-[15px]">{faq.answer}</p>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
+          )}
+        </div>
 
-            {/* Still need help - Responsive */}
-            <div className="mt-6 sm:mt-8 bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 rounded-xl sm:rounded-2xl p-6 sm:p-8 lg:p-12 text-center shadow-xl">
-              <div className="inline-block mb-3 sm:mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-white text-primary-700 rounded-full text-xs sm:text-sm font-bold shadow-md">
-                🆘 Besoin d'aide supplémentaire ?
-              </div>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-primary-900 mb-4 sm:mb-6">
-                Vous n'avez pas trouvé votre réponse ?
-              </h3>
-              <p className="text-base sm:text-lg lg:text-xl text-primary-700 mb-6 sm:mb-8 max-w-2xl mx-auto">
-                Notre équipe support est là pour vous aider <span className="font-bold">24h/7j</span>
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-                <a
-                  href="mailto:support@ikasso.ml"
-                  className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl transition-all"
-                >
-                  Contacter le support
-                </a>
-                <button
-                  onClick={() => setChatOpen(true)}
-                  className="border-2 border-primary-600 text-primary-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-primary-600 hover:text-white transition-all"
-                >
-                  Chat en direct
-                </button>
-              </div>
-            </div>
+        {/* CTA */}
+        <div className="mb-16 bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl p-8 sm:p-12 text-center text-white">
+          <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-6">
+            <HelpCircle className="h-8 w-8" />
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-black mb-3">
+            Vous n'avez pas trouve votre reponse ?
+          </h3>
+          <p className="text-lg text-white/80 mb-8 max-w-lg mx-auto">
+            Notre equipe est disponible pour vous aider
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => setChatOpen(true)}
+              className="bg-white text-primary-700 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-gray-50 transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Demarrer un chat
+            </button>
+            <a
+              href="mailto:support@ikasso.ml"
+              className="border-2 border-white/30 text-white px-8 py-3.5 rounded-xl font-bold text-base hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            >
+              <Mail className="h-5 w-5" />
+              Envoyer un email
+            </a>
           </div>
         </div>
 
-        {/* Back to home - Responsive */}
-        <div className="mt-8 sm:mt-12 text-center">
-          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-sm sm:text-base">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour à l'accueil
+        {/* Back */}
+        <div className="pb-12 text-center">
+          <Link href="/" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold text-sm gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Retour a l'accueil
           </Link>
         </div>
       </div>
 
-      {/* Live Chat Widget */}
       <LiveChatWidget open={chatOpen} setOpen={setChatOpen} />
     </div>
   )
