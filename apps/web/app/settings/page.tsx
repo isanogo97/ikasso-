@@ -77,7 +77,7 @@ function PromoCodeSection({ userId }: { userId?: string }) {
 }
 
 export default function SettingsPage() {
-  const { user: authUser } = useAuth()
+  const { user: authUser, updateProfile, refreshUser } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -213,28 +213,63 @@ export default function SettingsPage() {
     { id: "promo", name: "Code promo", icon: Tag },
   ]
 
-  const handleProfileUpdate = () => {
+  const handleProfileUpdate = async () => {
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      const result = await updateProfile({
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        phone: profileData.phone,
+        dateOfBirth: profileData.dateOfBirth,
+        bio: profileData.bio,
+        city: profileData.location.split(',')[0]?.trim() || '',
+        country: profileData.location.split(',')[1]?.trim() || 'Mali',
+      })
+      if (result.error) {
+        alert('Erreur: ' + result.error)
+      } else {
+        // Update localStorage
+        const currentUser = JSON.parse(localStorage.getItem('ikasso_user') || '{}')
+        currentUser.firstName = profileData.firstName
+        currentUser.lastName = profileData.lastName
+        currentUser.phone = profileData.phone
+        currentUser.dateOfBirth = profileData.dateOfBirth
+        currentUser.bio = profileData.bio
+        localStorage.setItem('ikasso_user', JSON.stringify(currentUser))
+        await refreshUser()
+        alert('Profil mis a jour !')
+      }
+    } catch {
+      alert('Erreur lors de la mise a jour')
+    } finally {
       setIsLoading(false)
-      alert("Profil mis à jour avec succès !")
-    }, 1000)
+    }
   }
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Les nouveaux mots de passe ne correspondent pas")
+      alert("Les mots de passe ne correspondent pas")
       return
     }
     if (passwordData.newPassword.length < 8) {
-      alert("Le nouveau mot de passe doit contenir au moins 8 caractères")
+      alert("8 caracteres minimum")
       return
     }
     setIsLoading(true)
-    setTimeout(() => {
+    try {
+      const { isSupabaseConfigured, createClient } = await import('../lib/supabase/client')
+      if (isSupabaseConfigured()) {
+        const supabase = createClient()
+        const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword })
+        if (error) { alert('Erreur: ' + error.message); return }
+      }
+      alert('Mot de passe modifie !')
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch {
+      alert('Erreur')
+    } finally {
       setIsLoading(false)
-      alert("Mot de passe modifié")
-    }, 1000)
+    }
   }
 
   return (
@@ -288,8 +323,9 @@ export default function SettingsPage() {
                     <label className="block text-sm text-gray-700">Email</label>
                     <div className="mt-1 relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <input type="email" className="input-field pl-10" value={profileData.email} onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} />
+                      <input type="email" className="input-field pl-10 bg-gray-100 cursor-not-allowed" value={profileData.email} readOnly />
                     </div>
+                    <p className="text-xs text-gray-400 mt-1">L&apos;email ne peut pas etre modifie</p>
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700">Téléphone</label>
