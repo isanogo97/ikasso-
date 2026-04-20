@@ -77,175 +77,77 @@ function PromoCodeSection({ userId }: { userId?: string }) {
 }
 
 function PaymentSection() {
-  const [cards, setCards] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [addingCard, setAddingCard] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [setupResult, setSetupResult] = useState<string | null>(null)
-
-  // Check URL params for setup result
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('setup') === 'success') {
-      setSetupResult('success')
-      // Clean URL
-      const url = new URL(window.location.href)
-      url.searchParams.delete('setup')
-      window.history.replaceState({}, '', url.toString())
-    } else if (params.get('setup') === 'cancel') {
-      setSetupResult('cancel')
-    }
-  }, [])
-
-  const fetchCards = async () => {
-    setLoading(true)
-    try {
-      const res = await authFetch('/api/payment/stripe/cards')
-      const data = await res.json()
-      setCards(data.cards || [])
-    } catch {}
-    setLoading(false)
-  }
-
-  useEffect(() => { fetchCards() }, [])
-
-  const handleAddCard = async () => {
-    setAddingCard(true)
-    try {
-      const res = await authFetch('/api/payment/stripe/save-card', { method: 'POST' })
-      const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        alert(data.error || 'Erreur lors de l\'ajout de carte')
-        setAddingCard(false)
-      }
-    } catch {
-      alert('Erreur reseau')
-      setAddingCard(false)
-    }
-  }
-
-  const handleDeleteCard = async (pmId: string) => {
-    if (!confirm('Supprimer cette carte ?')) return
-    setDeletingId(pmId)
-    try {
-      await authFetch('/api/payment/stripe/cards', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentMethodId: pmId }),
-      })
-      setCards(prev => prev.filter(c => c.id !== pmId))
-    } catch {}
-    setDeletingId(null)
-  }
-
-  const brandIcon = (brand: string) => {
-    const b = brand.toLowerCase()
-    if (b === 'visa') return '💳 Visa'
-    if (b === 'mastercard') return '💳 Mastercard'
-    if (b === 'amex') return '💳 Amex'
-    return '💳 ' + brand
-  }
-
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">Moyens de paiement</h2>
 
-      {setupResult === 'success' && (
-        <div className="mb-4 p-3 rounded-lg bg-green-50 text-green-800 border border-green-200 text-sm">
-          <CheckCircle className="inline h-4 w-4 mr-1" /> Carte ajoutee avec succes !
+      <div className="space-y-3 mb-6">
+        {/* Orange Money */}
+        <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+            OM
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Orange Money</p>
+            <p className="text-xs text-gray-500">Paiement mobile - recommande au Mali</p>
+          </div>
+          <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold">Actif</span>
         </div>
-      )}
 
-      {/* Saved cards */}
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Cartes enregistrees</h3>
-        {loading ? (
-          <div className="flex justify-center py-6">
-            <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
+        {/* Carte bancaire via CinetPay */}
+        <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white text-xs font-bold">
+            CB
           </div>
-        ) : cards.length === 0 ? (
-          <div className="bg-gray-50 rounded-xl p-6 text-center border border-dashed border-gray-200">
-            <CreditCard className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Aucune carte enregistree</p>
-            <p className="text-xs text-gray-400 mt-1">Ajoutez une carte pour des paiements plus rapides</p>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Carte bancaire (Visa / Mastercard)</p>
+            <p className="text-xs text-gray-500">Via CinetPay - paiement securise</p>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {cards.map(card => (
-              <div key={card.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold">
-                    {card.brand === 'visa' ? 'V' : card.brand === 'mastercard' ? 'MC' : '?'}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{brandIcon(card.brand)}</p>
-                    <p className="text-xs text-gray-500">**** **** **** {card.last4} &middot; Exp. {String(card.expMonth).padStart(2, '0')}/{card.expYear}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteCard(card.id)}
-                  disabled={deletingId === card.id}
-                  className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
-                >
-                  {deletingId === card.id ? 'Suppression...' : 'Supprimer'}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+          <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-semibold">Bientot</span>
+        </div>
 
-        <button
-          onClick={handleAddCard}
-          disabled={addingCard}
-          className="mt-4 w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50"
-        >
-          {addingCard ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-          {addingCard ? 'Redirection vers Stripe...' : 'Ajouter une carte bancaire'}
-        </button>
+        {/* Apple Pay */}
+        <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white text-sm font-bold">
+            Pay
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Apple Pay</p>
+            <p className="text-xs text-gray-500">Disponible sur Safari / iPhone</p>
+          </div>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-semibold">Bientot</span>
+        </div>
+
+        {/* Google Pay */}
+        <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="w-12 h-12 rounded-xl bg-white border border-gray-300 flex items-center justify-center text-lg font-bold text-gray-700">
+            G
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Google Pay</p>
+            <p className="text-xs text-gray-500">Disponible sur Chrome / Android</p>
+          </div>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-semibold">Bientot</span>
+        </div>
+
+        {/* Wave */}
+        <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+            W
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Wave</p>
+            <p className="text-xs text-gray-500">Paiement mobile - populaire en Afrique de l'Ouest</p>
+          </div>
+          <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-semibold">Bientot</span>
+        </div>
       </div>
 
-      {/* Other payment methods */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Autres moyens de paiement disponibles</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
-            <div className="w-10 h-10 rounded-lg bg-black flex items-center justify-center text-white text-lg">
-
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Apple Pay</p>
-              <p className="text-xs text-gray-500">Disponible lors du paiement sur Safari / iPhone</p>
-            </div>
-            <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">Actif</span>
-          </div>
-
-          <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
-            <div className="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-lg">
-              G
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Google Pay</p>
-              <p className="text-xs text-gray-500">Disponible lors du paiement sur Chrome / Android</p>
-            </div>
-            <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">Actif</span>
-          </div>
-
-          <div className="flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4">
-            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-              OM
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Orange Money</p>
-              <p className="text-xs text-gray-500">Paiement mobile - recommande au Mali</p>
-            </div>
-            <span className="ml-auto text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">Actif</span>
-          </div>
-        </div>
-
-        <p className="text-xs text-gray-400 mt-4 text-center">
-          Apple Pay, Google Pay et la carte enregistree seront proposes automatiquement lors du paiement d'une reservation.
+      <div className="bg-primary-50 border border-primary-100 rounded-xl p-4">
+        <p className="text-sm font-semibold text-primary-900 mb-1">Paiement lors de la reservation</p>
+        <p className="text-xs text-primary-700">
+          Les moyens de paiement actifs seront proposes automatiquement lors du paiement d'une reservation.
+          Les cartes bancaires, Apple Pay, Google Pay et Wave seront disponibles prochainement via CinetPay.
         </p>
       </div>
     </div>
