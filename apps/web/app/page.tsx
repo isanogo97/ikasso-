@@ -322,7 +322,10 @@ export default function HomePage() {
               <div className="w-20 h-20 lg:w-28 lg:h-28 bg-gradient-to-br from-primary-100 to-primary-200 rounded-full flex items-center justify-center mx-auto mb-6">
                 <MapPin className="h-10 w-10 lg:h-14 lg:w-14 text-primary-600" />
               </div>
-              <h2 className="text-xl lg:text-3xl font-bold text-gray-900 mb-3">
+              <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-3">
+                Reservez les meilleurs hebergements au Mali
+              </h1>
+              <h2 className="text-lg lg:text-xl font-semibold text-gray-700 mb-3">
                 {t('home.no_listings')}
               </h2>
               <p className="text-sm lg:text-base text-gray-600 mb-6 leading-relaxed px-4">
