@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getStripe, isStripeConfigured } from '../../../../lib/stripe'
 import { createAdminClient } from '../../../../lib/supabase/admin'
 import { requireAuth, safeError } from '../../../../lib/api-auth'
+// createAdminClient used in both GET and DELETE
 
 // GET: List saved cards
 export async function GET(req: NextRequest) {
@@ -62,6 +63,25 @@ export async function DELETE(req: NextRequest) {
     }
 
     const stripe = getStripe()!
+    const supabase = createAdminClient()
+
+    // Verify the payment method belongs to this user
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.stripe_customer_id) {
+      return NextResponse.json({ error: 'Aucun client Stripe associe' }, { status: 403 })
+    }
+
+    // Check that the payment method belongs to this customer
+    const pm = await stripe.paymentMethods.retrieve(paymentMethodId)
+    if (pm.customer !== profile.stripe_customer_id) {
+      return NextResponse.json({ error: 'Cette carte ne vous appartient pas' }, { status: 403 })
+    }
+
     await stripe.paymentMethods.detach(paymentMethodId)
 
     return NextResponse.json({ success: true })

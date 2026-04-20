@@ -51,11 +51,10 @@ export async function POST(request: NextRequest) {
     })
     */
 
-    // En mode démo, on retourne succès
-    return NextResponse.json({ 
-      success: true, 
-      message: 'SMS envoyé (mode démo)',
-      code: code // À retirer en production
+    // En mode démo, on retourne succès (code JAMAIS renvoye au client)
+    return NextResponse.json({
+      success: true,
+      message: 'SMS envoye (mode demo)'
     })
 
   } catch (error: any) {

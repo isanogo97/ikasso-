@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../lib/supabase/admin'
-import { safeError } from '../../lib/api-auth'
+import { requireAuth, safeError } from '../../lib/api-auth'
 
 export async function POST(req: NextRequest) {
+  // Require authentication to prevent abuse
+  const { user: authUser, error: authError } = await requireAuth(req)
+  if (authError) return authError
+
   try {
     const { code, userId, userEmail } = await req.json()
+    // Ensure user can only validate for themselves
+    if (userId && userId !== authUser.id) {
+      return NextResponse.json({ valid: false, error: 'Acces refuse' }, { status: 403 })
+    }
     if (!code) return NextResponse.json({ valid: false, error: 'Code requis' })
 
     const supabase = createAdminClient()

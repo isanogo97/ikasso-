@@ -162,6 +162,11 @@ export async function signIn(email: string, password: string): Promise<{ user: U
   }
 
   if (found) {
+    // Check password (support both old plaintext and new encoded format)
+    const encodedPwd = btoa(password)
+    if (found.passwordHash && found.passwordHash !== encodedPwd) {
+      return { user: null, error: 'Email ou mot de passe incorrect' }
+    }
     if (found.password && found.password !== password) {
       return { user: null, error: 'Email ou mot de passe incorrect' }
     }
@@ -234,7 +239,7 @@ export async function signUp(data: RegisterInput): Promise<{ user: UserProfile |
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email,
-    password: data.password,
+    passwordHash: btoa(data.password), // Simple encoding (not plaintext)
     dateOfBirth: data.dateOfBirth || '',
     address: data.address || '',
     postalCode: data.postalCode || '',
@@ -394,7 +399,10 @@ export async function resetPassword(email: string): Promise<{ error: string | nu
   }
 
   // localStorage fallback — generate token and use existing email API
-  const token = Math.random().toString(36).substring(2, 15)
+  // Use crypto for secure token generation
+  const token = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID().replace(/-/g, '')
+    : Math.random().toString(36).substring(2, 15) + Date.now().toString(36)
   localStorage.setItem(`reset_token_${email}`, JSON.stringify({
     token,
     expiresAt: Date.now() + 3600000,

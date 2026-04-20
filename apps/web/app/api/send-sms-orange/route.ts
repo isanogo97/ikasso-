@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { safeError } from '../../lib/api-auth'
 
 // Configuration Orange API SMS Mali
-const ORANGE_CLIENT_ID = process.env.ORANGE_CLIENT_ID || 'GexB8PAJh2wrvh7wlAOVsQv2h8vbAd22'
+const ORANGE_CLIENT_ID = process.env.ORANGE_CLIENT_ID || ''
 const ORANGE_CLIENT_SECRET = process.env.ORANGE_CLIENT_SECRET || '' // À configurer dans Vercel
 const ORANGE_API_URL = 'https://api.orange.com/smsmessaging/v1/outbound'
 
@@ -82,10 +82,9 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: true,
-        message: 'SMS envoyé (mode démo)',
+        message: 'SMS envoye (mode demo)',
         demo: true,
-        phone: formattedPhone,
-        code: code
+        phone: formattedPhone
       })
     }
 
@@ -97,8 +96,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         message: 'Erreur d\'authentification Orange API',
-        demo: true,
-        code: code
+        demo: true
       })
     }
 
@@ -134,9 +132,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         message: 'Erreur lors de l\'envoi du SMS',
-        error: errorText,
-        demo: true,
-        code: code
+        demo: true
       })
     }
 
