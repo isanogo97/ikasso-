@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '../../lib/supabase/admin'
 import { getAuthenticatedUser, safeError } from '../../lib/api-auth'
+import { globalRateLimit } from '../../lib/rate-limit'
 
 // GET: load chat history for authenticated user
 export async function GET(req: NextRequest) {
@@ -43,6 +44,10 @@ export async function GET(req: NextRequest) {
 
 // POST: send a message
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || 'unknown'
+  const { success: rlOk } = await globalRateLimit(`livechat:${ip}`, 10, 60)
+  if (!rlOk) return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+
   try {
     const supabase = createAdminClient()
     const body = await req.json()

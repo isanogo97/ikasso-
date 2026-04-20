@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { safeError } from '../../lib/api-auth'
+import { globalRateLimit, getClientIp } from '../../lib/rate-limit'
+import { z } from 'zod'
+
+const smsOrangeSchema = z.object({
+  phone: z.string().min(8).max(20),
+  message: z.string().max(500).optional(),
+  code: z.string().min(4).max(10).optional(),
+})
 
 // Configuration Orange API SMS Mali
 const ORANGE_CLIENT_ID = process.env.ORANGE_CLIENT_ID || ''
@@ -57,8 +65,17 @@ function formatPhoneNumber(phone: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request)
+  const { success: rlOk } = await globalRateLimit(`sms-orange:${ip}`, 3, 60)
+  if (!rlOk) return NextResponse.json({ success: false, message: 'Trop de requetes' }, { status: 429 })
+
   try {
-    const { phone, message, code } = await request.json()
+    const body = await request.json()
+    const parsed = smsOrangeSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, message: 'Donnees invalides' }, { status: 400 })
+    }
+    const { phone, message, code } = parsed.data
 
     if (!phone) {
       return NextResponse.json(

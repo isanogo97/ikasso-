@@ -542,6 +542,36 @@ export default function SettingsPage() {
                   <button type="button" onClick={saveNina} disabled={!isValidNinaFormat(nina)} className="px-4 py-2 rounded border">Enregistrer</button>
                 </div>
               </div>
+              {/* Account deletion */}
+              <div className="mt-8 pt-8 border-t border-red-200">
+                <h3 className="text-lg font-semibold text-red-700 mb-2">Supprimer mon compte</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Cette action est irreversible. Toutes vos donnees, reservations, messages et proprietes seront definitivement supprimees.
+                </p>
+                <button
+                  onClick={async () => {
+                    const confirm1 = window.confirm('Etes-vous sur de vouloir supprimer votre compte ? Cette action est IRREVERSIBLE.')
+                    if (!confirm1) return
+                    const confirm2 = window.confirm('DERNIERE CHANCE : Toutes vos donnees seront perdues. Confirmer la suppression ?')
+                    if (!confirm2) return
+                    try {
+                      const res = await authFetch('/api/account/delete', { method: 'DELETE' })
+                      const data = await res.json()
+                      if (data.success) {
+                        alert('Votre compte a ete supprime. Vous allez etre redirige.')
+                        window.location.href = '/'
+                      } else {
+                        alert(data.error || 'Erreur lors de la suppression')
+                      }
+                    } catch {
+                      alert('Erreur reseau')
+                    }
+                  }}
+                  className="bg-red-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-red-700 transition-colors text-sm"
+                >
+                  Supprimer definitivement mon compte
+                </button>
+              </div>
             </div>
           )}
 

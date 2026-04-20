@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { safeError } from '../../lib/api-auth'
+import { globalRateLimit, getClientIp } from '../../lib/rate-limit'
+import { z } from 'zod'
+
+const smsSchema = z.object({
+  phone: z.string().min(8).max(20),
+  code: z.string().min(4).max(10),
+})
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request)
+  const { success: rlOk } = await globalRateLimit(`sms:${ip}`, 3, 60)
+  if (!rlOk) return NextResponse.json({ success: false, message: 'Trop de requetes' }, { status: 429 })
+
   try {
-    const { phone, code } = await request.json()
+    const body = await request.json()
+    const parsed = smsSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, message: 'Donnees invalides' }, { status: 400 })
+    }
+    const { phone, code } = parsed.data
 
     if (!phone || !code) {
       return NextResponse.json(
-        { success: false, message: 'Téléphone et code requis' },
+        { success: false, message: 'Telephone et code requis' },
         { status: 400 }
       )
     }

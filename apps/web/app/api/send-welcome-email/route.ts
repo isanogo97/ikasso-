@@ -2,24 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '../../lib/supabase/admin'
 import { escapeHtml, safeError } from '../../lib/api-auth'
+import { emailRateLimit } from '../../lib/rate-limit'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
+
+const welcomeSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1).max(100),
+  userType: z.string().optional(),
+})
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for') || 'unknown'
+  const { success } = await emailRateLimit(ip)
+  if (!success) return NextResponse.json({ error: 'Trop de requetes' }, { status: 429 })
+
   try {
     if (!resend) {
       return NextResponse.json({ success: false, message: 'Email service not configured' }, { status: 503 })
     }
-    const { email, name, userType } = await request.json()
-
-    if (!email || !name) {
-      return NextResponse.json(
-        { success: false, message: 'Email et nom requis' },
-        { status: 400 }
-      )
-    }
+    const body = await request.json()
+    const parsed = welcomeSchema.safeParse(body)
+    if (!parsed.success) return NextResponse.json({ success: false, message: 'Donnees invalides' }, { status: 400 })
+    const { email, name, userType } = parsed.data
 
     const isHost = userType === 'host' || userType === 'hote'
     const dashboardUrl = isHost ? 'https://ikasso.ml/dashboard/host' : 'https://ikasso.ml/search'
