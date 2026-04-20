@@ -82,6 +82,90 @@
 
 ---
 
+## REGLES DE SECURITE OBLIGATOIRES (a respecter a tout moment)
+
+### Secrets & Cles API
+- [ ] JAMAIS de cle API, token, ou mot de passe en dur dans le code
+- [ ] TOUS les secrets dans .env.local (jamais commite)
+- [ ] .env et .env.local dans .gitignore
+- [ ] Cote client : UNIQUEMENT les variables prefixees NEXT_PUBLIC_
+- [ ] Service key Supabase = BACKEND UNIQUEMENT (jamais dans le code client)
+- [ ] Rotation des cles tous les 3-6 mois
+
+### Base de donnees (Supabase)
+- [ ] RLS ACTIVE sur TOUTES les tables sans exception
+- [ ] Chaque table a minimum 1 policy SELECT, 1 UPDATE, 1 DELETE
+- [ ] Policies utilisent UNIQUEMENT auth.uid() (JAMAIS user_metadata)
+- [ ] WITH CHECK sur toutes les policies UPDATE et INSERT
+- [ ] Index sur user_id pour chaque table avec RLS
+- [ ] Anon key cote client, service key cote serveur uniquement
+
+### Authentification
+- [ ] Pages protegees redirigent vers /login si pas connecte (middleware.ts)
+- [ ] Tokens JWT valides cote serveur (supabase.auth.getUser())
+- [ ] Logout invalide la session completement (nuclear cleanup)
+- [ ] Cookies de session : Secure, HttpOnly, SameSite=Lax
+- [ ] 2FA disponible pour les comptes admin (TOTP)
+- [ ] Verification email avant activation du compte
+
+### Injections & XSS
+- [ ] JAMAIS de concatenation directe dans les requetes SQL (Supabase client = parametrise)
+- [ ] JAMAIS de dangerouslySetInnerHTML avec du contenu utilisateur
+- [ ] Valider ET sanitizer chaque input cote serveur (Zod sur chaque route API)
+- [ ] Echapper tout output HTML (escapeHtml() dans les emails)
+- [ ] Pas de eval(), pas de Function(), pas d'execution dynamique
+
+### API & Reseau
+- [ ] HTTPS obligatoire (HSTS max-age=2 ans, preload)
+- [ ] CORS restreint a https://ikasso.ml (pas de *)
+- [ ] Rate limiting sur TOUS les endpoints sensibles (login, email, SMS, paiement, live-chat)
+- [ ] Pas de secrets dans les URLs (?apiKey=xxx = interdit)
+- [ ] safeError() sur toutes les reponses d'erreur (pas de stack trace en prod)
+
+### Headers de securite (next.config.js)
+- [ ] Content-Security-Policy (restrictif en prod, unsafe-inline necessaire pour Next.js)
+- [ ] X-Frame-Options: DENY
+- [ ] X-Content-Type-Options: nosniff
+- [ ] Referrer-Policy: strict-origin-when-cross-origin
+- [ ] Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+- [ ] Permissions-Policy restrictive
+- [ ] poweredByHeader: false
+- [ ] productionBrowserSourceMaps: false
+
+### Uploads de fichiers
+- [ ] Validation du type MIME (image/jpeg, image/png, image/webp uniquement)
+- [ ] Limite de taille (5 Mo avatar, 10 Mo identite)
+- [ ] Fichiers renommes en UUID (crypto.randomUUID())
+- [ ] Stockage dans bucket prive (identity-docs)
+- [ ] Acces via signed URLs (expiration 1 an)
+
+### RGPD
+- [ ] Mentions legales visibles (/terms)
+- [ ] Politique de confidentialite (/privacy)
+- [ ] Consentement cookies (CookieConsent avec preferences granulaires)
+- [ ] Droit a l'effacement : suppression de compte self-service (/api/account/delete)
+- [ ] Notification en cas de fuite (72h a la CNIL)
+
+### Logs & Monitoring
+- [ ] Logger tentatives connexion echouees (security-log.ts + audit_log table)
+- [ ] JAMAIS logger mots de passe, tokens, codes de verification
+- [ ] Sentry configure avec hideSourceMaps: true
+- [ ] console.log supprime en production (removeConsole dans next.config.js)
+
+### Checklist pre-deploiement
+- [ ] Chercher "password", "key", "token", "secret" dans le code frontend = aucun resultat
+- [ ] .env.local dans .gitignore
+- [ ] Tester avec 2 comptes : User A ne voit PAS les donnees de User B
+- [ ] npm audit : pas de vulnerabilite critique non resolue
+- [ ] Les erreurs en production n'affichent pas de stack trace
+- [ ] Variables d'environnement configurees sur Vercel
+- [ ] Pages debug bloquees par le middleware (/debug-*, /demo-accounts)
+
+### Score securite actuel : 95% (34/36 regles)
+Les 2 regles restantes (npm audit fixes) necessitent des major upgrades (Next.js 14->16, nodemailer 8.0.5).
+
+---
+
 ## Migrations SQL executees sur Supabase
 - 015 : Realtime messages + conversations
 - 016 : Realtime incidents + incident_messages
