@@ -1,11 +1,155 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { Mail, Phone, MapPin, Send, MessageCircle, Clock, ArrowLeft } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, MessageCircle, Clock, ArrowLeft, Minimize2, X, Headphones, CheckCircle2 } from 'lucide-react'
 import Logo from '../components/Logo'
+import { useAuth } from '../contexts/AuthContext'
+import { authFetch } from '../lib/auth-fetch'
+
+/* Live Chat Widget (same as /help) */
+function LiveChatWidget({ open, setOpen }: { open: boolean; setOpen: (v: boolean) => void }) {
+  const { isAuthenticated } = useAuth()
+  const [messages, setMessages] = useState<any[]>([])
+  const [incidentId, setIncidentId] = useState<string | null>(null)
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [anonName, setAnonName] = useState('')
+  const [anonEmail, setAnonEmail] = useState('')
+  const [anonMessage, setAnonMessage] = useState('')
+  const [anonSent, setAnonSent] = useState(false)
+  const [loadingHistory, setLoadingHistory] = useState(false)
+  const [adminTyping, setAdminTyping] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const prevMsgCountRef = useRef(0)
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, adminTyping])
+
+  const fetchHistory = useCallback(async () => {
+    if (!isAuthenticated) return
+    try {
+      const res = await authFetch('/api/live-chat')
+      const data = await res.json()
+      if (data.messages) {
+        const newCount = data.messages.length
+        const lastMsg = data.messages[newCount - 1]
+        if (newCount > prevMsgCountRef.current && lastMsg?.sender_type === 'admin') setAdminTyping(false)
+        prevMsgCountRef.current = newCount
+        setMessages(data.messages)
+      }
+      if (data.incidentId) setIncidentId(data.incidentId)
+    } catch {}
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    if (!open) { if (intervalRef.current) clearInterval(intervalRef.current); return }
+    if (isAuthenticated) {
+      setLoadingHistory(true)
+      fetchHistory().finally(() => setLoadingHistory(false))
+      intervalRef.current = setInterval(fetchHistory, 5000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [open, isAuthenticated, fetchHistory])
+
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || sending) return
+    setSending(true); setInput(''); setAdminTyping(true)
+    try {
+      const res = await authFetch('/api/live-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, incidentId }) })
+      const data = await res.json()
+      if (data.messages) { setMessages(data.messages); prevMsgCountRef.current = data.messages.length }
+      if (data.incidentId) setIncidentId(data.incidentId)
+    } catch {}
+    setSending(false)
+    setTimeout(() => setAdminTyping(false), 10000)
+  }
+
+  const handleAnonSend = async () => {
+    const text = anonMessage.trim()
+    if (!text || sending) return
+    setSending(true)
+    try {
+      await fetch('/api/live-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, name: anonName, email: anonEmail }) })
+      setAnonSent(true)
+    } catch {}
+    setSending(false)
+  }
+
+  const formatTime = (dateStr: string) => { try { return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) } catch { return '' } }
+
+  return (
+    <>
+      {!open && (
+        <button onClick={() => setOpen(true)} className="fixed bottom-6 right-6 z-50 bg-gradient-to-br from-primary-500 to-primary-700 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform" aria-label="Ouvrir le chat">
+          <MessageCircle className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
+        </button>
+      )}
+      {open && (
+        <div className="fixed bottom-4 right-4 z-50 w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-5 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative"><div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><Headphones className="h-5 w-5" /></div><span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-primary-600" /></div>
+              <div><p className="font-bold text-sm">Support Ikasso</p><p className="text-[11px] text-white/80 flex items-center gap-1"><span className="w-1.5 h-1.5 bg-green-400 rounded-full" />En ligne</p></div>
+            </div>
+            <button onClick={() => setOpen(false)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors"><X className="h-5 w-5" /></button>
+          </div>
+          {isAuthenticated ? (
+            <>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-white">
+                {loadingHistory && messages.length === 0 && <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-[3px] border-gray-200 border-t-primary-500" /></div>}
+                {!loadingHistory && messages.length === 0 && <div className="text-center py-8"><div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4"><MessageCircle className="h-8 w-8 text-primary-500" /></div><p className="font-semibold text-gray-900 mb-1">Bienvenue !</p><p className="text-sm text-gray-500">Comment pouvons-nous vous aider ?</p></div>}
+                {messages.map((msg: any) => {
+                  const isUser = msg.sender_type === 'user'
+                  return (
+                    <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                      {!isUser && <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center mr-2 mt-1 flex-shrink-0"><Headphones className="h-3.5 w-3.5 text-primary-600" /></div>}
+                      <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${isUser ? 'bg-primary-600 text-white rounded-br-md' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md shadow-sm'}`}>
+                        {!isUser && <p className="text-[10px] font-bold text-primary-600 mb-1">{msg.sender_name || 'Support'}</p>}
+                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        <p className={`text-[10px] mt-1.5 text-right ${isUser ? 'text-white/60' : 'text-gray-400'}`}>{formatTime(msg.created_at)}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+                {adminTyping && (
+                  <div className="flex justify-start">
+                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center mr-2 mt-1 flex-shrink-0"><Headphones className="h-3.5 w-3.5 text-primary-600" /></div>
+                    <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm"><div className="flex items-center gap-1"><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} /><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} /><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} /></div></div>
+                  </div>
+                )}
+                <div ref={bottomRef} />
+              </div>
+              <div className="border-t border-gray-100 p-3 flex gap-2 flex-shrink-0 bg-white">
+                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }} placeholder="Tapez votre message..." className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none bg-gray-50 focus:bg-white transition-all" disabled={sending} />
+                <button onClick={handleSend} disabled={sending || !input.trim()} className="bg-primary-600 text-white p-2.5 rounded-xl hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"><Send className="h-4 w-4" /></button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-gray-50 to-white">
+              {anonSent ? (
+                <div className="text-center py-8 px-4"><div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"><CheckCircle2 className="h-7 w-7 text-green-600" /></div><p className="font-bold text-gray-900 mb-2 text-lg">Message envoye !</p><p className="text-sm text-gray-600 mb-6">Nous vous repondrons par email.</p><Link href="/auth/login" className="inline-block bg-primary-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-700 transition-colors">Se connecter</Link></div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-primary-50 border border-primary-100 rounded-xl p-4"><p className="text-sm font-semibold text-primary-900 mb-1">Pas encore connecte ?</p><p className="text-xs text-primary-700"><Link href="/auth/login" className="underline font-semibold">Connectez-vous</Link> pour un suivi en temps reel.</p></div>
+                  <div><label className="block text-xs font-semibold text-gray-700 mb-1.5">Nom</label><input type="text" value={anonName} onChange={(e) => setAnonName(e.target.value)} placeholder="Votre nom" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/20" /></div>
+                  <div><label className="block text-xs font-semibold text-gray-700 mb-1.5">Email</label><input type="email" value={anonEmail} onChange={(e) => setAnonEmail(e.target.value)} placeholder="votre@email.com" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500/20" /></div>
+                  <div><label className="block text-xs font-semibold text-gray-700 mb-1.5">Message</label><textarea value={anonMessage} onChange={(e) => setAnonMessage(e.target.value)} placeholder="Decrivez votre probleme..." rows={3} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none focus:ring-2 focus:ring-primary-500/20" /></div>
+                  <button onClick={handleAnonSend} disabled={sending || !anonMessage.trim()} className="w-full bg-primary-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-primary-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"><Send className="h-4 w-4" />Envoyer</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
 
 export default function ContactPage() {
+  const [chatOpen, setChatOpen] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -52,9 +196,8 @@ export default function ContactPage() {
               <Logo size="md" />
             </Link>
             <div className="flex items-center space-x-4">
-              <Link href="/demo-accounts" className="text-primary-600 hover:text-primary-700 font-medium">Démo</Link>
               <Link href="/auth/login" className="text-gray-600 hover:text-primary-600">Connexion</Link>
-              <Link href="/auth/register" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">Inscription</Link>
+              <Link href="/auth/register-new" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">Inscription</Link>
             </div>
           </div>
         </div>
@@ -136,11 +279,11 @@ export default function ContactPage() {
                 <p className="text-primary-700 text-sm mb-3">
                   Besoin d'une réponse immédiate ? Chattez avec notre équipe support.
                 </p>
-                <button 
-                  onClick={() => alert('Chat en direct ouvert !\n\nBonjour ! Comment puis-je vous aider aujourd\'hui ?')}
+                <button
+                  onClick={() => setChatOpen(true)}
                   className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
                 >
-                  Démarrer le chat
+                  Demarrer le chat
                 </button>
               </div>
             </div>
@@ -330,8 +473,9 @@ export default function ContactPage() {
           </Link>
         </div>
       </div>
+
+      {/* Live Chat Widget */}
+      <LiveChatWidget open={chatOpen} setOpen={setChatOpen} />
     </div>
   )
 }
-
-
