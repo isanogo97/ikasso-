@@ -10,8 +10,8 @@ const securityHeaders = () => {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: blob: https: http:",
         "font-src 'self' https://fonts.gstatic.com",
-        "connect-src 'self' https://*.supabase.co https://api.stripe.com https://nominatim.openstreetmap.org wss://*.supabase.co",
-        "frame-src https://js.stripe.com",
+        "connect-src 'self' https://*.supabase.co https://api.stripe.com https://nominatim.openstreetmap.org https://accounts.google.com https://appleid.apple.com wss://*.supabase.co",
+        "frame-src https://js.stripe.com https://accounts.google.com https://appleid.apple.com",
         "object-src 'none'",
         "base-uri 'self'",
       ].join('; ')

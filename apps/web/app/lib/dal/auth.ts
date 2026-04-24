@@ -428,11 +428,15 @@ export async function signInWithOAuth(provider: 'google' | 'apple'): Promise<{ e
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        // Use API callback route which handles the OAuth code exchange server-side
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/dashboard`,
+        // Improve compatibility with iOS Safari/WebView
+        skipBrowserRedirect: false,
       },
     })
-    return { error: error?.message || null }
+    if (error) return { error: error.message }
+    return { error: null }
   }
 
-  return { error: 'OAuth non disponible en mode demo' }
+  return { error: 'La connexion avec Apple/Google necessite une configuration. Utilisez votre email et mot de passe.' }
 }

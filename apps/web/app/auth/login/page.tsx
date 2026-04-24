@@ -22,30 +22,48 @@ export default function LoginPage() {
     setIsLoading(true)
     setError('')
 
-    const { error: signInError } = await signIn(email, password)
+    try {
+      const { error: signInError } = await signIn(email, password)
 
-    if (signInError) {
-      setError(signInError)
-      setIsLoading(false)
-      return
-    }
-
-    const userData = localStorage.getItem('ikasso_user')
-    if (userData) {
-      const user = JSON.parse(userData)
-      if (user?.userType === 'hote' || user?.userType === 'host') {
-        window.location.href = '/dashboard/host'
-      } else {
-        window.location.href = '/dashboard'
+      if (signInError) {
+        setError(signInError)
+        setIsLoading(false)
+        return
       }
-    } else {
+
+      let userData: string | null = null
+      try { userData = localStorage.getItem('ikasso_user') } catch {}
+
+      if (userData) {
+        try {
+          const user = JSON.parse(userData)
+          if (user?.userType === 'hote' || user?.userType === 'host') {
+            window.location.href = '/dashboard/host'
+            return
+          }
+        } catch {}
+      }
       window.location.href = '/dashboard'
+    } catch (err: any) {
+      setError(err?.message || 'Erreur de connexion')
+      setIsLoading(false)
     }
   }
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
-    const { error } = await signInWithOAuth(provider)
-    if (error) alert(error)
+    setIsLoading(true)
+    setError('')
+    try {
+      const { error } = await signInWithOAuth(provider)
+      if (error) {
+        setError(error)
+        setIsLoading(false)
+      }
+      // Si succes : la page est redirigee vers le provider OAuth, pas besoin de reset isLoading
+    } catch (err: any) {
+      setError(err?.message || 'Erreur OAuth')
+      setIsLoading(false)
+    }
   }
 
   return (
